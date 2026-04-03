@@ -190,6 +190,10 @@ canvas{display:block;width:100%;height:160px}
 .mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
 .sep{height:1px;background:var(--bd);margin:12px 0}
 .save-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
+/* Chart range buttons */
+.crb{padding:4px 10px;font-size:11px;font-weight:700;border:1.5px solid var(--bd2);border-radius:6px;background:var(--surface);color:var(--tx3);cursor:pointer;transition:all .15s;font-family:var(--font)}
+.crb.active{background:var(--tx);color:#fff;border-color:var(--tx)}
+.crb:hover:not(.active){background:var(--s2)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 </style>
@@ -449,11 +453,21 @@ canvas{display:block;width:100%;height:160px}
 
   <!-- WEIGHT CHART -->
   <div class="card">
-    <div class="sl" style="margin-top:0">Weight Over Time</div>
-    <canvas id="cwt"></canvas>
-    <div class="g2 mt12" style="gap:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="sl" style="margin:0;border:none;padding:0">Weight Over Time</div>
+      <div id="chart-range-btns" style="display:flex;gap:4px">
+        <button class="crb active" data-range="4w" onclick="setChartRange('4w',this)">4W</button>
+        <button class="crb" data-range="8w" onclick="setChartRange('8w',this)">8W</button>
+        <button class="crb" data-range="all" onclick="setChartRange('all',this)">All</button>
+      </div>
+    </div>
+    <!-- Date range label -->
+    <div id="chart-range-label" style="font-size:11px;color:var(--tx3);margin-bottom:8px"></div>
+    <canvas id="cwt" style="height:180px"></canvas>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px">
       <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx3)"><span style="width:14px;height:2px;background:#2563eb;display:inline-block;border-radius:1px"></span>Actual weight</div>
-      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx3)"><span style="width:14px;height:2px;background:#d0d5de;display:inline-block;border-radius:1px;border-top:2px dashed #d0d5de"></span>Forecast</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx3)"><span style="width:14px;height:2px;border-top:2px dashed #888;display:inline-block"></span>Forecast</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx3)"><span style="width:2px;height:12px;background:#d97706;display:inline-block;border-radius:1px"></span>Today</div>
     </div>
   </div>
 
@@ -1200,54 +1214,176 @@ function renderProgress(){
 // ══════════════════════════════════════════
 // CHARTS
 // ══════════════════════════════════════════
+// Chart range state: '4w' = last 4 weeks + next 3, '8w' = last 8 + next 3, 'all' = all + next 3
+let chartRange='4w';
+
+function setChartRange(range, btn){
+  chartRange=range;
+  document.querySelectorAll('.crb').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  drawWeightChart();
+}
+
 function drawWeightChart(){
   const cv=document.getElementById('cwt'),ctx=cv.getContext('2d');
   const dpr=window.devicePixelRatio||1;
-  cv.width=cv.offsetWidth*dpr;cv.height=160*dpr;ctx.scale(dpr,dpr);
-  const W=cv.offsetWidth||340,H=160;ctx.clearRect(0,0,W,H);
-  const s=[...CI].filter(c=>c.weight).sort((a,b)=>new Date(a.date)-new Date(b.date));
-  if(s.length<2){
-    ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';
-    ctx.fillText('Log 2+ check-ins to see chart',W/2,H/2);return;
+  cv.width=cv.offsetWidth*dpr;cv.height=180*dpr;ctx.scale(dpr,dpr);
+  const W=cv.offsetWidth||340,H=180;ctx.clearRect(0,0,W,H);
+
+  // ── Build timeline: past actual data + 21 future forecast days ──
+  const allCI=[...CI].filter(c=>c.weight).sort((a,b)=>new Date(a.date+' 00:00')-new Date(b.date+' 00:00'));
+
+  // Helper: add days to a date string
+  function addDays(dateStr,n){
+    const d=new Date(dateStr+' 00:00');d.setDate(d.getDate()+n);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
-  const wts=s.map(c=>c.weight);
-  const fc=s.map(c=>{const d=Math.max(0,Math.round((new Date(c.date)-new Date(P.startDate))/86400000));return forecastWt(d);});
-  const all=[...wts,...fc.filter(Boolean)];
-  const mn=Math.min(...all)-.5,mx=Math.max(...all)+.5;
-  const pd={l:42,r:10,t:8,b:24};
+  function localParse(str){const p=str.split('-');return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));}
+
+  const todayStr=tod();
+  const startStr=P.startDate||todayStr;
+
+  // Future forecast points: today+1 through today+21
+  const futureFc=[];
+  for(let i=1;i<=21;i++){
+    const ds=addDays(todayStr,i);
+    const daysFromStart=Math.round((localParse(ds)-localParse(startStr))/86400000);
+    futureFc.push({date:ds,fwt:forecastWt(daysFromStart),daysFromStart});
+  }
+
+  // ── Apply date range filter ──
+  let rangeStartStr, rangeEndStr;
+  const rangeDays=chartRange==='4w'?28:chartRange==='8w'?56:null;
+
+  if(rangeDays){
+    rangeStartStr=addDays(todayStr,-rangeDays);
+    rangeEndStr=addDays(todayStr,21); // always show 3 weeks ahead
+  } else {
+    // 'all': from start date to 3 weeks ahead
+    rangeStartStr=startStr;
+    rangeEndStr=addDays(todayStr,21);
+  }
+
+  const filteredCI=allCI.filter(c=>c.date>=rangeStartStr&&c.date<=todayStr);
+  const filteredFc=futureFc.filter(f=>f.date<=rangeEndStr);
+
+  // Update range label
+  const lbl=document.getElementById('chart-range-label');
+  if(lbl){
+    const fmtD=s=>{const d=new Date(s+' 00:00');return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();};
+    lbl.textContent=fmtD(rangeStartStr)+' → '+fmtD(rangeEndStr)+(filteredFc.length?' (incl. '+filteredFc.length+' day forecast)':'');
+  }
+
+  if(filteredCI.length<1&&filteredFc.length<1){
+    ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';
+    ctx.fillText('Log check-ins to see chart',W/2,H/2);return;
+  }
+
+  // ── Build unified X axis: all dates in range ──
+  const allDates=new Set();
+  filteredCI.forEach(c=>allDates.add(c.date));
+  filteredFc.forEach(f=>allDates.add(f.date));
+  // Fill in forecast for past dates too
+  const pastFcMap={};
+  allCI.forEach(c=>{
+    const d=Math.round((localParse(c.date)-localParse(startStr))/86400000);
+    pastFcMap[c.date]=forecastWt(d);
+  });
+
+  const sortedDates=[...allDates].sort();
+  const totalPts=sortedDates.length;
+  if(totalPts<2){
+    ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';
+    ctx.fillText('Not enough data yet',W/2,H/2);return;
+  }
+
+  // Build weight and forecast arrays aligned to sortedDates
+  const actualWts=sortedDates.map(d=>{
+    const ci=filteredCI.find(c=>c.date===d);
+    return ci?ci.weight:null;
+  });
+  const fcWts=sortedDates.map(d=>{
+    if(pastFcMap[d]) return pastFcMap[d];
+    const ff=filteredFc.find(f=>f.date===d);
+    return ff?ff.fwt:null;
+  });
+
+  // ── Scale ──
+  const allVals=[...actualWts.filter(Boolean),...fcWts.filter(Boolean)];
+  if(!allVals.length)return;
+  const mn=Math.min(...allVals)-0.5,mx=Math.max(...allVals)+0.5;
+  const pd={l:42,r:10,t:10,b:26};
   const gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
-  const xS=i=>pd.l+(i/(s.length-1))*gW;
+  const xS=i=>pd.l+(totalPts<=1?0:(i/(totalPts-1)))*gW;
   const yS=v=>pd.t+gH-((v-mn)/(mx-mn))*gH;
-  // Grid
-  [0,.5,1].forEach(t=>{
+
+  // ── Grid ──
+  [0,.33,.67,1].forEach(t=>{
     const y=pd.t+t*gH;
     ctx.strokeStyle='rgba(0,0,0,.05)';ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(W-pd.r,y);ctx.stroke();
     ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='right';
     ctx.fillText((mx-t*(mx-mn)).toFixed(1),pd.l-4,y+3);
   });
-  // Forecast
-  ctx.strokeStyle='#d0d5de';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
-  ctx.beginPath();fc.forEach((f,i)=>{if(!f)return;i===0?ctx.moveTo(xS(i),yS(f)):ctx.lineTo(xS(i),yS(f));});
-  ctx.stroke();ctx.setLineDash([]);
-  // Area
-  const g=ctx.createLinearGradient(0,pd.t,0,H-pd.b);
-  g.addColorStop(0,'rgba(37,99,235,.12)');g.addColorStop(1,'rgba(37,99,235,0)');
-  ctx.beginPath();wts.forEach((v,i)=>i===0?ctx.moveTo(xS(i),yS(v)):ctx.lineTo(xS(i),yS(v)));
-  ctx.lineTo(xS(wts.length-1),H-pd.b);ctx.lineTo(xS(0),H-pd.b);ctx.closePath();
-  ctx.fillStyle=g;ctx.fill();
-  // Line
-  ctx.strokeStyle='#2563eb';ctx.lineWidth=2;
-  ctx.beginPath();wts.forEach((v,i)=>i===0?ctx.moveTo(xS(i),yS(v)):ctx.lineTo(xS(i),yS(v)));ctx.stroke();
-  // Dots
-  wts.forEach((v,i)=>{
-    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(i),yS(v),3.5,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='#2563eb';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(i),yS(v),3.5,0,Math.PI*2);ctx.stroke();
+
+  // ── TODAY vertical line ──
+  const todayIdx=sortedDates.indexOf(todayStr);
+  if(todayIdx>=0){
+    const tx=xS(todayIdx);
+    ctx.strokeStyle='#d97706';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(tx,pd.t);ctx.lineTo(tx,H-pd.b);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#d97706';ctx.font='8px Inter';ctx.textAlign='center';
+    ctx.fillText('TODAY',tx,pd.t+7);
+  }
+
+  // ── Forecast line (full range: past + future, dashed) ──
+  ctx.strokeStyle='#999';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+  ctx.beginPath();let fcStarted=false;
+  fcWts.forEach((v,i)=>{
+    if(!v)return;
+    if(!fcStarted){ctx.moveTo(xS(i),yS(v));fcStarted=true;}
+    else ctx.lineTo(xS(i),yS(v));
   });
-  // X labels
+  ctx.stroke();ctx.setLineDash([]);
+
+  // ── Actual weight area fill ──
+  const actPts=sortedDates.map((d,i)=>actualWts[i]!==null?{i,v:actualWts[i]}:null).filter(Boolean);
+  if(actPts.length>=2){
+    const g=ctx.createLinearGradient(0,pd.t,0,H-pd.b);
+    g.addColorStop(0,'rgba(37,99,235,.15)');g.addColorStop(1,'rgba(37,99,235,0)');
+    ctx.beginPath();
+    actPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.i),yS(p.v)):ctx.lineTo(xS(p.i),yS(p.v)));
+    ctx.lineTo(xS(actPts[actPts.length-1].i),H-pd.b);
+    ctx.lineTo(xS(actPts[0].i),H-pd.b);ctx.closePath();
+    ctx.fillStyle=g;ctx.fill();
+  }
+
+  // ── Actual weight line ──
+  if(actPts.length>=2){
+    ctx.strokeStyle='#2563eb';ctx.lineWidth=2.5;
+    ctx.beginPath();
+    actPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.i),yS(p.v)):ctx.lineTo(xS(p.i),yS(p.v)));
+    ctx.stroke();
+  }
+
+  // ── Dots on actual points ──
+  actPts.forEach(p=>{
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(p.i),yS(p.v),3.5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#2563eb';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(p.i),yS(p.v),3.5,0,Math.PI*2);ctx.stroke();
+  });
+
+  // ── X axis date labels ──
   ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='center';
-  const step=Math.max(1,Math.floor(s.length/5));
-  s.forEach((c,i)=>{if(i%step===0||i===s.length-1){const dt=new Date(c.date+' 00:00');ctx.fillText(`${dt.getDate()}/${dt.getMonth()+1}`,xS(i),H-4);}});
+  const labelStep=Math.max(1,Math.floor(totalPts/6));
+  sortedDates.forEach((d,i)=>{
+    if(i%labelStep===0||i===totalPts-1){
+      const dt=new Date(d+' 00:00');
+      const isFuture=d>todayStr;
+      ctx.fillStyle=isFuture?'#d97706':'#9aa0b0';
+      ctx.fillText(dt.getDate()+'/'+(dt.getMonth()+1),xS(i),H-5);
+    }
+  });
 }
 
 function drawWellnessChart(){
