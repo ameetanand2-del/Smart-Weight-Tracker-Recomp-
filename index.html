@@ -326,7 +326,7 @@ canvas{display:block;width:100%;height:160px}
     <!-- Date picker -->
     <div class="fg">
       <label>Date</label>
-      <input type="date" id="ci-date" max="">
+      <input type="date" id="ci-date">
     </div>
 
     <!-- Trained today toggle -->
@@ -719,7 +719,7 @@ function loadDemo(){
     startBF:27,targetBF:15,lbm:61.6,fatToLose:10.2,targetWt:71.6,
     tdee:2450,deficit:250,pace:'gentle',
     trainDay:2350,restDay:2050,exp:'intermediate',
-    startDate:sd.toISOString().split('T')[0]
+    startDate:(()=>{const y=sd.getFullYear(),m=String(sd.getMonth()+1).padStart(2,'0'),d=String(sd.getDate()).padStart(2,'0');return y+'-'+m+'-'+d;})()
   };
   CI=[];
   for(let i=21;i>=0;i--){
@@ -729,7 +729,7 @@ function loadDemo(){
     const wt=parseFloat((P.startWt-(de*P.deficit/7700)+(Math.random()-.5)*.4).toFixed(1));
     const baseWell=5+Math.min(de*.1,2); // improves slightly over time
     CI.push({
-      date:d.toISOString().split('T')[0],
+      date:(()=>{const y=d.getFullYear(),mo=String(d.getMonth()+1).padStart(2,'0'),dy=String(d.getDate()).padStart(2,'0');return y+'-'+mo+'-'+dy;})(),
       weight:wt,
       trained:Math.random()>.4,
       sleep:Math.min(10,parseFloat((baseWell+Math.random()*2).toFixed(1))),
@@ -744,10 +744,20 @@ function loadDemo(){
 // ══════════════════════════════════════════
 // UTILITIES
 // ══════════════════════════════════════════
-const tod=()=>new Date().toISOString().split('T')[0];
+// Local date in YYYY-MM-DD — uses device timezone, not UTC
+// This fixes the India (UTC+5:30) issue where toISOString() returns yesterday's date
+function tod(){
+  const d=new Date();
+  const yr=d.getFullYear();
+  const mo=String(d.getMonth()+1).padStart(2,'0');
+  const dy=String(d.getDate()).padStart(2,'0');
+  return yr+'-'+mo+'-'+dy;
+}
 function daysSince(fromDate){
   if(!fromDate)return 0;
-  return Math.max(0,Math.round((new Date(tod())-new Date(fromDate))/86400000));
+  // Parse both as local midnight to avoid timezone offset in day count
+  function localDate(str){const p=str.split('-');return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));}
+  return Math.max(0,Math.round((localDate(tod())-localDate(fromDate))/86400000));
 }
 function lastN(n){return [...CI].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,n);}
 function avg(arr,k){const v=arr.filter(c=>c[k]!=null).map(c=>parseFloat(c[k]));return v.length?parseFloat((v.reduce((s,x)=>s+x,0)/v.length).toFixed(1)):null;}
@@ -1008,8 +1018,13 @@ function buildWeeklyInsight(){
 function initCIDate(){
   const today=tod();
   const ci=document.getElementById('ci-date');
-  ci.max=today;
-  ci.value=today;
+  if(ci){
+    ci.max=today;
+    // Only set value if it's empty or in the future (don't overwrite user-chosen past date)
+    if(!ci.value||ci.value>today) ci.value=today;
+  }
+  const lbl=document.getElementById('today-date');
+  if(lbl) lbl.textContent=new Date().toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
 }
 function setSR(f,v){
   document.getElementById('rv-'+f).textContent=v;
@@ -1028,9 +1043,10 @@ function onTrainToggle(){
 }
 function saveCI(){
   const wt=parseFloat(document.getElementById('ci-wt').value);
-  const date=document.getElementById('ci-date').value;
+  // Get date — default to today if input is empty (handles iOS quirks)
+  let date=document.getElementById('ci-date').value;
+  if(!date||date.trim()==='') date=tod();
   if(!wt){alert('Please enter your weight.');return;}
-  if(!date){alert('Please select a date.');return;}
   // Prevent future dates
   if(date>tod()){alert('Cannot log a future date.');return;}
   const entry={
@@ -1044,11 +1060,14 @@ function saveCI(){
   const idx=CI.findIndex(c=>c.date===date);
   if(idx>=0)CI[idx]=entry;else CI.push(entry);
   save();
+  // Show confirmation immediately — before rendering so any render error doesn't block it
   const msg=document.getElementById('ci-saved');
-  msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);
-  renderAll();
-  // Reset date to today after saving past entry
-  document.getElementById('ci-date').value=tod();
+  if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}
+  // Reset date to today
+  const dInput=document.getElementById('ci-date');
+  if(dInput) dInput.value=tod();
+  // Re-render (wrapped so any error doesn't swallow the save)
+  try{renderAll();}catch(e){console.warn('Render error after save:',e);}
 }
 
 // ══════════════════════════════════════════
@@ -1082,15 +1101,16 @@ function renderToday(){
   }
 
   // Daily insight
-  const ins=buildInsight();
+  let ins={html:'',cls:'ic-info'};
+  try{ins=buildInsight();}catch(e){ins={html:'Log check-ins to see observations.',cls:'ic-info'};console.warn('Insight error:',e);}
   const insEl=document.getElementById('daily-insight');
   const insTxt=document.getElementById('daily-insight-text');
-  insEl.className='ic '+ins.cls;
-  insTxt.innerHTML=ins.html;
+  if(insEl) insEl.className='ic '+ins.cls;
+  if(insTxt) insTxt.innerHTML=ins.html||'';
   // Sync to insights tab
   const insD=document.getElementById('ins-daily');
   const insDT=document.getElementById('ins-daily-text');
-  if(insD){insD.className='ic '+ins.cls;insDT.innerHTML=ins.html;}
+  if(insD){insD.className='ic '+ins.cls;if(insDT)insDT.innerHTML=ins.html||'';}
 
   renderHistory();
 }
