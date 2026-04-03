@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Recomp Coach</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Backgrounds */
+  --bg:#f0f0ed;       /* warm off-white — easy on eyes, not stark */
+  --surface:#ffffff;
+  --s2:#f4f4f2;       /* slightly warm grey for inner sections */
+
+  /* Borders — visible enough to separate lines clearly */
+  --bd:#d4d4d0;
+  --bd2:#b8b8b4;
+
+  /* Text — all high contrast */
+  --tx:#111111;       /* near-black — main text */
+  --tx2:#444444;      /* secondary labels */
+  --tx3:#777777;      /* muted hints */
+
+  /* Semantic colours — used sparingly */
+  --green:#15803d;    /* on track, good */
+  --gbg:#f0fdf4;
+  --gbd:#86efac;
+
+  --red:#b91c1c;      /* warning, flag, needs attention */
+  --rbg:#fef2f2;
+  --rbd:#fca5a5;
+
+  --blue:#1d4ed8;     /* today's targets only */
+  --bbg:#eff6ff;
+  --bbd:#93c5fd;
+
+  /* Neutral for everything else */
+  --yellow:#92400e;   /* kept but used rarely */
+  --ybg:#fffbeb;
+  --ybd:#fcd34d;
+
+  --purple:#6d28d9;
+  --pbg:#f5f3ff;
+  --pbd:#c4b5fd;
+
+  --accent:#1d4ed8;
+  --font:'Inter',sans-serif;--disp:'Syne',sans-serif;
+  --r:12px;--rs:8px;
+  --sh:0 1px 4px rgba(0,0,0,.08);
+  --nh:62px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow:hidden}
+#app{height:100dvh;display:flex;flex-direction:column}
+#content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nh)+40px)}
+.page{display:none;padding:16px 16px 24px;animation:fu .2s ease}
+.page.active{display:block}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;height:var(--nh);background:var(--surface);border-top:1px solid var(--bd);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--tx3);font-family:var(--font);font-size:9px;font-weight:600;cursor:pointer;transition:color .15s;padding:6px 0;letter-spacing:.4px;text-transform:uppercase;position:relative}
+.nb svg{width:20px;height:20px}
+.nb.active{color:var(--tx)}
+.nb.active::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:3px;background:var(--tx);border-radius:0 0 3px 3px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.card + .card{margin-top:0}
+.csm{padding:12px 14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+/* TYPE */
+.pt{font-family:var(--disp);font-size:22px;font-weight:800;letter-spacing:-.3px;margin-bottom:16px;color:var(--tx)}
+.sl{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2);margin:18px 0 8px;border-bottom:1px solid var(--bd);padding-bottom:6px}
+.sl:first-child{margin-top:0}
+
+/* CHIPS — minimal, only where truly needed */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.2px}
+.cg{background:var(--gbg);color:var(--green);border:1px solid var(--gbd)}
+.cy{background:var(--ybg);color:var(--yellow);border:1px solid var(--ybd)}
+.cr{background:var(--rbg);color:var(--red);border:1px solid var(--rbd)}
+.cb{background:var(--bbg);color:var(--blue);border:1px solid var(--bbd)}
+.cp{background:var(--pbg);color:var(--purple);border:1px solid var(--pbd)}
+
+/* STAT */
+.sv{font-family:var(--disp);font-size:28px;font-weight:800;line-height:1;color:var(--tx)}
+.sl2{font-size:11px;color:var(--tx3);font-weight:500;margin-top:3px}
+
+/* FORMS */
+.fg{margin-bottom:14px}
+.fg:last-child{margin-bottom:0}
+label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--tx);margin-bottom:6px}
+input[type="number"],input[type="date"],input[type="text"],select,textarea{width:100%;background:var(--surface);border:1.5px solid var(--bd2);border-radius:var(--rs);color:var(--tx);font-family:var(--font);font-size:15px;font-weight:500;padding:10px 12px;outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239aa0b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+input[type="date"]{color-scheme:light}
+
+/* SLIDER */
+.sr{display:flex;align-items:center;gap:10px}
+.sr input[type="range"]{flex:1;-webkit-appearance:none;height:5px;background:var(--bd2);border-radius:3px;outline:none;padding:0;border:none;background-image:linear-gradient(var(--accent),var(--accent));background-size:50% 100%;background-repeat:no-repeat}
+.sr input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);cursor:pointer;box-shadow:0 1px 3px rgba(37,99,235,.25)}
+.sv2{font-size:16px;font-weight:700;min-width:26px;text-align:right;font-variant-numeric:tabular-nums}
+.slider-label{display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-top:5px}
+
+/* TOGGLE */
+.tr{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd)}
+.tr:last-child{border-bottom:none;padding-bottom:0}
+.tog{position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0}
+.tog input{display:none}
+.tt{width:100%;height:100%;background:var(--bd2);border-radius:12px;transition:background .2s}
+.tog input:checked+.tt{background:var(--tx)}
+.th{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:transform .2s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog input:checked~.th{transform:translateX(20px)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;border-radius:10px;border:none;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.btp{background:var(--tx);color:#fff;width:100%;font-size:15px}
+.btp:active{transform:scale(.98);background:#333}
+.btg{background:var(--surface);color:var(--tx);border:1.5px solid var(--bd2)}
+.btg:hover{background:var(--s2)}
+.bts{padding:7px 14px;font-size:12px;border-radius:var(--rs)}
+.btd{background:var(--rbg);color:var(--red);border:1.5px solid var(--rbd);font-weight:700}
+
+/* DIVIDER ROWS */
+.dr{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--bd);font-size:14px}
+.dr:last-child{border-bottom:none}
+.bdg{font-size:14px;font-weight:700;color:var(--tx)}
+.tmu{color:var(--tx2);font-size:14px}
+.ev{font-weight:700;font-size:14px;color:var(--blue);cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+
+/* INSIGHT CARD — high contrast, clear visual hierarchy */
+.ic{border-radius:var(--r);padding:14px 16px;margin-bottom:12px;font-size:14px;line-height:1.65;border-left:4px solid;border-top:1px solid var(--bd);border-right:1px solid var(--bd);border-bottom:1px solid var(--bd);background:var(--surface);color:var(--tx)}
+.ic-good{border-left-color:var(--green)}
+.ic-warn{border-left-color:var(--red)}
+.ic-flag{border-left-color:var(--red);background:var(--rbg)}
+.ic-info{border-left-color:var(--blue)}
+.ic-label{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;color:var(--tx3)}
+
+/* PROGRESS RING */
+.ring-wrap{display:flex;flex-direction:column;align-items:center;padding:8px 0 4px}
+.ring-svg{width:140px;height:140px}
+.ring-bg{fill:none;stroke:var(--s2);stroke-width:10}
+.ring-fill{fill:none;stroke:var(--accent);stroke-width:10;stroke-linecap:round;stroke-dasharray:339;stroke-dashoffset:339;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 1s ease}
+.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.ring-outer{position:relative;width:140px;height:140px}
+.ring-pct{font-family:var(--disp);font-size:26px;font-weight:800;color:var(--tx);line-height:1}
+.ring-lbl{font-size:11px;color:var(--tx3)}
+
+/* PROG BAR */
+.pb-wrap{background:var(--s2);border-radius:4px;height:8px;overflow:hidden}
+.pb-fill{height:100%;border-radius:4px;transition:width .6s ease}
+
+/* SETUP */
+#setup{position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto;padding:32px 18px 40px}
+.slogo{font-family:var(--disp);font-size:28px;font-weight:800;letter-spacing:-.5px;text-align:center;margin-bottom:4px}
+.slogo span{color:var(--accent)}
+.ssub{font-size:13px;color:var(--tx3);text-align:center;margin-bottom:28px}
+.pace-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.pace-btn{border:2px solid var(--bd);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface)}
+.pace-btn.active{border-color:var(--tx);background:var(--s2)}
+.pace-title{font-weight:700;font-size:13px;margin-bottom:2px;color:var(--tx)}
+.pace-sub{font-size:11px;color:var(--tx3)}
+.pace-btn.active .pace-title{color:var(--tx)}
+.pace-btn.active .pace-sub{color:var(--tx2)}
+.unit-tog{display:flex;border:1.5px solid var(--bd2);border-radius:7px;overflow:hidden}
+.ub{flex:1;padding:3px 10px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--tx3);transition:all .15s}
+.ub.active{background:var(--accent);color:#fff}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end}
+.mo.hidden{display:none}
+.md{background:var(--surface);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto}
+.mdt{font-family:var(--disp);font-size:16px;font-weight:800;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+.mc{background:var(--s2);border:none;color:var(--tx2);width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* HISTORY ACCORDION */
+.acc-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 0;cursor:pointer;font-weight:600;font-size:13px;color:var(--tx2)}
+.acc-body{display:none}
+.acc-body.open{display:block}
+.hist-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.hist-row:last-child{border-bottom:none}
+
+/* CANVAS */
+canvas{display:block;width:100%;height:160px}
+
+/* MISC */
+.tsm{font-size:12px;color:var(--tx3)}.tmu{color:var(--tx2);font-size:14px}.tc{text-align:center}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}
+.sep{height:1px;background:var(--bd);margin:12px 0}
+.save-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup">
+  <div class="slogo">Recomp<span>Coach</span></div>
+  <div class="ssub">Your personal fat loss and health tracker</div>
+  <div class="card">
+    <div class="fg">
+      <label style="justify-content:space-between">
+        <span id="htl">Height (cm)</span>
+        <div class="unit-tog"><button class="ub active" id="ucm" onclick="setHU('cm')">CM</button><button class="ub" id="uft" onclick="setHU('ft')">FT</button></div>
+      </label>
+      <input type="number" id="s-ht-cm" placeholder="175" step="1">
+      <div id="s-ht-fw" style="display:none;gap:8px" class="g2">
+        <div><input type="number" id="s-ht-ft" placeholder="5" min="3" max="8"><div class="tsm mt8 tc">feet</div></div>
+        <div><input type="number" id="s-ht-in" placeholder="9" min="0" max="11"><div class="tsm mt8 tc">inches</div></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label>Weight (kg)</label><input type="number" id="s-wt" placeholder="84" step="0.1"></div>
+      <div class="fg"><label>Age</label><input type="number" id="s-age" placeholder="30"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label>Current Body Fat %</label><input type="number" id="s-bf" placeholder="27" step="0.5"></div>
+      <div class="fg"><label>Target Body Fat %</label><input type="number" id="s-tbf" placeholder="15" step="0.5"></div>
+    </div>
+    <div class="fg">
+      <label>Sex</label>
+      <select id="s-sex"><option value="male">Male</option><option value="female">Female</option></select>
+    </div>
+    <div class="fg">
+      <label>Activity Level</label>
+      <select id="s-act">
+        <option value="1.2">Sedentary (desk job, little movement)</option>
+        <option value="1.375" selected>Lightly Active (some walking, light exercise)</option>
+        <option value="1.55">Moderately Active (active job or regular exercise)</option>
+        <option value="1.725">Very Active (labour job + regular gym)</option>
+      </select>
+    </div>
+    <div class="fg" style="margin-bottom:0">
+      <label>Training Experience
+        <span class="tsm" style="margin-left:auto;font-weight:400">Affects muscle gain estimate</span>
+      </label>
+      <select id="s-exp">
+        <option value="beginner">Beginner — 0 to 1 year of consistent lifting</option>
+        <option value="intermediate" selected>Intermediate — 1 to 3 years</option>
+        <option value="advanced">Advanced — 3 to 6 years</option>
+        <option value="elite">Elite — 6+ years</option>
+      </select>
+      <div class="tsm mt8" id="exp-hint" style="color:var(--tx3)">Expected muscle gain: ~0.5 kg/month (intermediate)</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sl" style="margin-top:0">Fat Loss Pace</div>
+    <div class="pace-grid" id="pace-grid">
+      <div class="pace-btn active" data-pace="gentle" onclick="setPace(this)">
+        <div class="pace-title">Gentle</div>
+        <div class="pace-sub">150–200 kcal deficit</div>
+        <div class="pace-sub mt8" style="color:var(--green)">~0.14 kg fat/wk</div>
+      </div>
+      <div class="pace-btn" data-pace="moderate" onclick="setPace(this)">
+        <div class="pace-title">Moderate</div>
+        <div class="pace-sub">250–300 kcal deficit</div>
+        <div class="pace-sub mt8" style="color:var(--yellow)">~0.23 kg fat/wk</div>
+      </div>
+      <div class="pace-btn" data-pace="faster" onclick="setPace(this)">
+        <div class="pace-title">Faster</div>
+        <div class="pace-sub">400–450 kcal deficit</div>
+        <div class="pace-sub mt8" style="color:var(--red)">~0.37 kg fat/wk</div>
+      </div>
+    </div>
+    <div class="ic ic-info mt12" id="pace-hint">
+      <div class="ic-label">Good for you if</div>
+      Recommended if you have inflammation, blood sugar sensitivity or fatigue. Prioritises feeling good while losing fat slowly but steadily.
+    </div>
+  </div>
+  <div id="setup-summary" style="display:none" class="card">
+    <div class="sl" style="margin-top:0">Your Estimated Plan</div>
+    <div id="sum-body"></div>
+  </div>
+  <button class="btn btp mt12" onclick="finishSetup()">Start My Journey →</button>
+  <div style="text-align:center;margin-top:14px">
+    <button class="btn btg bts" onclick="loadDemo()">Load Demo Data</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+<div id="content">
+
+<!-- TODAY TAB -->
+<div class="page active" id="page-today">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="pt" style="margin-bottom:0">Today</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="save-dot" title="Auto-saved"></span>
+      <span class="tsm" id="today-date"></span>
+    </div>
+  </div>
+
+  <!-- DAILY INSIGHT -->
+  <div id="daily-insight" class="ic ic-info">
+    <div class="ic-label">📊 DAILY OBSERVATION</div>
+    <div id="daily-insight-text">Log your first check-in to start receiving daily observations.</div>
+  </div>
+
+  <!-- STATUS STRIP -->
+  <div class="g3" style="margin-bottom:12px">
+    <div class="card csm tc" style="margin-bottom:0">
+      <div class="sl2">Fat Lost</div>
+      <div style="font-family:var(--disp);font-size:20px;font-weight:800;color:var(--green)" id="s-fat-lost">—</div>
+      <div class="tsm">kg so far</div>
+    </div>
+    <div class="card csm tc" style="margin-bottom:0">
+      <div class="sl2">Today's Cals</div>
+      <div style="font-family:var(--disp);font-size:20px;font-weight:800;color:var(--blue)" id="s-today-cals">—</div>
+      <div class="tsm" id="s-cal-type">target</div>
+    </div>
+    <div class="card csm tc" style="margin-bottom:0">
+      <div class="sl2">This Week</div>
+      <div style="font-family:var(--disp);font-size:20px;font-weight:800" id="s-week-fl">—</div>
+      <div class="tsm">kg lost</div>
+    </div>
+  </div>
+
+  <!-- CHECK-IN FORM -->
+  <div class="card">
+    <div class="sl" style="margin-top:0">Check-In</div>
+
+    <!-- Date picker -->
+    <div class="fg">
+      <label>Date</label>
+      <input type="date" id="ci-date" max="">
+    </div>
+
+    <!-- Trained today toggle -->
+    <div class="tr">
+      <div>
+        <div style="font-weight:600;font-size:14px">Trained today?</div>
+        <div class="tsm" id="ci-train-hint">Rest day calories apply</div>
+      </div>
+      <label class="tog"><input type="checkbox" id="ci-train" onchange="onTrainToggle()"><div class="tt"></div><div class="th"></div></label>
+    </div>
+
+    <!-- Weight -->
+    <div class="fg mt12">
+      <label>Morning Weight (kg)</label>
+      <input type="number" id="ci-wt" placeholder="84.0" step="0.1">
+    </div>
+
+    <!-- Sliders -->
+    <div class="fg">
+      <label>Sleep Quality
+        <span class="tsm" style="margin-left:auto;font-weight:400">10 = slept great</span>
+      </label>
+      <div class="sr"><input type="range" id="ci-sl" min="1" max="10" value="7" oninput="setSR('sl',this.value)"><div class="sv2" id="rv-sl" style="color:var(--accent)">7</div></div>
+      <div class="slider-label"><span>Poor sleep</span><span>Great sleep ↑</span></div>
+    </div>
+
+    <div class="fg">
+      <label>Hunger Control
+        <span class="tsm" style="margin-left:auto;font-weight:400">10 = not hungry at all</span>
+      </label>
+      <div class="sr"><input type="range" id="ci-hu" min="1" max="10" value="7" oninput="setSR('hu',this.value)"><div class="sv2" id="rv-hu" style="color:var(--accent)">7</div></div>
+      <div class="slider-label"><span>Very hungry</span><span>Not hungry ↑</span></div>
+    </div>
+
+    <div class="fg">
+      <label>Energy Level
+        <span class="tsm" style="margin-left:auto;font-weight:400">10 = high energy</span>
+      </label>
+      <div class="sr"><input type="range" id="ci-en" min="1" max="10" value="7" oninput="setSR('en',this.value)"><div class="sv2" id="rv-en" style="color:var(--accent)">7</div></div>
+      <div class="slider-label"><span>Exhausted</span><span>High energy ↑</span></div>
+    </div>
+
+    <div class="fg" style="margin-bottom:0">
+      <label>Focus & Mental Clarity
+        <span class="tsm" style="margin-left:auto;font-weight:400">10 = sharp and clear</span>
+      </label>
+      <div class="sr"><input type="range" id="ci-fo" min="1" max="10" value="7" oninput="setSR('fo',this.value)"><div class="sv2" id="rv-fo" style="color:var(--accent)">7</div></div>
+      <div class="slider-label"><span>Brain fog</span><span>Sharp focus ↑</span></div>
+    </div>
+
+    <button class="btn btp mt12" onclick="saveCI()">Save Check-In</button>
+    <div id="ci-saved" class="ic ic-good mt12" style="display:none">✓ Check-in saved!</div>
+  </div>
+
+  <!-- HISTORY ACCORDION -->
+  <div class="card">
+    <div class="acc-hdr" onclick="toggleHistory()">
+      <span>Past Check-Ins</span>
+      <span id="acc-arrow" style="font-size:18px;color:var(--tx3)">›</span>
+    </div>
+    <div class="acc-body" id="history-body">
+      <div id="history-list"><div class="tsm" style="padding:8px 0">No check-ins yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS TAB -->
+<div class="page" id="page-progress">
+  <div class="pt">Progress</div>
+
+  <!-- BF% RING -->
+  <div class="card tc">
+    <div class="sl" style="margin-top:0">Journey to 15% Body Fat</div>
+    <div class="ring-wrap">
+      <div class="ring-outer">
+        <svg class="ring-svg" viewBox="0 0 120 120">
+          <circle class="ring-bg" cx="60" cy="60" r="54"/>
+          <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="54"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-pct" id="ring-pct">—</div>
+          <div class="ring-lbl">complete</div>
+        </div>
+      </div>
+    </div>
+    <div class="g3 mt12">
+      <div>
+        <div style="font-family:var(--disp);font-size:18px;font-weight:800;color:var(--tx)" id="pr-bf-now">—</div>
+        <div class="sl2">Current BF%</div>
+      </div>
+      <div>
+        <div style="font-family:var(--disp);font-size:18px;font-weight:800;color:var(--blue)" id="pr-bf-tgt">—</div>
+        <div class="sl2">Target BF%</div>
+      </div>
+      <div>
+        <div style="font-family:var(--disp);font-size:18px;font-weight:800;color:var(--green)" id="pr-bf-drop">—</div>
+        <div class="sl2">BF% Dropped</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THREE KEY NUMBERS -->
+  <div class="g3">
+    <div class="card csm tc">
+      <div style="font-family:var(--disp);font-size:20px;font-weight:800;color:var(--green)" id="pr-fat-lost">—</div>
+      <div class="sl2">Fat Lost (kg)</div>
+    </div>
+    <div class="card csm tc">
+      <div style="font-family:var(--disp);font-size:20px;font-weight:800;color:var(--tx)" id="pr-muscle">—</div>
+      <div class="sl2">Muscle Gained</div>
+    </div>
+    <div class="card csm tc">
+      <div style="font-family:var(--disp);font-size:20px;font-weight:800" id="pr-scale">—</div>
+      <div class="sl2">Scale Change</div>
+    </div>
+  </div>
+  <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.6;color:var(--tx2)">
+    <strong style="color:var(--tx)">Why the scale moves slowly:</strong> Fat lost minus muscle gained = net scale change. At a 250 kcal deficit you lose ~0.23 kg fat/week but gain ~0.13 kg muscle. Scale drops ~0.10 kg/week — but your body composition is changing significantly.
+  </div>
+
+  <!-- WEIGHT CHART -->
+  <div class="card">
+    <div class="sl" style="margin-top:0">Weight Over Time</div>
+    <canvas id="cwt"></canvas>
+    <div class="g2 mt12" style="gap:16px">
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx3)"><span style="width:14px;height:2px;background:#2563eb;display:inline-block;border-radius:1px"></span>Actual weight</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx3)"><span style="width:14px;height:2px;background:#d0d5de;display:inline-block;border-radius:1px;border-top:2px dashed #d0d5de"></span>Forecast</div>
+    </div>
+  </div>
+
+  <!-- WELLNESS CHART -->
+  <div class="card">
+    <div class="sl" style="margin-top:0">Wellbeing Trends (last 14 days)</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:10px;height:10px;border-radius:50%;background:#2563eb;display:inline-block"></span>Sleep</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:10px;height:10px;border-radius:50%;background:#16a34a;display:inline-block"></span>Energy</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:10px;height:10px;border-radius:50%;background:#d97706;display:inline-block"></span>Hunger Control</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:10px;height:10px;border-radius:50%;background:#7c3aed;display:inline-block"></span>Focus</div>
+    </div>
+    <canvas id="cwl"></canvas>
+    <div class="tsm mt8 tc">Higher = better for all metrics</div>
+  </div>
+
+  <!-- 7-DAY AVERAGES -->
+  <div class="card">
+    <div class="sl" style="margin-top:0">7-Day Averages</div>
+    <div id="week-avgs"></div>
+  </div>
+</div>
+
+<!-- INSIGHTS TAB -->
+<div class="page" id="page-insights">
+  <div class="pt">Insights</div>
+
+  <!-- DAILY -->
+  <div class="sl" style="margin-top:0">Today's Observation</div>
+  <div id="ins-daily" class="ic ic-info">
+    <div class="ic-label">📊 OBSERVATION</div>
+    <div id="ins-daily-text">Log check-ins to unlock daily observations.</div>
+  </div>
+
+  <!-- WEEKLY (Sunday) -->
+  <div class="sl" style="display:flex;justify-content:space-between;align-items:center">
+    <span>Weekly Review</span>
+    <span id="weekly-badge" class="tsm" style="text-transform:none;letter-spacing:0;color:var(--tx3)"></span>
+  </div>
+  <div id="ins-weekly" class="ic ic-info">
+    <div class="ic-label">📅 WEEKLY REVIEW</div>
+    <div id="ins-weekly-text">Your weekly review will appear here on Sundays, or once you have 7+ check-ins.</div>
+  </div>
+
+  <!-- ADJUST PLAN -->
+  <div class="sl">Adjust My Plan</div>
+  <div class="card">
+    <div class="dr">
+      <span class="tmu">TDEE (maintenance)</span>
+      <span class="bdg" id="adj-tdee">—</span>
+    </div>
+    <div class="dr">
+      <span class="tmu">Current Deficit</span>
+      <span class="bdg" id="adj-deficit" style="color:var(--blue)">—</span>
+    </div>
+    <div class="dr">
+      <span class="tmu">Fat Loss / Week</span>
+      <span class="bdg" id="adj-fat-rate" style="color:var(--green)">—</span>
+    </div>
+    <div class="sep"></div>
+    <div class="fg">
+      <label>Training Day Calories</label>
+      <div style="display:flex;gap:8px">
+        <input type="number" id="adj-train" placeholder="2200">
+        <button class="btn btg bts" onclick="applyAdj()">Save</button>
+      </div>
+    </div>
+    <div class="fg" style="margin-bottom:0">
+      <label>Rest Day Calories</label>
+      <input type="number" id="adj-rest" placeholder="1950">
+    </div>
+    <div id="adj-preview" style="font-size:13px;display:none;margin-top:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--tx2)"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="sl">Settings</div>
+  <div class="card">
+    <div class="dr"><span class="tmu">Last saved</span><span class="tsm" id="last-saved">—</span></div>
+    <div class="sep"></div>
+    <button class="btn btd bts" onclick="resetAll()">🗑 Reset All Data</button>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- NAV -->
+<nav id="nav">
+  <button class="nb active" onclick="goPage('today',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span>Today</span>
+  </button>
+  <button class="nb" onclick="goPage('progress',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span>Progress</span>
+  </button>
+  <button class="nb" onclick="goPage('insights',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span>Insights</span>
+  </button>
+</nav>
+</div><!-- /app -->
+
+<!-- MODAL -->
+<div class="mo hidden" id="modal" onclick="cmo(event)">
+  <div class="md"><div class="mdt"><span id="modal-title">—</span><button class="mc" onclick="closeModal()">✕</button></div><div id="modal-body"></div></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════
+let P={}, CI=[];
+function save(){
+  localStorage.setItem('rc4_p',JSON.stringify(P));
+  localStorage.setItem('rc4_c',JSON.stringify(CI));
+  const ts=new Date().toLocaleTimeString();
+  localStorage.setItem('rc4_ts',ts);
+  const el=document.getElementById('last-saved');
+  if(el)el.textContent=ts;
+}
+function load(){
+  try{P=JSON.parse(localStorage.getItem('rc4_p'))||{};}catch(e){P={};}
+  try{CI=JSON.parse(localStorage.getItem('rc4_c'))||[];}catch(e){CI=[];}
+}
+
+// ══════════════════════════════════════════
+// FORMULAS
+// ══════════════════════════════════════════
+function calcBMR(w,h,a,s){
+  return s==='male'?10*w+6.25*h-5*a+5:10*w+6.25*h-5*a-161;
+}
+function calcTDEE(w,h,a,s,act){
+  return Math.round(calcBMR(w,h,a,s)*act);
+}
+// Fat lost purely from deficit: deficit kcal ÷ 7700 kcal/kg × days
+function fatLostKg(deficitKcal, days){
+  return parseFloat((deficitKcal*days/7700).toFixed(2));
+}
+// Muscle gain monthly rate by experience (intermediate default)
+function muscleRateMonthly(){
+  const rates={beginner:.75,intermediate:.5,advanced:.25,elite:.1};
+  return rates[P.exp||'intermediate']||.5;
+}
+// Estimated current BF%
+// Starts from P.startBF, adjusts based on fat lost and muscle gained
+function estimatedBF(days){
+  if(!P.startWt||!P.startBF)return null;
+  const fl=fatLostKg(P.deficit,days);
+  const mg=parseFloat((muscleRateMonthly()/30*days).toFixed(2));
+  const currentFatMass=P.startWt*(P.startBF/100)-fl;
+  const currentLBM=P.startWt*(1-P.startBF/100)+mg;
+  const currentWt=currentFatMass+currentLBM;
+  if(currentWt<=0)return null;
+  return parseFloat((currentFatMass/currentWt*100).toFixed(1));
+}
+// Timeline: based on fat to lose ÷ fat loss per week (NOT net weight change)
+function timelineWeeks(){
+  if(!P.fatToLose||!P.deficit)return 0;
+  const fatPerWk=P.deficit/7700*7;
+  return Math.min(Math.ceil(P.fatToLose/fatPerWk),104);
+}
+// Pace to deficit mapping
+const PACE_DEF={gentle:175,moderate:275,faster:425};
+const PACE_HINTS={
+  gentle:'Good for inflammation, blood sugar sensitivity or fatigue. Prioritises feeling good while losing fat slowly and steadily.',
+  moderate:'Balanced pace. Steady fat loss while keeping energy stable. Good for most people.',
+  faster:'Faster results but requires more discipline. Monitor energy closely — reduce if you feel weak.'
+};
+
+// ══════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════
+let htU='cm', selectedPace='gentle';
+function setHU(u){
+  htU=u;
+  document.getElementById('ucm').classList.toggle('active',u==='cm');
+  document.getElementById('uft').classList.toggle('active',u==='ft');
+  document.getElementById('s-ht-cm').style.display=u==='cm'?'block':'none';
+  document.getElementById('s-ht-fw').style.display=u==='ft'?'grid':'none';
+  document.getElementById('htl').textContent=u==='cm'?'Height (cm)':'Height (ft / in)';
+  if(u==='ft'){
+    const c=parseFloat(document.getElementById('s-ht-cm').value);
+    if(c){const t=c/2.54;document.getElementById('s-ht-ft').value=Math.floor(t/12);document.getElementById('s-ht-in').value=Math.round(t%12);}
+  } else {
+    const ft=parseFloat(document.getElementById('s-ht-ft').value)||0,inch=parseFloat(document.getElementById('s-ht-in').value)||0;
+    if(ft)document.getElementById('s-ht-cm').value=Math.round(ft*30.48+inch*2.54);
+  }
+}
+function getH(){
+  if(htU==='cm')return parseFloat(document.getElementById('s-ht-cm').value)||0;
+  const ft=parseFloat(document.getElementById('s-ht-ft').value)||0,inch=parseFloat(document.getElementById('s-ht-in').value)||0;
+  return parseFloat((ft*30.48+inch*2.54).toFixed(1));
+}
+function setPace(el){
+  document.querySelectorAll('.pace-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  selectedPace=el.dataset.pace;
+  document.getElementById('pace-hint').innerHTML=`<div class="ic-label">GOOD FOR YOU IF</div>${PACE_HINTS[selectedPace]}`;
+  updateSetupPreview();
+}
+function updateSetupPreview(){
+  const w=parseFloat(document.getElementById('s-wt').value),h=getH(),a=parseFloat(document.getElementById('s-age').value);
+  const s=document.getElementById('s-sex').value,act=parseFloat(document.getElementById('s-act').value)||1.375;
+  const bf=parseFloat(document.getElementById('s-bf').value),tbf=parseFloat(document.getElementById('s-tbf').value);
+  if(!w||!h||!a||!bf||!tbf)return;
+  const td=calcTDEE(w,h,a,s,act),def=PACE_DEF[selectedPace];
+  const lbm=w*(1-bf/100),tFM=lbm/(1-tbf/100)-lbm,fat=(w-lbm)-tFM;
+  const trainCal=td-def+150,restCal=td-def-150;
+  const fatPerWk=def/7700*7;
+  const wks=Math.min(Math.ceil(fat/fatPerWk),104);
+  document.getElementById('setup-summary').style.display='block';
+  document.getElementById('sum-body').innerHTML=`
+    <div class="dr"><span class="tmu">Your TDEE</span><span class="bdg">${td} kcal/day</span></div>
+    <div class="dr"><span class="tmu">Daily Deficit</span><span class="bdg" style="color:var(--blue)">${def} kcal/day</span></div>
+    <div class="dr"><span class="tmu">Training Day Calories</span><span class="bdg" style="color:var(--blue)">${trainCal} kcal</span></div>
+    <div class="dr"><span class="tmu">Rest Day Calories</span><span class="bdg" style="color:var(--green)">${restCal} kcal</span></div>
+    <div class="dr"><span class="tmu">Fat to Lose</span><span class="bdg">${fat.toFixed(1)} kg</span></div>
+    <div class="dr"><span class="tmu">Fat Loss / Week</span><span class="bdg">~${fatPerWk.toFixed(2)} kg</span></div>
+    <div class="dr" style="border:none"><span class="tmu">Est. Muscle / Month</span><span class="bdg" style="color:var(--tx)">~${({beginner:.75,intermediate:.5,advanced:.25,elite:.1}[document.getElementById('s-exp').value]||.5).toFixed(2)} kg</span></div>
+    <div class="dr" style="border:none"><span class="tmu">Estimated Timeline</span><span class="bdg">${wks} weeks (~${Math.round(wks/4.33)} months)</span></div>`;
+}
+['s-wt','s-age','s-ht-cm','s-ht-ft','s-ht-in','s-bf','s-tbf'].forEach(id=>{
+  const el=document.getElementById(id);if(el)el.addEventListener('input',updateSetupPreview);
+});
+document.getElementById('s-sex').addEventListener('change',updateSetupPreview);
+document.getElementById('s-act').addEventListener('change',updateSetupPreview);
+document.getElementById('s-exp').addEventListener('change',()=>{
+  const rates={beginner:'0.75',intermediate:'0.50',advanced:'0.25',elite:'0.10'};
+  const v=document.getElementById('s-exp').value;
+  const lbl={beginner:'beginner',intermediate:'intermediate',advanced:'advanced',elite:'elite'};
+  document.getElementById('exp-hint').textContent='Expected muscle gain: ~'+rates[v]+' kg/month ('+lbl[v]+')';
+  updateSetupPreview();
+});
+
+function finishSetup(){
+  const w=parseFloat(document.getElementById('s-wt').value),h=getH(),a=parseFloat(document.getElementById('s-age').value);
+  const s=document.getElementById('s-sex').value,act=parseFloat(document.getElementById('s-act').value)||1.375;
+  const bf=parseFloat(document.getElementById('s-bf').value),tbf=parseFloat(document.getElementById('s-tbf').value);
+  if(!w||!h||!a||!bf||!tbf){alert('Please fill in all fields.');return;}
+  if(tbf>=bf){alert('Target BF% must be lower than current BF%.');return;}
+  const td=calcTDEE(w,h,a,s,act),def=PACE_DEF[selectedPace];
+  const lbm=w*(1-bf/100),tFM=lbm/(1-tbf/100)-lbm,fat=(w-lbm)-tFM;
+  P={
+    startWt:w,ht:h,age:a,sex:s,activity:act,
+    startBF:bf,targetBF:tbf,lbm:parseFloat(lbm.toFixed(2)),
+    fatToLose:parseFloat(fat.toFixed(2)),
+    targetWt:parseFloat((lbm+tFM).toFixed(1)),
+    tdee:td,deficit:def,pace:selectedPace,
+    trainDay:td-def+150,restDay:td-def-150,
+    exp:document.getElementById('s-exp').value||'intermediate',
+    startDate:tod()
+  };
+  save();launchApp();
+}
+
+// ══════════════════════════════════════════
+// DEMO DATA
+// ══════════════════════════════════════════
+function loadDemo(){
+  const sd=new Date();sd.setDate(sd.getDate()-21);
+  P={
+    startWt:84.4,ht:178,age:30,sex:'male',activity:1.375,
+    startBF:27,targetBF:15,lbm:61.6,fatToLose:10.2,targetWt:71.6,
+    tdee:2450,deficit:250,pace:'gentle',
+    trainDay:2350,restDay:2050,exp:'intermediate',
+    startDate:sd.toISOString().split('T')[0]
+  };
+  CI=[];
+  for(let i=21;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const de=21-i;
+    // Simulate gradual improvement in wellness, slight weight drop
+    const wt=parseFloat((P.startWt-(de*P.deficit/7700)+(Math.random()-.5)*.4).toFixed(1));
+    const baseWell=5+Math.min(de*.1,2); // improves slightly over time
+    CI.push({
+      date:d.toISOString().split('T')[0],
+      weight:wt,
+      trained:Math.random()>.4,
+      sleep:Math.min(10,parseFloat((baseWell+Math.random()*2).toFixed(1))),
+      hunger:Math.min(10,parseFloat((baseWell+Math.random()*2).toFixed(1))),
+      energy:Math.min(10,parseFloat((baseWell+Math.random()*2).toFixed(1))),
+      focus:Math.min(10,parseFloat((baseWell+Math.random()*2).toFixed(1)))
+    });
+  }
+  save();launchApp();
+}
+
+// ══════════════════════════════════════════
+// UTILITIES
+// ══════════════════════════════════════════
+const tod=()=>new Date().toISOString().split('T')[0];
+function daysSince(fromDate){
+  if(!fromDate)return 0;
+  return Math.max(0,Math.round((new Date(tod())-new Date(fromDate))/86400000));
+}
+function lastN(n){return [...CI].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,n);}
+function avg(arr,k){const v=arr.filter(c=>c[k]!=null).map(c=>parseFloat(c[k]));return v.length?parseFloat((v.reduce((s,x)=>s+x,0)/v.length).toFixed(1)):null;}
+function forecastWt(days){
+  if(!P.startWt||!P.deficit)return null;
+  const fatLost=P.deficit/7700*days;
+  const muscleGain=muscleRateMonthly()/30*days;
+  return parseFloat((P.startWt-fatLost+muscleGain).toFixed(2));
+}
+function scoreBadge(v,label){
+  if(v===null)return'—';
+  const c=v>=7?'var(--green)':v>=5?'var(--tx2)':'var(--red)';
+  return`<span style="font-weight:700;color:${c}">${label}: ${v}/10</span>`;
+}
+
+// ══════════════════════════════════════════
+// INSIGHT ENGINE
+// ══════════════════════════════════════════
+// Inline highlight helper
+// type: 'good' = green bold, 'bad' = red bold, 'plain' = just bold
+function hl(text, type){
+  if(type==='good') return '<strong style="color:var(--green)">' + text + '</strong>';
+  if(type==='bad')  return '<strong style="color:var(--red)">'   + text + '</strong>';
+  return '<strong>' + text + '</strong>';
+}
+
+function buildInsight(){
+  const res={html:'',cls:'ic-info'};
+  if(!CI.length){
+    res.html='Log your first check-in to start receiving daily observations.';
+    return res;
+  }
+
+  const l7=lastN(7),l3=lastN(3);
+  const aE=avg(l7,'energy'),aSl=avg(l7,'sleep'),aHu=avg(l7,'hunger'),aFo=avg(l7,'focus');
+  const aE3=avg(l3,'energy'),aSl3=avg(l3,'sleep'),aHu3=avg(l3,'hunger'),aFo3=avg(l3,'focus');
+
+  // Weight data
+  const sortedW=[...CI].filter(c=>c.weight).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const latestWt=sortedW[sortedW.length-1]?.weight;
+  const days=daysSince(P.startDate);
+  const fwt=forecastWt(days);
+  const wtDiff=latestWt&&fwt?parseFloat((latestWt-fwt).toFixed(1)):null;
+
+  // Weekly weight change (last 7 check-ins with weight)
+  let weeklyWtChange=null;
+  if(sortedW.length>=2){
+    const recent=sortedW.slice(-Math.min(7,sortedW.length));
+    weeklyWtChange=parseFloat((recent[0].weight-recent[recent.length-1].weight).toFixed(2));
+  }
+
+  // 3-week stall check
+  let stalled=false;
+  if(sortedW.length>=14&&days>=21){
+    const early=sortedW.slice(-14).slice(0,7).reduce((s,c)=>s+c.weight,0)/7;
+    const late=sortedW.slice(-7).reduce((s,c)=>s+c.weight,0)/7;
+    stalled=(early-late)<0.05;
+  }
+
+  // Build structured lines
+  const lines=[];      // {type:'good'|'bad'|'neutral', text:html}
+  const suggestions=[];// plain suggestion strings
+
+  // ── WEIGHT LINE ──
+  const expectedFatLoss=P.deficit?parseFloat((P.deficit/7700*7).toFixed(2)):0;
+  if(weeklyWtChange!==null){
+    if(weeklyWtChange>0.05){
+      lines.push({type:'good', text:'Weight: '+hl(weeklyWtChange.toFixed(2)+' kg lost','good')+' this week. Fat loss is happening — on track.'});
+    } else if(weeklyWtChange<-0.3){
+      lines.push({type:'bad', text:'Weight: '+hl('gained '+Math.abs(weeklyWtChange).toFixed(2)+' kg','bad')+' this week. Check food intake and whether you are consistently hitting your calorie targets.'});
+      suggestions.push('Review what you ate this week — even one or two high-calorie days can offset progress. Stay consistent on rest days especially.');
+    } else if(stalled){
+      lines.push({type:'neutral', text:'Weight: '+hl('barely moved over 3 weeks','bad')+'. This often means muscle gain is offsetting fat loss on the scale. If energy and focus are good, your body composition is still improving.'});
+      suggestions.push('Before changing calories, check how you feel and look. If energy is low too, your actual maintenance calories may be higher than estimated — try adding 1,000–2,000 steps/day before adjusting food.');
+    } else {
+      lines.push({type:'neutral', text:'Weight is '+hl('holding steady','plain')+' this week — scale movement is slow, which is normal when building muscle alongside fat loss.'});
+    }
+  }
+
+  // ── ENERGY LINE ──
+  if(aE3!==null){
+    if(aE3>=7){
+      lines.push({type:'good', text:'Energy: averaging '+hl(aE3+'/10 — good','good')+'. Your deficit is not impacting your daily performance.'});
+    } else if(aE3<5){
+      lines.push({type:'bad', text:'Energy: '+hl('averaging '+aE3+'/10 — low','bad')+' for 3 days in a row. This needs attention.'});
+      suggestions.push('Low energy can mean your deficit is slightly too aggressive, you are dehydrated, or food quality is poor. First step: drink more water and ensure you are eating enough protein. If it continues, increase training day calories by 100 kcal.');
+      res.cls='ic-warn';
+    } else {
+      lines.push({type:'neutral', text:'Energy: '+hl(aE3+'/10','plain')+' — moderate. Acceptable but worth monitoring.'});
+    }
+  }
+
+  // ── SLEEP LINE ──
+  if(aSl3!==null){
+    if(aSl3>=7){
+      lines.push({type:'good', text:'Sleep: '+hl(aSl3+'/10 — good','good')+'. Recovery is solid.'});
+    } else if(aSl3<5){
+      lines.push({type:'bad', text:'Sleep: '+hl('averaging '+aSl3+'/10 — poor','bad')+' recently. Poor sleep directly slows fat loss and muscle gain.'});
+      suggestions.push('Prioritise sleep above everything else this week. Even one extra hour makes a measurable difference to body composition outcomes. Poor sleep also increases hunger and reduces focus.');
+      if(res.cls!=='ic-warn')res.cls='ic-warn';
+    }
+  }
+
+  // ── HUNGER LINE ──
+  if(aHu3!==null){
+    if(aHu3>=7){
+      lines.push({type:'good', text:'Hunger control: '+hl(aHu3+'/10 — well managed','good')+'. Not feeling deprived.'});
+    } else if(aHu3<4){
+      lines.push({type:'bad', text:'Hunger control: '+hl(aHu3+'/10 — frequently hungry','bad')+'. This level of hunger is hard to sustain.'});
+      suggestions.push('Try adding more fibre (vegetables, legumes, oats) and protein to your meals — both reduce hunger without adding many calories. If it continues, a small calorie increase on training days may help.');
+    }
+  }
+
+  // ── FOCUS LINE ──
+  if(aFo3!==null&&aFo3<4){
+    lines.push({type:'bad', text:'Focus: '+hl(aFo3+'/10 — low','bad')+'. Brain fog alongside low energy often points to the deficit being too aggressive, dehydration, or poor sleep.'});
+    suggestions.push('Dehydration is the most common and easiest fix for low focus — drink a large glass of water first thing in the morning and consistently through the day.');
+  }
+
+  // ── WEIGHT TOO FAST ──
+  if(wtDiff!==null&&wtDiff<-1.0){
+    lines.push({type:'bad', text:'Forecast: weight is '+hl(Math.abs(wtDiff)+' kg ahead of schedule','bad')+'. Losing faster than planned risks muscle loss.'});
+    suggestions.push('Add 100–150 kcal/day, particularly on training days. Faster is not better here — slow and steady protects the muscle you are building.');
+    res.cls='ic-warn';
+  }
+
+  // ── ALL GOOD ──
+  if(lines.length===0||lines.every(l=>l.type==='good')){
+    res.cls='ic-good';
+    const goodParts=[];
+    if(weeklyWtChange!==null&&weeklyWtChange>0.05)goodParts.push(hl(weeklyWtChange.toFixed(2)+' kg lost','good')+' this week');
+    if(aE3>=7)goodParts.push('energy '+hl(aE3+'/10','good'));
+    if(aSl3>=7)goodParts.push('sleep '+hl(aSl3+'/10','good'));
+    if(aHu3>=7)goodParts.push('hunger well controlled');
+    const summary=goodParts.length?goodParts.join(' · ')+'. ':' ';
+    res.html='<div class="ic-label">✓ ON TRACK</div>'+summary+'Everything is tracking well. Consistency is the most important thing right now — keep going.';
+    return res;
+  }
+
+  // Not enough data yet
+  if(CI.length<5&&lines.length===0){
+    res.html='Keep checking in daily. '+hl('5+ check-ins','plain')+' unlocks full observations — you have '+CI.length+' so far.';
+    return res;
+  }
+
+  // Build final HTML output
+  const lineHTML=lines.map(l=>{
+    const dot=l.type==='good'?'<span style="color:var(--green);margin-right:6px">●</span>':
+               l.type==='bad'?'<span style="color:var(--red);margin-right:6px">●</span>':
+               '<span style="color:var(--tx3);margin-right:6px">●</span>';
+    return'<div style="margin-bottom:8px;line-height:1.55">'+dot+l.text+'</div>';
+  }).join('');
+
+  let sugHTML='';
+  if(suggestions.length){
+    sugHTML='<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)">';
+    sugHTML+='<div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:8px">SUGGESTIONS</div>';
+    sugHTML+=suggestions.map(s=>'<div style="margin-bottom:7px;font-size:13px;line-height:1.5;color:var(--tx2)">→ '+s+'</div>').join('');
+    sugHTML+='</div>';
+  }
+
+  res.html=lineHTML+sugHTML;
+  return res;
+}
+
+function buildWeeklyInsight(){
+  const today=new Date();
+  const dayOfWeek=today.getDay(); // 0=Sunday
+  const isSunday=dayOfWeek===0;
+  const daysUntilSunday=isSunday?0:(7-dayOfWeek);
+  if(CI.length<7){
+    return'Log 7+ check-ins to unlock your weekly review.'+(daysUntilSunday>0?' Next full review in '+daysUntilSunday+' day'+(daysUntilSunday===1?'':'s')+' (Sunday).':'');
+  }
+  // On non-Sunday days with enough data: show the review but note it was last updated Sunday
+  // The review always generates from the most recent 7 check-ins regardless of day
+  const reviewNote=isSunday?'':'(Preview — full review updates each Sunday) ';
+  const l7=lastN(7);
+  const aE=avg(l7,'energy'),aSl=avg(l7,'sleep'),aHu=avg(l7,'hunger'),aFo=avg(l7,'focus');
+
+  const sorted=[...CI].filter(c=>c.weight).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  let weekLoss=null;
+  if(sorted.length>=7){
+    const first7avg=sorted.slice(0,7).reduce((s,c)=>s+c.weight,0)/7;
+    const last7avg=sorted.slice(-7).reduce((s,c)=>s+c.weight,0)/7;
+    const wks=(new Date(sorted[sorted.length-1].date)-new Date(sorted[0].date))/(7*86400000);
+    if(wks>0)weekLoss=parseFloat(((first7avg-last7avg)/wks).toFixed(2));
+  }
+
+  const fatLossKgEst=P.deficit?parseFloat((P.deficit/7700*7).toFixed(2)):null;
+  const days=daysSince(P.startDate);
+  const mgTotal=parseFloat((muscleRateMonthly()/30*days).toFixed(2));
+  const expLabels={beginner:'beginner (0–1 yr)',intermediate:'intermediate (1–3 yrs)',advanced:'advanced (3–6 yrs)',elite:'elite (6+ yrs)'};
+
+  // Build weekly HTML with highlights
+  let html=reviewNote?'<div style="font-size:11px;color:var(--tx3);margin-bottom:10px">'+reviewNote+'</div>':'';
+
+  // Weight section
+  html+='<div style="margin-bottom:10px">';
+  if(weekLoss!==null){
+    if(weekLoss>0.05){
+      html+='<div style="margin-bottom:4px">⚖️ Scale weight: '+hl(weekLoss.toFixed(2)+' kg lost','good')+' this week.</div>';
+    } else if(weekLoss<-0.1){
+      html+='<div style="margin-bottom:4px">⚖️ Scale weight: '+hl('gained '+Math.abs(weekLoss).toFixed(2)+' kg','bad')+' this week.</div>';
+    } else {
+      html+='<div style="margin-bottom:4px">⚖️ Scale weight: <strong>held steady</strong> this week — normal when building muscle.</div>';
+    }
+  }
+  if(fatLossKgEst){
+    html+='<div style="font-size:13px;color:var(--tx2)">Est. actual fat lost: '+hl('~'+fatLossKgEst+' kg','good')+' (from your '+P.deficit+' kcal deficit). Muscle gain offsets this on the scale.</div>';
+  }
+  html+='</div>';
+
+  // Wellbeing section
+  html+='<div style="margin-bottom:10px;padding:10px 12px;background:var(--s2);border-radius:8px">';
+  html+='<div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:8px">WEEKLY AVERAGES</div>';
+
+  const metrics=[
+    {label:'Sleep',    val:aSl, good:7, bad:5},
+    {label:'Energy',   val:aE,  good:7, bad:5},
+    {label:'Hunger Control', val:aHu, good:7, bad:4},
+    {label:'Focus',    val:aFo, good:7, bad:5},
+  ];
+  metrics.forEach(m=>{
+    if(m.val===null)return;
+    const col=m.val>=m.good?'var(--green)':m.val<m.bad?'var(--red)':'var(--tx2)';
+    const tag=m.val>=m.good?'✓ Good':m.val<m.bad?'✗ Low':'— OK';
+    html+='<div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px">';
+    html+='<span style="color:var(--tx)">'+m.label+'</span>';
+    html+='<span style="font-weight:700;color:'+col+'">'+m.val+'/10 '+tag+'</span>';
+    html+='</div>';
+  });
+  html+='</div>';
+
+  // Suggestion
+  const lowScores=[];
+  if(aE!==null&&aE<5)lowScores.push('energy');
+  if(aSl!==null&&aSl<5)lowScores.push('sleep');
+  if(aHu!==null&&aHu<4)lowScores.push('hunger control');
+
+  html+='<div style="padding-top:10px;border-top:1px solid var(--bd)">';
+  html+='<div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:8px">SUGGESTION FOR NEXT WEEK</div>';
+  if(lowScores.length===0){
+    html+='<div style="font-size:13px;color:var(--tx2)">→ Everything looks stable. Stay at your current calorie target and keep logging consistently. Consistency over weeks is what produces results.</div>';
+  } else {
+    html+='<div style="font-size:13px;color:var(--tx2)">→ '+hl(lowScores.join(' and '),'bad')+' '+
+    (lowScores.length>1?'are':'is')+' consistently low this week. Before changing your deficit, try: '+
+    '<strong>drinking more water</strong>, eating more whole foods and protein at meals, and aiming for more consistent sleep. '+
+    'If these do not help after 5–7 days, consider increasing training day calories by 100 kcal.</div>';
+  }
+  html+='</div>';
+
+  return html;
+}
+
+// ══════════════════════════════════════════
+// CHECK-IN
+// ══════════════════════════════════════════
+function initCIDate(){
+  const today=tod();
+  const ci=document.getElementById('ci-date');
+  ci.max=today;
+  ci.value=today;
+}
+function setSR(f,v){
+  document.getElementById('rv-'+f).textContent=v;
+  const pct=((v-1)/9*100);
+  document.getElementById('ci-'+f).style.backgroundSize=pct+'% 100%';
+  const col=v>=7?'var(--green)':v>=5?'var(--yellow)':'var(--red)';
+  document.getElementById('rv-'+f).style.color=col;
+}
+function onTrainToggle(){
+  const trained=document.getElementById('ci-train').checked;
+  const hint=document.getElementById('ci-train-hint');
+  const cal=document.getElementById('s-today-cals');
+  hint.textContent=trained?'Training day calories apply':'Rest day calories apply';
+  cal.textContent=trained?(P.trainDay||'—'):(P.restDay||'—');
+  document.getElementById('s-cal-type').textContent=trained?'training day':'rest day';
+}
+function saveCI(){
+  const wt=parseFloat(document.getElementById('ci-wt').value);
+  const date=document.getElementById('ci-date').value;
+  if(!wt){alert('Please enter your weight.');return;}
+  if(!date){alert('Please select a date.');return;}
+  // Prevent future dates
+  if(date>tod()){alert('Cannot log a future date.');return;}
+  const entry={
+    date,weight:wt,
+    trained:document.getElementById('ci-train').checked,
+    sleep:parseFloat(document.getElementById('ci-sl').value),
+    hunger:parseFloat(document.getElementById('ci-hu').value),
+    energy:parseFloat(document.getElementById('ci-en').value),
+    focus:parseFloat(document.getElementById('ci-fo').value)
+  };
+  const idx=CI.findIndex(c=>c.date===date);
+  if(idx>=0)CI[idx]=entry;else CI.push(entry);
+  save();
+  const msg=document.getElementById('ci-saved');
+  msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);
+  renderAll();
+  // Reset date to today after saving past entry
+  document.getElementById('ci-date').value=tod();
+}
+
+// ══════════════════════════════════════════
+// RENDER TODAY
+// ══════════════════════════════════════════
+function renderToday(){
+  const today=tod();
+  document.getElementById('today-date').textContent=new Date().toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
+
+  // Status strip
+  const days=daysSince(P.startDate);
+  const fl=P.deficit?parseFloat((P.deficit*days/7700).toFixed(2)):0;
+  document.getElementById('s-fat-lost').textContent=fl?fl.toFixed(2):'—';
+
+  const trained=document.getElementById('ci-train').checked;
+  document.getElementById('s-today-cals').textContent=trained?(P.trainDay||'—'):(P.restDay||'—');
+  document.getElementById('s-cal-type').textContent=trained?'training day':'rest day';
+
+  // This week fat loss from check-ins
+  const l7=[...CI].filter(c=>c.weight).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  let wkLoss='—';
+  if(l7.length>=2){
+    const last=l7[l7.length-1].weight,first=l7[Math.max(0,l7.length-7)].weight;
+    const diff=parseFloat((first-last).toFixed(2));
+    wkLoss=diff>0?'+'+diff+'kg':diff+'kg';
+    const el=document.getElementById('s-week-fl');
+    el.textContent=wkLoss;
+    el.style.color=diff>0?'var(--green)':diff<-0.3?'var(--red)':'var(--tx)';
+  } else {
+    document.getElementById('s-week-fl').textContent='—';
+  }
+
+  // Daily insight
+  const ins=buildInsight();
+  const insEl=document.getElementById('daily-insight');
+  const insTxt=document.getElementById('daily-insight-text');
+  insEl.className='ic '+ins.cls;
+  insTxt.innerHTML=ins.html;
+  // Sync to insights tab
+  const insD=document.getElementById('ins-daily');
+  const insDT=document.getElementById('ins-daily-text');
+  if(insD){insD.className='ic '+ins.cls;insDT.innerHTML=ins.html;}
+
+  renderHistory();
+}
+
+// ══════════════════════════════════════════
+// RENDER HISTORY
+// ══════════════════════════════════════════
+function renderHistory(){
+  const sorted=[...CI].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const el=document.getElementById('history-list');
+  if(!sorted.length){el.innerHTML='<div class="tsm" style="padding:8px 0">No check-ins yet.</div>';return;}
+  el.innerHTML=sorted.map(c=>{
+    const eCol=c.energy>=7?'var(--green)':c.energy>=5?'var(--tx2)':'var(--red)';
+    return`<div class="hist-row">
+      <div>
+        <div style="font-weight:600;font-size:14px;color:var(--tx)">${new Date(c.date+' 00:00').toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})}</div>
+        <div style="font-size:12px;color:var(--tx2);margin-top:2px">${c.trained?'🏋️ Trained':'Rest day'} · ${c.weight} kg</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:var(--tx2)">Sleep ${c.sleep} · Energy ${c.energy} · Focus ${c.focus}</div>
+        <div style="font-size:12px;font-weight:700;color:${eCol};margin-top:2px">${c.energy>=7?'● Good':c.energy>=5?'● OK':'● Low energy'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleHistory(){
+  const body=document.getElementById('history-body');
+  const arrow=document.getElementById('acc-arrow');
+  const open=body.classList.toggle('open');
+  arrow.textContent=open?'⌄':'›';
+}
+
+// ══════════════════════════════════════════
+// RENDER PROGRESS
+// ══════════════════════════════════════════
+function renderProgress(){
+  const days=daysSince(P.startDate);
+  const fl=P.deficit?parseFloat((P.deficit*days/7700).toFixed(2)):0;
+  const mg=parseFloat((muscleRateMonthly()/30*days).toFixed(2));
+  const netScale=parseFloat((fl-mg).toFixed(2));
+  const currentBF=estimatedBF(days);
+  const startBF=P.startBF||27;
+  const targetBF=P.targetBF||15;
+  const bfDropped=currentBF?parseFloat((startBF-currentBF).toFixed(1)):0;
+  const totalToDrop=startBF-targetBF;
+  const pct=totalToDrop>0?Math.min(100,Math.round(bfDropped/totalToDrop*100)):0;
+
+  // Ring
+  const circ=339;
+  const off=circ-(pct/100)*circ;
+  const ring=document.getElementById('ring-fill');
+  setTimeout(()=>ring.style.strokeDashoffset=off,100);
+  ring.style.stroke=pct>=70?'var(--green)':pct>=40?'var(--yellow)':'var(--blue)';
+  document.getElementById('ring-pct').textContent=pct+'%';
+  document.getElementById('pr-bf-now').textContent=currentBF?currentBF+'%':'—';
+  document.getElementById('pr-bf-tgt').textContent=targetBF+'%';
+  document.getElementById('pr-bf-drop').textContent=bfDropped>0?'-'+bfDropped+'%':'0%';
+
+  // Three numbers
+  document.getElementById('pr-fat-lost').textContent=fl>0?'-'+fl.toFixed(2):'—';
+  document.getElementById('pr-muscle').textContent=mg>0?'+'+mg.toFixed(2):'—';
+  const scEl=document.getElementById('pr-scale');
+  scEl.textContent=netScale>0?'-'+netScale.toFixed(2):netScale<0?'+'+Math.abs(netScale).toFixed(2):'—';
+  scEl.style.color=netScale>0?'var(--green)':'var(--tx)';
+
+  // 7-day averages
+  const l7=lastN(7);
+  const avgs={sleep:avg(l7,'sleep'),energy:avg(l7,'energy'),hunger:avg(l7,'hunger'),focus:avg(l7,'focus')};
+  const avgEl=document.getElementById('week-avgs');
+  avgEl.innerHTML=Object.entries({Sleep:'sleep','Energy':'energy','Hunger Control':'hunger','Focus':'focus'}).map(([label,key])=>{
+    const v=avgs[key];
+    const c=v>=7?'var(--green)':v>=5?'var(--tx3)':'var(--red)';
+    const w=v?Math.round(v/10*100):0;
+    return`<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:14px;font-weight:600;color:var(--tx)">${label}</span>
+        <span style="font-size:14px;font-weight:700;color:${c}">${v!==null?v+'/10':'—'}</span>
+      </div>
+      <div class="pb-wrap"><div class="pb-fill" style="width:${w}%;background:${c}"></div></div>
+    </div>`;
+  }).join('');
+
+  drawWeightChart();
+  drawWellnessChart();
+}
+
+// ══════════════════════════════════════════
+// CHARTS
+// ══════════════════════════════════════════
+function drawWeightChart(){
+  const cv=document.getElementById('cwt'),ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  cv.width=cv.offsetWidth*dpr;cv.height=160*dpr;ctx.scale(dpr,dpr);
+  const W=cv.offsetWidth||340,H=160;ctx.clearRect(0,0,W,H);
+  const s=[...CI].filter(c=>c.weight).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(s.length<2){
+    ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';
+    ctx.fillText('Log 2+ check-ins to see chart',W/2,H/2);return;
+  }
+  const wts=s.map(c=>c.weight);
+  const fc=s.map(c=>{const d=Math.max(0,Math.round((new Date(c.date)-new Date(P.startDate))/86400000));return forecastWt(d);});
+  const all=[...wts,...fc.filter(Boolean)];
+  const mn=Math.min(...all)-.5,mx=Math.max(...all)+.5;
+  const pd={l:42,r:10,t:8,b:24};
+  const gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
+  const xS=i=>pd.l+(i/(s.length-1))*gW;
+  const yS=v=>pd.t+gH-((v-mn)/(mx-mn))*gH;
+  // Grid
+  [0,.5,1].forEach(t=>{
+    const y=pd.t+t*gH;
+    ctx.strokeStyle='rgba(0,0,0,.05)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(W-pd.r,y);ctx.stroke();
+    ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='right';
+    ctx.fillText((mx-t*(mx-mn)).toFixed(1),pd.l-4,y+3);
+  });
+  // Forecast
+  ctx.strokeStyle='#d0d5de';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+  ctx.beginPath();fc.forEach((f,i)=>{if(!f)return;i===0?ctx.moveTo(xS(i),yS(f)):ctx.lineTo(xS(i),yS(f));});
+  ctx.stroke();ctx.setLineDash([]);
+  // Area
+  const g=ctx.createLinearGradient(0,pd.t,0,H-pd.b);
+  g.addColorStop(0,'rgba(37,99,235,.12)');g.addColorStop(1,'rgba(37,99,235,0)');
+  ctx.beginPath();wts.forEach((v,i)=>i===0?ctx.moveTo(xS(i),yS(v)):ctx.lineTo(xS(i),yS(v)));
+  ctx.lineTo(xS(wts.length-1),H-pd.b);ctx.lineTo(xS(0),H-pd.b);ctx.closePath();
+  ctx.fillStyle=g;ctx.fill();
+  // Line
+  ctx.strokeStyle='#2563eb';ctx.lineWidth=2;
+  ctx.beginPath();wts.forEach((v,i)=>i===0?ctx.moveTo(xS(i),yS(v)):ctx.lineTo(xS(i),yS(v)));ctx.stroke();
+  // Dots
+  wts.forEach((v,i)=>{
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(i),yS(v),3.5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#2563eb';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(i),yS(v),3.5,0,Math.PI*2);ctx.stroke();
+  });
+  // X labels
+  ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='center';
+  const step=Math.max(1,Math.floor(s.length/5));
+  s.forEach((c,i)=>{if(i%step===0||i===s.length-1){const dt=new Date(c.date+' 00:00');ctx.fillText(`${dt.getDate()}/${dt.getMonth()+1}`,xS(i),H-4);}});
+}
+
+function drawWellnessChart(){
+  const cv=document.getElementById('cwl'),ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  cv.width=cv.offsetWidth*dpr;cv.height=180*dpr;ctx.scale(dpr,dpr);
+  const W=cv.offsetWidth||340,H=180;ctx.clearRect(0,0,W,H);
+  const s=[...CI].sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(-14);
+  if(s.length<2){
+    ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';
+    ctx.fillText('Log 2+ check-ins to see wellness chart',W/2,H/2);return;
+  }
+  const pd={l:24,r:10,t:10,b:24};
+  const gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
+  const xS=i=>pd.l+(i/(s.length-1))*gW;
+  const yS=v=>pd.t+gH-((v-1)/9)*gH;
+  // Grid lines
+  [1,4,7,10].forEach(v=>{
+    ctx.strokeStyle='rgba(0,0,0,.04)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pd.l,yS(v));ctx.lineTo(W-pd.r,yS(v));ctx.stroke();
+    ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='right';
+    ctx.fillText(v,pd.l-4,yS(v)+3);
+  });
+  // Lines
+  const metrics=[
+    {key:'sleep',col:'#2563eb'},
+    {key:'energy',col:'#16a34a'},
+    {key:'hunger',col:'#d97706'},
+    {key:'focus',col:'#7c3aed'}
+  ];
+  metrics.forEach(m=>{
+    ctx.strokeStyle=m.col;ctx.lineWidth=2;
+    ctx.beginPath();
+    s.forEach((c,i)=>{
+      const v=c[m.key];if(v==null)return;
+      i===0||s.slice(0,i).every(x=>x[m.key]==null)?ctx.moveTo(xS(i),yS(v)):ctx.lineTo(xS(i),yS(v));
+    });
+    ctx.stroke();
+    // Dots
+    s.forEach((c,i)=>{
+      if(c[m.key]==null)return;
+      ctx.fillStyle=m.col;ctx.beginPath();ctx.arc(xS(i),yS(c[m.key]),3,0,Math.PI*2);ctx.fill();
+    });
+  });
+  // X labels
+  ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='center';
+  const step=Math.max(1,Math.floor(s.length/5));
+  s.forEach((c,i)=>{if(i%step===0||i===s.length-1){const dt=new Date(c.date+' 00:00');ctx.fillText(`${dt.getDate()}/${dt.getMonth()+1}`,xS(i),H-4);}});
+}
+
+// ══════════════════════════════════════════
+// RENDER INSIGHTS
+// ══════════════════════════════════════════
+function renderInsights(){
+  const wkTxt=buildWeeklyInsight();
+  document.getElementById('ins-weekly-text').innerHTML=wkTxt;
+  const today=new Date(),dow=today.getDay(),isSun=dow===0,dtu=isSun?0:(7-dow);
+  const badge=document.getElementById('weekly-badge');
+  if(badge){badge.textContent=isSun?'✓ Updated today':'Next update in '+dtu+' day'+(dtu===1?'':'s');badge.style.color=isSun?'var(--green)':'var(--tx3)';}
+  // Adjust plan
+  document.getElementById('adj-tdee').textContent=P.tdee?P.tdee+' kcal':'—';
+  document.getElementById('adj-deficit').textContent=P.deficit?P.deficit+' kcal/day':'—';
+  document.getElementById('adj-fat-rate').textContent=P.deficit?'~'+(P.deficit/7700*7).toFixed(2)+' kg fat/week':'—';
+  document.getElementById('adj-train').value=P.trainDay||'';
+  document.getElementById('adj-rest').value=P.restDay||'';
+}
+
+// Adjust plan
+document.getElementById('adj-train').addEventListener('input',previewAdj);
+document.getElementById('adj-rest').addEventListener('input',previewAdj);
+function previewAdj(){
+  const t=parseInt(document.getElementById('adj-train').value);
+  const r=parseInt(document.getElementById('adj-rest').value);
+  if(!t||!r||!P.tdee)return;
+  const avg=(t+r)/2;
+  const def=Math.round(P.tdee-avg);
+  const fatWk=parseFloat((def/7700*7).toFixed(2));
+  const wks=P.fatToLose&&def>0?Math.min(Math.ceil(P.fatToLose/fatWk),104):0;
+  const prev=document.getElementById('adj-preview');
+  prev.style.display='block';
+  prev.innerHTML=`New deficit: <strong>${def} kcal/day</strong> → Fat loss: <strong>~${fatWk} kg/week</strong> → Timeline: <strong>~${wks} weeks</strong>`;
+  prev.className='ic ic-info mt12';
+  if(def<0)prev.className='ic ic-flag mt12',prev.innerHTML='⚠️ This would put you in a calorie surplus. Fat loss will not occur.';
+}
+function applyAdj(){
+  const t=parseInt(document.getElementById('adj-train').value);
+  const r=parseInt(document.getElementById('adj-rest').value);
+  if(!t||!r){alert('Enter both training and rest day calories.');return;}
+  if(t<1000||r<800){alert('Calories too low — please check your values.');return;}
+  P.trainDay=t;P.restDay=r;
+  P.avgTarget=Math.round((t+r)/2);
+  P.deficit=Math.round(P.tdee-P.avgTarget);
+  if(P.deficit<0){alert('These targets are above your TDEE — you would be in a surplus. Adjust and try again.');return;}
+  save();renderAll();
+  document.getElementById('adj-preview').innerHTML='✓ Saved! Plan updated.';
+  document.getElementById('adj-preview').className='ic ic-good mt12';
+}
+
+// ══════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════
+function renderAll(){
+  renderToday();
+  // Sync insight to insights tab
+  const ins=buildInsight();
+  const insD=document.getElementById('ins-daily');
+  if(insD){insD.className='ic '+ins.cls;document.getElementById('ins-daily-text').innerHTML=ins.html;}
+  renderInsights();
+  // Re-render active page charts
+  const ap=document.querySelector('.page.active');
+  if(ap&&ap.id==='page-progress')renderProgress();
+}
+
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
+function goPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='progress')renderProgress();
+  if(name==='insights')renderInsights();
+  if(name==='today')renderToday();
+}
+
+// ══════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════
+function cmo(e){if(e.target===e.currentTarget)closeModal();}
+function closeModal(){document.getElementById('modal').classList.add('hidden');}
+
+// ══════════════════════════════════════════
+// MISC
+// ══════════════════════════════════════════
+function resetAll(){if(confirm('Reset all data?')){['rc4_p','rc4_c','rc4_ts'].forEach(k=>localStorage.removeItem(k));location.reload();}}
+
+function launchApp(){
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='flex';
+  initCIDate();
+  renderAll();
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+window.addEventListener('load',()=>{
+  load();
+  if(P.startWt){launchApp();}
+  else{document.getElementById('setup').style.display='block';document.getElementById('app').style.display='none';}
+});
+window.addEventListener('resize',()=>{
+  if(document.querySelector('#page-progress.active')){drawWeightChart();drawWellnessChart();}
+});
+// Init sliders
+['sl','hu','en','fo'].forEach(f=>setSR(f,document.getElementById('ci-'+f).value));
+</script>
+</body>
+</html>
