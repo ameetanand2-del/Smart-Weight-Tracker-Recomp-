@@ -319,11 +319,11 @@ canvas{display:block;width:100%}
     <div class="fg">
       <div class="lbl-row">Energy Score <button class="info-btn" onclick="showInfo('energy')">?</button><span class="tmu-lbl" style="margin-left:auto;font-size:11px;color:var(--tx3)">1=Exhausted · 5=Peak</span></div>
       <div class="e-btns" id="energy-btns">
-        <div onclick="selEnergy(1)"><div class="e-btn" data-v="1">1</div><div class="e-btn-lbl">Exhausted</div></div>
-        <div onclick="selEnergy(2)"><div class="e-btn" data-v="2">2</div><div class="e-btn-lbl">Low</div></div>
-        <div onclick="selEnergy(3)"><div class="e-btn" data-v="3">3</div><div class="e-btn-lbl">Moderate</div></div>
-        <div onclick="selEnergy(4)"><div class="e-btn" data-v="4">4</div><div class="e-btn-lbl">Good</div></div>
-        <div onclick="selEnergy(5)"><div class="e-btn" data-v="5">5</div><div class="e-btn-lbl">Peak</div></div>
+        <div style="flex:1;min-width:0" onclick="selEnergy(1)"><div class="e-btn" data-v="1" style="width:100%">1</div><div class="e-btn-lbl">Exhausted</div></div>
+        <div style="flex:1;min-width:0" onclick="selEnergy(2)"><div class="e-btn" data-v="2" style="width:100%">2</div><div class="e-btn-lbl">Low</div></div>
+        <div style="flex:1;min-width:0" onclick="selEnergy(3)"><div class="e-btn" data-v="3" style="width:100%">3</div><div class="e-btn-lbl">Moderate</div></div>
+        <div style="flex:1;min-width:0" onclick="selEnergy(4)"><div class="e-btn" data-v="4" style="width:100%">4</div><div class="e-btn-lbl">Good</div></div>
+        <div style="flex:1;min-width:0" onclick="selEnergy(5)"><div class="e-btn" data-v="5" style="width:100%">5</div><div class="e-btn-lbl">Peak</div></div>
       </div>
     </div>
 
@@ -419,11 +419,11 @@ canvas{display:block;width:100%}
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2)">Weight Over Time</div>
-      <div style="display:flex;gap:4px">
-        <button class="crb active" data-range="4w" onclick="setChartRange('4w',this)">4W</button>
-        <button class="crb" data-range="8w" onclick="setChartRange('8w',this)">8W</button>
-        <button class="crb" data-range="all" onclick="setChartRange('all',this)">All</button>
-      </div>
+      <div id="chart-range-btns" style="display:flex;align-items:center;gap:6px"></div>
+    </div>
+    <div style="display:flex;gap:4px;margin-bottom:8px">
+      <button class="crb" id="chart-mode-daily" onclick="setChartMode('daily')">Daily</button>
+      <button class="crb active" id="chart-mode-weekly" onclick="setChartMode('weekly')">Weekly Avg</button>
     </div>
     <div id="chart-range-label" class="tsm" style="margin-bottom:6px"></div>
     <canvas id="cwt" style="height:180px"></canvas>
@@ -432,6 +432,22 @@ canvas{display:block;width:100%}
       <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:12px;height:2px;border-top:2px dashed #888;display:inline-block"></span>Forecast</div>
       <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:2px;height:10px;background:#c2410c;display:inline-block;border-radius:1px"></span>Today</div>
     </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--tx2);margin-bottom:8px">Forecast Settings</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:4px">Rate (kg/week)</div>
+          <input type="number" id="chart-fat-goal" placeholder="0.25" step="0.05" min="0.05" max="1" style="width:100%;padding:8px 10px;font-size:14px">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:4px">Target Weight (kg)</div>
+          <input type="number" id="chart-target-wt" placeholder="75.0" step="0.1" style="width:100%;padding:8px 10px;font-size:14px">
+        </div>
+      </div>
+      <button class="btn btp" style="font-size:13px;padding:9px 16px" onclick="applyFatGoal()">Apply Forecast</button>
+      <div id="fat-goal-hint" class="tsm mt8" style="color:var(--tx3)"></div>
+    </div>
+    <div id="weeks-to-goal" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--gbg);border:1px solid var(--gbd);font-size:13px;color:var(--green);font-weight:600"></div>
   </div>
 
   <!-- WELLNESS LINE CHART (unified 0–100% scale) -->
@@ -1091,6 +1107,7 @@ function renderProgress(){
     </tr>`;
   }).join('');
 
+  renderWeekRangeBtns();
   drawWeightChart();
   drawWellnessChart();
 }
@@ -1098,8 +1115,93 @@ function renderProgress(){
 // ══════════════════════════════════════════
 // CHARTS
 // ══════════════════════════════════════════
-let chartRange='4w';
-function setChartRange(r,btn){chartRange=r;document.querySelectorAll('.crb').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');drawWeightChart();}
+let chartRange='8w'; // kept for daily mode compat but unused in weekly
+let chartWkWindow=8; // weeks to show in weekly mode: 8, 16, 25, or null=all
+let chartMode='weekly';
+let chartFatGoalKgPerWeek=null;
+let chartTargetWt=null;
+
+function renderWeekRangeBtns(){
+  const container=document.getElementById('chart-range-btns');
+  if(!container)return;
+  if(chartMode==='daily'){container.innerHTML='';return;}
+  // Calculate total forecast weeks
+  const startDate=P.startDate||tod();
+  const fatRatePerWeek=chartFatGoalKgPerWeek||(P.deficit?P.deficit/7700*7:0);
+  const musclePerWeek=muscleRateMonthly()/4.33;
+  const netChangePerWeek=-fatRatePerWeek+musclePerWeek;
+  const startWt=P.startWt||0;
+  let targetWt=chartTargetWt||null;
+  if(!targetWt&&P.bf&&P.targetBF){const lm=startWt*(1-P.bf/100);targetWt=parseFloat((lm/(1-P.targetBF/100)).toFixed(2));}
+  const fatToLose=targetWt?parseFloat((startWt-targetWt).toFixed(2)):null;
+  const weeksToGoal=fatRatePerWeek>0&&fatToLose>0?Math.ceil(fatToLose/fatRatePerWeek):null;
+  const totalFcWeeks=weeksToGoal||Math.ceil((localParse(tod())-localParse(startDate))/86400000/7)+12;
+  const showAll=totalFcWeeks>25;
+  const cur=chartWkWindow===null?'All':chartWkWindow;
+  container.innerHTML=
+    `<span style="font-size:11px;font-weight:600;color:var(--tx3)">Wks</span>`+
+    `<button onclick="stepWks(-1)" style="width:24px;height:24px;border:1.5px solid var(--bd2);border-radius:5px;background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;color:var(--tx);display:flex;align-items:center;justify-content:center;padding:0;font-family:var(--font)">−</button>`+
+    `<input id="wk-window-input" type="number" min="1" max="${totalFcWeeks}" value="${chartWkWindow===null?totalFcWeeks:chartWkWindow}" style="width:36px;height:24px;text-align:center;border:1.5px solid var(--bd2);border-radius:5px;font-size:12px;font-weight:700;padding:0;font-family:var(--font);color:var(--tx);background:var(--surface)" oninput="setWkWindowVal(this.value)">`+
+    `<button onclick="stepWks(1)" style="width:24px;height:24px;border:1.5px solid var(--bd2);border-radius:5px;background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;color:var(--tx);display:flex;align-items:center;justify-content:center;padding:0;font-family:var(--font)">+</button>`+
+    (showAll?`<button class="crb${chartWkWindow===null?' active':''}" onclick="setWkWindowAll()">All</button>`:'');
+}
+
+function stepWks(delta){
+  const inp=document.getElementById('wk-window-input');
+  if(!inp)return;
+  const cur=parseInt(inp.value)||8;
+  const next=Math.max(1,cur+delta);
+  inp.value=next;
+  chartWkWindow=next;
+  drawWeightChart();
+}
+
+function setWkWindowVal(val){
+  const n=parseInt(val);
+  if(!n||n<1)return;
+  chartWkWindow=n;
+  drawWeightChart();
+}
+
+function setWkWindowAll(){
+  chartWkWindow=null;
+  renderWeekRangeBtns();
+  drawWeightChart();
+}
+
+function setWkWindow(val){
+  chartWkWindow=val;
+  renderWeekRangeBtns();
+  drawWeightChart();
+}
+function setChartMode(mode){
+  chartMode=mode;
+  document.getElementById('chart-mode-daily').classList.toggle('active',mode==='daily');
+  document.getElementById('chart-mode-weekly').classList.toggle('active',mode==='weekly');
+  renderWeekRangeBtns();
+  drawWeightChart();
+}
+function applyFatGoal(){
+  const v=parseFloat(document.getElementById('chart-fat-goal').value);
+  const tw=parseFloat(document.getElementById('chart-target-wt').value);
+  if(!v||v<0.05||v>1){alert('Enter a rate between 0.05 and 1.0 kg/week.');return;}
+  chartFatGoalKgPerWeek=v;
+  chartTargetWt=tw||null;
+  const hint=document.getElementById('fat-goal-hint');
+  hint.textContent='Rate: '+v+' kg/week ≈ '+Math.round(v/7*7700)+' kcal/day deficit'+(chartTargetWt?' · Target: '+chartTargetWt+' kg':'');
+  renderWeekRangeBtns();
+  drawWeightChart();
+}
+function isoWeek(dateStr){
+  const d=new Date(dateStr+' 00:00');const day=d.getDay()||7;d.setDate(d.getDate()+4-day);
+  const yr=d.getFullYear(),s=new Date(yr,0,1),wk=Math.ceil(((d-s)/86400000+1)/7);
+  return yr+'-W'+(wk<10?'0':'')+wk;
+}
+function buildWeeklyPoints(filtCI){
+  const byWeek={};
+  filtCI.forEach(c=>{const wk=isoWeek(c.date);if(!byWeek[wk])byWeek[wk]={sum:0,n:0,dates:[]};byWeek[wk].sum+=c.weight;byWeek[wk].n++;byWeek[wk].dates.push(c.date);});
+  return Object.entries(byWeek).sort((a,b)=>a[0]>b[0]?1:-1).map(([,v])=>({label:fmtDate(v.dates[v.dates.length-1]),weight:parseFloat((v.sum/v.n).toFixed(2))}));
+}
 
 function drawWeightChart(){
   const cv=document.getElementById('cwt'),ctx=cv.getContext('2d');
@@ -1108,26 +1210,126 @@ function drawWeightChart(){
   const W=cv.offsetWidth||340,H=180;ctx.clearRect(0,0,W,H);
   const allCI=[...CI].filter(c=>c.weight).sort((a,b)=>localParse(a.date)-localParse(b.date));
   const todayStr=tod(),startStr=P.startDate||todayStr;
+  const fatRatePerDay=chartFatGoalKgPerWeek?(chartFatGoalKgPerWeek/7):(P.deficit?P.deficit/7700:0);
+  const musclePerDay=muscleRateMonthly()/30;
+  const forecastDays=chartMode==='weekly'?56:21;
   const futureFc=[];
-  for(let i=1;i<=21;i++){const ds=addDays(todayStr,i),df=Math.round((localParse(ds)-localParse(startStr))/86400000);const fw=P.deficit?parseFloat((P.startWt-P.deficit/7700*df+(muscleRateMonthly()/30*df)).toFixed(2)):null;if(fw)futureFc.push({date:ds,fwt:fw});}
-  const rangeDays=chartRange==='4w'?28:chartRange==='8w'?56:null;
+  for(let i=1;i<=forecastDays;i++){const ds=addDays(todayStr,i),df=Math.round((localParse(ds)-localParse(startStr))/86400000);const fw=P.startWt?parseFloat((P.startWt-fatRatePerDay*df+musclePerDay*df).toFixed(2)):null;if(fw)futureFc.push({date:ds,fwt:fw});}
+  const rangeDays=chartRange==='8w'?56:chartRange==='12w'?84:null;
   const rangeStart=rangeDays?addDays(todayStr,-rangeDays):startStr;
-  const rangeEnd=addDays(todayStr,21);
   const filtCI=allCI.filter(c=>c.date>=rangeStart&&c.date<=todayStr);
-  const filtFc=futureFc.filter(f=>f.date<=rangeEnd);
   const lbl=document.getElementById('chart-range-label');
-  if(lbl)lbl.textContent=fmtDateFull(rangeStart)+' → '+fmtDateFull(rangeEnd)+(filtFc.length?' (+ '+filtFc.length+' day forecast)':'');
-  const allDates=new Set([...filtCI.map(c=>c.date),...filtFc.map(f=>f.date)]);
+
+  if(chartMode==='weekly'){
+    const allWkPts=buildWeeklyPoints(allCI);
+    const fatRatePerWeek=chartFatGoalKgPerWeek||(P.deficit?P.deficit/7700*7:0);
+    const musclePerWeek=muscleRateMonthly()/4.33;
+    const netChangePerWeek=-fatRatePerWeek+musclePerWeek;
+    const startWt=P.startWt||0;
+    const startDate=P.startDate||todayStr;
+
+    // Target weight: user-entered takes priority, else derive from BF%
+    let targetWt=chartTargetWt||null;
+    if(!targetWt&&P.bf&&P.targetBF){
+      const leanMass=startWt*(1-P.bf/100);
+      targetWt=parseFloat((leanMass/(1-P.targetBF/100)).toFixed(2));
+    }
+    const fatToLose=targetWt?parseFloat((startWt-targetWt).toFixed(2)):null;
+    const weeksToGoal=fatRatePerWeek>0&&fatToLose>0?Math.ceil(fatToLose/fatRatePerWeek):null;
+
+    // Full forecast: week 0 (startWt) → weeksToGoal (or today+12 if no target)
+    const totalFcWeeks=weeksToGoal||Math.ceil((localParse(todayStr)-localParse(startDate))/86400000/7)+12;
+    const startMs=localParse(startDate);
+    const toWk=d=>Math.round((localParse(d)-startMs)/86400000/7);
+    const fullFcPts=[];
+    for(let w=0;w<=totalFcWeeks;w++){
+      fullFcPts.push({w,weight:parseFloat((startWt+netChangePerWeek*w).toFixed(2))});
+    }
+
+    // Determine visible x range using chartWkWindow
+    // chartWkWindow=8 → show last 8 weeks up to totalFcWeeks
+    // chartWkWindow=null → show all (wk 0 → totalFcWeeks)
+    const todayWk=toWk(todayStr);
+    const minW=chartWkWindow?Math.max(0,todayWk-chartWkWindow):0;
+    const maxW=totalFcWeeks;
+
+    // Actual points mapped to week index
+    const acWkPts=allWkPts
+      .map(p=>({w:toWk(allCI.find(c=>fmtDate(c.date)===p.label)?.date||todayStr),v:p.weight}))
+      .filter(p=>p.w>=minW&&p.w<=maxW);
+
+    const visFcPts=fullFcPts.filter(p=>p.w>=minW&&p.w<=maxW);
+
+    const allV=[...acWkPts.map(p=>p.v),...visFcPts.map(p=>p.weight)];
+    if(!allV.length){ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';ctx.fillText('Complete setup to see forecast',W/2,H/2);return;}
+    const mn=Math.min(...allV)-.5,mx=Math.max(...allV)+.5;
+    const pd={l:42,r:10,t:10,b:26},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
+    const span=maxW-minW||1;
+    const xS=w=>pd.l+((w-minW)/span)*gW;
+    const yS=v=>pd.t+gH-((v-mn)/(mx-mn))*gH;
+
+    // Grid
+    [0,.33,.67,1].forEach(t=>{const y=pd.t+t*gH;ctx.strokeStyle='rgba(0,0,0,.05)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(W-pd.r,y);ctx.stroke();ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='right';ctx.fillText((mx-t*(mx-mn)).toFixed(1),pd.l-4,y+3);});
+
+    // NOW line — snapped to current week number
+    if(todayWk>=minW&&todayWk<=maxW){const tx=xS(todayWk);ctx.strokeStyle='#c2410c';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(tx,pd.t);ctx.lineTo(tx,H-pd.b);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#c2410c';ctx.font='8px Inter';ctx.textAlign='center';ctx.fillText('NOW',tx,pd.t+7);}
+
+    // Goal weight horizontal line
+    if(targetWt&&targetWt>=mn&&targetWt<=mx){const ty=yS(targetWt);ctx.strokeStyle='#15803d';ctx.lineWidth=1;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(pd.l,ty);ctx.lineTo(W-pd.r,ty);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#15803d';ctx.font='8px Inter';ctx.textAlign='left';ctx.fillText('GOAL '+targetWt+'kg',pd.l+3,ty-3);}
+
+    // Forecast line — starts at week 0 (startWt), ends at weeksToGoal
+    if(visFcPts.length>=2){ctx.strokeStyle='#aaa';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.beginPath();visFcPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.w),yS(p.weight)):ctx.lineTo(xS(p.w),yS(p.weight)));ctx.stroke();ctx.setLineDash([]);}
+
+    // Actual weekly avg line + fill
+    if(acWkPts.length>=2){
+      const g=ctx.createLinearGradient(0,pd.t,0,H-pd.b);g.addColorStop(0,'rgba(29,78,216,.18)');g.addColorStop(1,'rgba(29,78,216,0)');
+      ctx.beginPath();acWkPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.w),yS(p.v)):ctx.lineTo(xS(p.w),yS(p.v)));ctx.lineTo(xS(acWkPts[acWkPts.length-1].w),H-pd.b);ctx.lineTo(xS(acWkPts[0].w),H-pd.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+      ctx.strokeStyle='#1d4ed8';ctx.lineWidth=2.5;ctx.beginPath();acWkPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.w),yS(p.v)):ctx.lineTo(xS(p.w),yS(p.v)));ctx.stroke();
+      acWkPts.forEach(p=>{ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#1d4ed8';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),4,0,Math.PI*2);ctx.stroke();});
+    } else if(acWkPts.length===1){
+      ctx.fillStyle='#1d4ed8';ctx.beginPath();ctx.arc(xS(acWkPts[0].w),yS(acWkPts[0].v),5,0,Math.PI*2);ctx.fill();
+    }
+
+    // X axis — week numbers ("Wk 1", "Wk 4" etc)
+    ctx.font='9px Inter';ctx.textAlign='center';
+    const step=Math.max(1,Math.floor(span/6));
+    for(let w=minW;w<=maxW;w++){
+      if((w-minW)%step===0||w===maxW){
+        ctx.fillStyle=w>todayWk?'#c2410c':'#9aa0b0';
+        ctx.fillText('Wk'+w,xS(w),H-5);
+      }
+    }
+
+    // Sub-label and weeks-to-goal banner
+    if(lbl)lbl.textContent=acWkPts.length+' weeks logged · '+totalFcWeeks+' week forecast shown';
+    const wtg=document.getElementById('weeks-to-goal');
+    if(wtg){
+      if(weeksToGoal&&fatRatePerWeek>0&&targetWt){
+        const arrDate=addDays(startDate,weeksToGoal*7);
+        const arrFmt=new Date(arrDate+' 00:00').toLocaleDateString('en-AU',{month:'short',year:'numeric'});
+        wtg.style.display='block';
+        wtg.innerHTML='🎯 At <strong>'+fatRatePerWeek.toFixed(2)+' kg/week</strong> → <strong>'+weeksToGoal+' weeks</strong> to reach <strong>'+targetWt+' kg</strong> · Est. <strong>'+arrFmt+'</strong>';
+      } else {wtg.style.display='none';}
+    }
+    return;
+  }
+
+  // ── DAILY MODE — fixed 4-week window ──
+  const dailyRangeStart=addDays(todayStr,-28);
+  const dailyFc=[];
+  for(let i=1;i<=14;i++){const ds=addDays(todayStr,i),df=Math.round((localParse(ds)-localParse(startStr))/86400000);const fw=P.startWt?parseFloat((P.startWt-fatRatePerDay*df+musclePerDay*df).toFixed(2)):null;if(fw)dailyFc.push({date:ds,fwt:fw});}
+  const filtCIDaily=allCI.filter(c=>c.date>=dailyRangeStart&&c.date<=todayStr);
+  if(lbl)lbl.textContent=fmtDateFull(dailyRangeStart)+' → '+fmtDateFull(addDays(todayStr,14));
+  const allDates=new Set([...filtCIDaily.map(c=>c.date),...dailyFc.map(f=>f.date)]);
   const sortedD=[...allDates].sort();const n=sortedD.length;
   if(n<2){ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';ctx.fillText('Log check-ins to see chart',W/2,H/2);return;}
-  const pastFcMap={};filtCI.forEach(c=>{const d=Math.round((localParse(c.date)-localParse(startStr))/86400000);pastFcMap[c.date]=P.deficit?parseFloat((P.startWt-P.deficit/7700*d+(muscleRateMonthly()/30*d)).toFixed(2)):null;});
-  const actWts=sortedD.map(d=>{const c=filtCI.find(x=>x.date===d);return c?c.weight:null;});
-  const fcWts=sortedD.map(d=>{if(pastFcMap[d])return pastFcMap[d];const f=filtFc.find(x=>x.date===d);return f?f.fwt:null;});
+  const pastFcMap={};filtCIDaily.forEach(c=>{const d=Math.round((localParse(c.date)-localParse(startStr))/86400000);pastFcMap[c.date]=P.startWt?parseFloat((P.startWt-fatRatePerDay*d+musclePerDay*d).toFixed(2)):null;});
+  const actWts=sortedD.map(d=>{const c=filtCIDaily.find(x=>x.date===d);return c?c.weight:null;});
+  const fcWts=sortedD.map(d=>{if(pastFcMap[d])return pastFcMap[d];const f=dailyFc.find(x=>x.date===d);return f?f.fwt:null;});
   const allV=[...actWts.filter(Boolean),...fcWts.filter(Boolean)];
   if(!allV.length)return;
   const mn=Math.min(...allV)-.5,mx=Math.max(...allV)+.5;
-  const pd={l:42,r:10,t:10,b:26};
-  const gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
+  const pd={l:42,r:10,t:10,b:26},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
   const xS=i=>pd.l+(n<=1?0:(i/(n-1)))*gW,yS=v=>pd.t+gH-((v-mn)/(mx-mn))*gH;
   [0,.33,.67,1].forEach(t=>{const y=pd.t+t*gH;ctx.strokeStyle='rgba(0,0,0,.05)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(W-pd.r,y);ctx.stroke();ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='right';ctx.fillText((mx-t*(mx-mn)).toFixed(1),pd.l-4,y+3);});
   const ti=sortedD.indexOf(todayStr);
