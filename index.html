@@ -198,7 +198,11 @@ input[type="date"]{color-scheme:light}
 .sep{height:1px;background:var(--bd);margin:12px 0}
 .save-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.chart-wrap{position:relative;width:100%;overflow:hidden}
 canvas{display:block;width:100%}
+/* CHART TOOLTIP */
+.chart-tip{position:absolute;background:var(--tx);color:#fff;border-radius:8px;padding:8px 11px;font-size:12px;line-height:1.5;pointer-events:none;white-space:nowrap;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,.2);transform:translateX(-50%)}
+.chart-tip::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom:none;border-top-color:var(--tx)}
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 </style>
 </head>
@@ -426,7 +430,7 @@ canvas{display:block;width:100%}
       <button class="crb active" id="chart-mode-weekly" onclick="setChartMode('weekly')">Weekly Avg</button>
     </div>
     <div id="chart-range-label" class="tsm" style="margin-bottom:6px"></div>
-    <canvas id="cwt" style="height:180px"></canvas>
+    <div class="chart-wrap"><canvas id="cwt" style="height:180px"></canvas><div id="chart-tip" class="chart-tip" style="display:none"></div></div>
     <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">
       <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:12px;height:2px;background:#1d4ed8;display:inline-block;border-radius:1px"></span>Actual</div>
       <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:12px;height:2px;border-top:2px dashed #888;display:inline-block"></span>Forecast</div>
@@ -761,9 +765,11 @@ function detectPhase(){
 function renderPhaseCards(){
   const currentPhase=detectPhase();
   const container=document.getElementById('phase-cards');
-  container.innerHTML=PHASES.map(ph=>{
-    const isCurrent=ph.id===currentPhase;
-    const cls=isCurrent?'phase-card '+ph.cardClass+' active-phase':'phase-card';
+  const active=PHASES.find(ph=>ph.id===currentPhase);
+  const others=PHASES.filter(ph=>ph.id!==currentPhase);
+
+  function phaseHTML(ph,isCurrent,startOpen){
+    const cls='phase-card '+ph.cardClass+(isCurrent?' active-phase':'');
     return`<div class="${cls}" onclick="togglePhase('${ph.id}',this)">
       <div class="phase-header">
         <div style="display:flex;align-items:center">
@@ -772,19 +778,44 @@ function renderPhaseCards(){
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           ${isCurrent?`<span class="phase-badge" style="background:${ph.badgeBg};color:${ph.badgeColor}">${ph.badgeTxt}</span>`:''}
-          <span style="font-size:16px;color:var(--tx3)" id="arrow-${ph.id}">›</span>
+          <span style="font-size:16px;color:var(--tx3)" id="arrow-${ph.id}">${startOpen?'⌄':'›'}</span>
         </div>
       </div>
-      <div class="phase-body" id="body-${ph.id}">
+      <div class="phase-body${startOpen?' open':''}" id="body-${ph.id}">
         <div style="font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.55">${ph.trigger}</div>
         <div class="phase-action"><strong style="color:var(--tx)">What to do:</strong><br><span style="white-space:pre-line">${ph.action}</span></div>
         ${ph.signals.length?`<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:5px">SIGNALS TO WATCH</div>${ph.signals.map(s=>`<div style="font-size:12px;color:var(--tx2);margin-bottom:3px">· ${s}</div>`).join('')}</div>`:''}
         <div class="phase-why"><strong>Why this works:</strong> ${ph.why}</div>
         ${ph.fixes.length?`<div style="margin-top:8px">${ph.fixes.map(f=>`<div style="font-size:12px;color:var(--blue);margin-bottom:4px">💡 ${f}</div>`).join('')}</div>`:''}
-        ${isCurrent?`<div style="margin-top:10px;padding:8px 10px;background:var(--gbg);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">● You are currently in this phase</div>`:''}
+        ${isCurrent?`<div style="margin-top:10px;padding:8px 10px;background:var(--gbg);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">● Active on ${new Date().toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})}</div>`:''}
       </div>
     </div>`;
-  }).join('');
+  }
+
+  let html='';
+  // Active phase — always on top, open by default
+  if(active) html+=phaseHTML(active,true,true);
+
+  // Other phases — collapsed under a toggle
+  if(others.length){
+    html+=`<div style="margin-top:4px">
+      <div onclick="toggleOtherPhases(this)" style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px;cursor:pointer;font-size:12px;font-weight:600;color:var(--tx3)">
+        <span>Other phases (${others.length})</span><span id="other-phases-arrow" style="font-size:15px">›</span>
+      </div>
+      <div id="other-phases-body" style="display:none">
+        ${others.map(ph=>phaseHTML(ph,false,false)).join('')}
+      </div>
+    </div>`;
+  }
+  container.innerHTML=html;
+}
+
+function toggleOtherPhases(el){
+  const body=document.getElementById('other-phases-body');
+  const arrow=document.getElementById('other-phases-arrow');
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  arrow.textContent=open?'⌄':'›';
 }
 
 function togglePhase(id,card){
@@ -1139,10 +1170,10 @@ function renderWeekRangeBtns(){
   const showAll=totalFcWeeks>25;
   const cur=chartWkWindow===null?'All':chartWkWindow;
   container.innerHTML=
-    `<span style="font-size:11px;font-weight:600;color:var(--tx3)">Wks</span>`+
-    `<button onclick="stepWks(-1)" style="width:24px;height:24px;border:1.5px solid var(--bd2);border-radius:5px;background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;color:var(--tx);display:flex;align-items:center;justify-content:center;padding:0;font-family:var(--font)">−</button>`+
-    `<input id="wk-window-input" type="number" min="1" max="${totalFcWeeks}" value="${chartWkWindow===null?totalFcWeeks:chartWkWindow}" style="width:36px;height:24px;text-align:center;border:1.5px solid var(--bd2);border-radius:5px;font-size:12px;font-weight:700;padding:0;font-family:var(--font);color:var(--tx);background:var(--surface)" oninput="setWkWindowVal(this.value)">`+
-    `<button onclick="stepWks(1)" style="width:24px;height:24px;border:1.5px solid var(--bd2);border-radius:5px;background:var(--surface);font-size:14px;font-weight:700;cursor:pointer;color:var(--tx);display:flex;align-items:center;justify-content:center;padding:0;font-family:var(--font)">+</button>`+
+    `<span style="font-size:11px;font-weight:600;color:var(--tx3);line-height:24px">Wks</span>`+
+    `<button class="crb" onclick="stepWks(-1)" style="width:28px;padding:0;text-align:center;font-size:16px;line-height:1">−</button>`+
+    `<input id="wk-window-input" type="number" min="1" max="${totalFcWeeks}" value="${chartWkWindow===null?totalFcWeeks:chartWkWindow}" style="width:38px;height:26px;text-align:center;border:1.5px solid var(--bd2);border-radius:5px;font-size:13px;font-weight:700;padding:0;font-family:var(--font);color:var(--tx);background:var(--surface);-webkit-appearance:none" oninput="setWkWindowVal(this.value)">`+
+    `<button class="crb" onclick="stepWks(1)" style="width:28px;padding:0;text-align:center;font-size:16px;line-height:1">+</button>`+
     (showAll?`<button class="crb${chartWkWindow===null?' active':''}" onclick="setWkWindowAll()">All</button>`:'');
 }
 
@@ -1165,12 +1196,6 @@ function setWkWindowVal(val){
 
 function setWkWindowAll(){
   chartWkWindow=null;
-  renderWeekRangeBtns();
-  drawWeightChart();
-}
-
-function setWkWindow(val){
-  chartWkWindow=val;
   renderWeekRangeBtns();
   drawWeightChart();
 }
@@ -1200,7 +1225,10 @@ function isoWeek(dateStr){
 function buildWeeklyPoints(filtCI){
   const byWeek={};
   filtCI.forEach(c=>{const wk=isoWeek(c.date);if(!byWeek[wk])byWeek[wk]={sum:0,n:0,dates:[]};byWeek[wk].sum+=c.weight;byWeek[wk].n++;byWeek[wk].dates.push(c.date);});
-  return Object.entries(byWeek).sort((a,b)=>a[0]>b[0]?1:-1).map(([,v])=>({label:fmtDate(v.dates[v.dates.length-1]),weight:parseFloat((v.sum/v.n).toFixed(2))}));
+  return Object.entries(byWeek).sort((a,b)=>a[0]>b[0]?1:-1).map(([,v])=>{
+    const lastDate=v.dates[v.dates.length-1];
+    return{date:lastDate,label:fmtDate(lastDate),weight:parseFloat((v.sum/v.n).toFixed(2))};
+  });
 }
 
 function drawWeightChart(){
@@ -1246,6 +1274,13 @@ function drawWeightChart(){
       fullFcPts.push({w,weight:parseFloat((startWt+netChangePerWeek*w).toFixed(2))});
     }
 
+    // AUTO-WIDEN: if forecast needs more weeks than current window, expand
+    if(chartWkWindow!==null&&totalFcWeeks>chartWkWindow){
+      chartWkWindow=totalFcWeeks;
+      const inp=document.getElementById('wk-window-input');
+      if(inp)inp.value=chartWkWindow;
+    }
+
     // Determine visible x range using chartWkWindow
     // chartWkWindow=8 → show last 8 weeks up to totalFcWeeks
     // chartWkWindow=null → show all (wk 0 → totalFcWeeks)
@@ -1253,9 +1288,9 @@ function drawWeightChart(){
     const minW=chartWkWindow?Math.max(0,todayWk-chartWkWindow):0;
     const maxW=totalFcWeeks;
 
-    // Actual points mapped to week index
+    // Actual points mapped to week index — use .date stored directly in allWkPts
     const acWkPts=allWkPts
-      .map(p=>({w:toWk(allCI.find(c=>fmtDate(c.date)===p.label)?.date||todayStr),v:p.weight}))
+      .map(p=>({w:toWk(p.date),v:p.weight,label:p.label}))
       .filter(p=>p.w>=minW&&p.w<=maxW);
 
     const visFcPts=fullFcPts.filter(p=>p.w>=minW&&p.w<=maxW);
@@ -1280,17 +1315,25 @@ function drawWeightChart(){
     // Forecast line — starts at week 0 (startWt), ends at weeksToGoal
     if(visFcPts.length>=2){ctx.strokeStyle='#aaa';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.beginPath();visFcPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.w),yS(p.weight)):ctx.lineTo(xS(p.w),yS(p.weight)));ctx.stroke();ctx.setLineDash([]);}
 
-    // Actual weekly avg line + fill
+    // Actual weekly avg line + fill — store dot positions for tooltip
+    const dotHits=[];
     if(acWkPts.length>=2){
       const g=ctx.createLinearGradient(0,pd.t,0,H-pd.b);g.addColorStop(0,'rgba(29,78,216,.18)');g.addColorStop(1,'rgba(29,78,216,0)');
       ctx.beginPath();acWkPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.w),yS(p.v)):ctx.lineTo(xS(p.w),yS(p.v)));ctx.lineTo(xS(acWkPts[acWkPts.length-1].w),H-pd.b);ctx.lineTo(xS(acWkPts[0].w),H-pd.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
       ctx.strokeStyle='#1d4ed8';ctx.lineWidth=2.5;ctx.beginPath();acWkPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.w),yS(p.v)):ctx.lineTo(xS(p.w),yS(p.v)));ctx.stroke();
-      acWkPts.forEach(p=>{ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#1d4ed8';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),4,0,Math.PI*2);ctx.stroke();});
+      acWkPts.forEach((p,i)=>{
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#1d4ed8';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),4,0,Math.PI*2);ctx.stroke();
+        const prev=acWkPts[i-1];
+        const diff=prev?parseFloat((p.v-prev.v).toFixed(2)):null;
+        dotHits.push({cx:xS(p.w),cy:yS(p.v),w:p.w,avg:p.v,diff});
+      });
     } else if(acWkPts.length===1){
-      ctx.fillStyle='#1d4ed8';ctx.beginPath();ctx.arc(xS(acWkPts[0].w),yS(acWkPts[0].v),5,0,Math.PI*2);ctx.fill();
+      const p=acWkPts[0];
+      ctx.fillStyle='#1d4ed8';ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),5,0,Math.PI*2);ctx.fill();
+      dotHits.push({cx:xS(p.w),cy:yS(p.v),w:p.w,avg:p.v,diff:null});
     }
 
-    // X axis — week numbers ("Wk 1", "Wk 4" etc)
+    // X axis — week numbers
     ctx.font='9px Inter';ctx.textAlign='center';
     const step=Math.max(1,Math.floor(span/6));
     for(let w=minW;w<=maxW;w++){
@@ -1311,6 +1354,9 @@ function drawWeightChart(){
         wtg.innerHTML='🎯 At <strong>'+fatRatePerWeek.toFixed(2)+' kg/week</strong> → <strong>'+weeksToGoal+' weeks</strong> to reach <strong>'+targetWt+' kg</strong> · Est. <strong>'+arrFmt+'</strong>';
       } else {wtg.style.display='none';}
     }
+
+    // Register dot hit-test for tooltip
+    registerChartDots(cv,dotHits);
     return;
   }
 
@@ -1374,9 +1420,43 @@ function drawWellnessChart(){
   s.forEach((c,i)=>{if(i%step===0||i===s.length-1)ctx.fillText(fmtDate(c.date),xS(i),H-5);});
 }
 
-// ══════════════════════════════════════════
-// INSIGHTS
-// ══════════════════════════════════════════
+// ── CHART DOT TOOLTIP ──
+let _chartDotHits=[];
+let _chartListenerSet=false;
+function registerChartDots(cv,dots){
+  _chartDotHits=dots.slice();
+  if(_chartListenerSet)return;
+  _chartListenerSet=true;
+  document.getElementById('cwt').addEventListener('click',e=>onChartClick(e));
+  document.getElementById('cwt').addEventListener('touchend',e=>{e.preventDefault();onChartClick(e.changedTouches[0]);},{passive:false});
+}
+
+function onChartClick(e){
+  const cv=document.getElementById('cwt');
+  if(!cv)return;
+  const rect=cv.getBoundingClientRect();
+  const mx=e.clientX-rect.left;
+  const my=e.clientY-rect.top;
+  const tip=document.getElementById('chart-tip');
+  let best=null,bestDist=22;
+  _chartDotHits.forEach(d=>{
+    const dist=Math.sqrt((d.cx-mx)**2+(d.cy-my)**2);
+    if(dist<bestDist){bestDist=dist;best=d;}
+  });
+  if(!best){tip.style.display='none';return;}
+  const diffStr=best.diff===null?'First week logged'
+    :best.diff<0?'↓ '+Math.abs(best.diff).toFixed(2)+' kg vs prev week'
+    :best.diff>0?'↑ +'+best.diff.toFixed(2)+' kg vs prev week'
+    :'→ No change vs prev week';
+  const col=best.diff===null?'#aaa':best.diff<0?'#86efac':best.diff>0?'#fca5a5':'#aaa';
+  tip.innerHTML=`<div style="font-weight:700;margin-bottom:2px">Wk ${best.w} · ${best.avg} kg</div><div style="color:${col};font-size:11px">${diffStr}</div>`;
+  tip.style.display='block';
+  const clampedLeft=Math.min(Math.max(best.cx,60),rect.width-60);
+  tip.style.left=clampedLeft+'px';
+  tip.style.top=(best.cy-48)+'px';
+  clearTimeout(tip._hide);
+  tip._hide=setTimeout(()=>tip.style.display='none',2500);
+}
 function renderInsights(){
   const wkTxt=buildWeeklyInsight();
   document.getElementById('ins-weekly-text').innerHTML=wkTxt;
