@@ -2,1725 +2,607 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Recomp Coach</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Weight Coach</title>
 <style>
 :root{
-  --bg:#f0f0ed;--surface:#fff;--s2:#f4f4f2;
-  --bd:#d4d4d0;--bd2:#b8b8b4;
-  --tx:#111;--tx2:#444;--tx3:#777;
-  --green:#15803d;--gbg:#f0fdf4;--gbd:#86efac;
-  --red:#b91c1c;--rbg:#fef2f2;--rbd:#fca5a5;
-  --blue:#1d4ed8;--bbg:#eff6ff;--bbd:#93c5fd;
-  --yellow:#92400e;--ybg:#fffbeb;--ybd:#fcd34d;
-  --orange:#c2410c;--obg:#fff7ed;--obd:#fed7aa;
-  --purple:#6d28d9;--pbg:#f5f3ff;--pbd:#c4b5fd;
-  --accent:#1d4ed8;
-  --font:'Inter',sans-serif;--disp:'Syne',sans-serif;
-  --r:12px;--rs:8px;--sh:0 1px 4px rgba(0,0,0,.08);--nh:62px;
+  --bg:#f2f2f7;--surface:#fff;--fill:rgba(118,118,128,.12);
+  --tx:#1c1c1e;--tx2:#636366;--tx3:#8e8e93;
+  --sep:rgba(60,60,67,.16);
+  --blue:#007aff;--green:#34c759;--green-d:#248a3d;--red:#ff3b30;--orange:#ff9500;
+  --gbg:#ecfaef;--rbg:#feeceb;--obg:#fff4e6;--bbg:#e8f1ff;
+  --r:16px;--nh:58px;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow:hidden}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--font);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow:hidden}
 #app{height:100dvh;display:flex;flex-direction:column}
-#content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nh)+44px)}
-.page{display:none;padding:14px 14px 20px;animation:fu .2s ease}
+#content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nh)+34px)}
+.page{display:none;padding:8px 16px 24px;animation:fu .25s ease}
 .page.active{display:block}
-@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-/* NAV */
-#nav{position:fixed;bottom:0;left:0;right:0;height:var(--nh);background:var(--surface);border-top:1.5px solid var(--bd);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
-.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--tx3);font-family:var(--font);font-size:9px;font-weight:600;cursor:pointer;padding:6px 0;letter-spacing:.4px;text-transform:uppercase;position:relative;transition:color .15s}
-.nb svg{width:20px;height:20px}
-.nb.active{color:var(--tx)}
-.nb.active::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:3px;background:var(--tx);border-radius:0 0 3px 3px}
+.h1{font-size:30px;font-weight:700;letter-spacing:-.5px;margin:14px 0 14px}
+.shdr{font-size:13px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px;margin:22px 4px 8px}
+.shdr:first-child{margin-top:6px}
 
-/* CARDS */
-.card{background:var(--surface);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
-.csm{padding:10px 12px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
+.card{background:var(--surface);border-radius:var(--r);padding:18px;margin-bottom:12px}
+.list{background:var(--surface);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-bottom:.5px solid var(--sep);font-size:16px}
+.row:last-child{border-bottom:none}
+.row label{font-weight:400;color:var(--tx);margin:0}
+.row input{text-align:right;border:none;background:none;font-family:var(--font);font-size:16px;font-weight:600;color:var(--blue);width:120px;padding:0;outline:none}
+.row input[type=date]{font-weight:500}
 
-/* TYPE */
-.pt{font-family:var(--disp);font-size:21px;font-weight:800;letter-spacing:-.3px;margin-bottom:12px;color:var(--tx)}
-.sl{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2);margin:14px 0 7px;border-bottom:1px solid var(--bd);padding-bottom:5px}
-.sl:first-child{margin-top:0}
+.hero{background:var(--surface);border-radius:var(--r);padding:20px;margin-bottom:12px;text-align:center}
+.hero-big{font-size:52px;font-weight:700;letter-spacing:-1.5px;line-height:1;font-variant-numeric:tabular-nums}
+.hero-unit{font-size:22px;font-weight:600;color:var(--tx3)}
+.hero-delta{font-size:15px;font-weight:600;margin-top:6px}
+.hero-sub{font-size:14px;color:var(--tx3);margin-top:10px;padding-top:12px;border-top:.5px solid var(--sep)}
 
-/* DIVIDER ROWS */
-.dr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bd);font-size:14px}
-.dr:last-child{border-bottom:none}
-.bdg{font-size:14px;font-weight:700;color:var(--tx)}
-.tmu{color:var(--tx2);font-size:14px}
-.ev{font-weight:700;font-size:14px;color:var(--blue);cursor:pointer;text-decoration:underline dotted}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600;padding:4px 11px;border-radius:20px}
+.p-good{background:var(--gbg);color:var(--green-d)}
+.p-warn{background:var(--rbg);color:var(--red)}
+.p-info{background:var(--bbg);color:var(--blue)}
+.p-neut{background:var(--fill);color:var(--tx2)}
 
-/* INSIGHT CARDS */
-.ic{border-radius:var(--r);padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.6;border-left:4px solid;border:1px solid var(--bd);border-left:4px solid var(--blue);background:var(--surface);color:var(--tx)}
-.ic-good{border-left-color:var(--green)}
-.ic-warn{border-left-color:var(--red)}
-.ic-flag{border-left-color:var(--red);background:var(--rbg)}
-.ic-info{border-left-color:var(--blue)}
-.ic-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;color:var(--tx3)}
+.dual{display:flex}
+.dual>div{flex:1;text-align:center}
+.dual>div+div{border-left:.5px solid var(--sep)}
+.dual .v{font-size:26px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.dual .l{font-size:12px;color:var(--tx3);margin-top:2px}
 
-/* PHASE CARDS */
-.phase-card{border:2px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
-.phase-card.active-phase{border-color:var(--tx)}
-.phase-card.phase-good{border-color:var(--green)}
-.phase-card.phase-warn{border-color:var(--red)}
-.phase-card.phase-orange{border-color:var(--orange)}
-.phase-header{display:flex;justify-content:space-between;align-items:center;padding:11px 13px}
-.phase-icon{font-size:20px;margin-right:8px}
-.phase-name{font-weight:700;font-size:14px;color:var(--tx)}
-.phase-sub{font-size:11px;color:var(--tx3);margin-top:1px}
-.phase-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.3px}
-.phase-body{display:none;padding:0 13px 13px;border-top:1px solid var(--bd)}
-.phase-body.open{display:block}
-.phase-action{background:var(--s2);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px;line-height:1.55}
-.phase-why{font-size:12px;color:var(--tx3);margin-top:8px;line-height:1.5}
+.coach{border-radius:var(--r);padding:16px 18px;margin-bottom:12px}
+.coach-good{background:var(--gbg)}
+.coach-warn{background:var(--rbg)}
+.coach-info{background:var(--bbg)}
+.coach-neut{background:var(--surface)}
+.coach-t{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.2px}
+.coach-b{font-size:14px;line-height:1.5;color:var(--tx2)}
 
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;border-radius:10px;border:none;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
-.btp{background:var(--tx);color:#fff;width:100%;font-size:15px}
-.btp:active{transform:scale(.98)}
-.btg{background:var(--surface);color:var(--tx);border:1.5px solid var(--bd2)}
-.bts{padding:7px 14px;font-size:12px;border-radius:var(--rs)}
-.btd{background:var(--rbg);color:var(--red);border:1.5px solid var(--rbd);font-weight:700}
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;margin-bottom:14px}
+.seg button{flex:1;border:none;background:none;font-family:var(--font);font-size:13px;font-weight:600;color:var(--tx);padding:6px 0;border-radius:7px;cursor:pointer;transition:all .2s}
+.seg button.on{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 
-/* ENERGY TAP BUTTONS 1-5 */
-.e-btns{display:flex;gap:6px;margin-top:4px}
-.e-btn{flex:1;padding:10px 4px;border:2px solid var(--bd2);border-radius:8px;background:var(--surface);font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;color:var(--tx2)}
-.e-btn.sel{border-color:var(--tx);background:var(--tx);color:#fff}
-.e-btn-lbl{font-size:9px;font-weight:600;color:var(--tx3);margin-top:2px;line-height:1.2}
+.e-row{display:flex;gap:8px;margin-top:8px}
+.e-row>button{flex:1;aspect-ratio:1;max-height:54px;border:none;border-radius:13px;background:var(--fill);font-family:var(--font);font-size:18px;font-weight:600;color:var(--tx2);cursor:pointer;transition:all .15s}
+.e-row>button.sel{background:var(--blue);color:#fff;transform:scale(1.04)}
+.e-hint{display:flex;justify-content:space-between;font-size:12px;color:var(--tx3);margin-top:6px;padding:0 2px}
 
-/* STRENGTH TAP BUTTONS */
-.str-btns{display:flex;gap:6px;margin-top:4px}
-.str-btn{flex:1;padding:10px 4px;border:2px solid var(--bd2);border-radius:8px;background:var(--surface);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;text-align:center;transition:all .15s;color:var(--tx2)}
-.str-btn.sel-up{border-color:var(--green);background:var(--gbg);color:var(--green)}
-.str-btn.sel-stable{border-color:var(--tx2);background:var(--s2);color:var(--tx2)}
-.str-btn.sel-down{border-color:var(--red);background:var(--rbg);color:var(--red)}
+.fld{margin-bottom:14px}
+.fld:last-child{margin-bottom:0}
+.fld label{display:block;font-size:13px;font-weight:600;color:var(--tx3);margin-bottom:6px;padding-left:2px}
+.fld input{width:100%;background:var(--fill);border:none;border-radius:11px;font-family:var(--font);font-size:17px;font-weight:600;color:var(--tx);padding:13px 14px;outline:none}
+.fld input[type=date]{color-scheme:light;font-weight:500}
 
-/* CAL MODE TOGGLE */
-.cal-mode-btns{display:flex;gap:4px;margin-bottom:8px}
-.cal-mode-btn{flex:1;padding:7px 4px;border:1.5px solid var(--bd2);border-radius:7px;background:var(--surface);font-size:11px;font-weight:600;cursor:pointer;text-align:center;color:var(--tx3);transition:all .15s;font-family:var(--font)}
-.cal-mode-btn.sel{border-color:var(--tx);background:var(--tx);color:#fff}
+.btn{display:block;width:100%;padding:15px;border-radius:13px;border:none;font-family:var(--font);font-size:17px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn:active{opacity:.7}
+.btp{background:var(--blue);color:#fff}
+.btg{background:var(--fill);color:var(--blue)}
+.btd{background:none;color:var(--red);font-weight:500}
+.btxt{background:none;color:var(--blue);font-size:15px;padding:8px}
 
-/* SLIDER */
-.sr{display:flex;align-items:center;gap:10px}
-.sr input[type="range"]{flex:1;-webkit-appearance:none;height:5px;background:var(--bd2);border-radius:3px;outline:none;padding:0;border:none;background-image:linear-gradient(var(--tx),var(--tx));background-size:70% 100%;background-repeat:no-repeat}
-.sr input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--surface);border:2px solid var(--tx);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.sv2{font-size:16px;font-weight:700;min-width:26px;text-align:right;font-variant-numeric:tabular-nums}
-.slider-hints{display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-top:3px}
+.pb{background:var(--fill);border-radius:5px;height:8px;overflow:hidden}
+.pb>div{height:100%;border-radius:5px;background:var(--green);transition:width .6s ease}
 
-/* TOGGLE */
-.tr{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd)}
-.tr:last-child{border-bottom:none;padding-bottom:0}
-.tog{position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0}
-.tog input{display:none}
-.tt{width:100%;height:100%;background:var(--bd2);border-radius:12px;transition:background .2s}
-.tog input:checked+.tt{background:var(--tx)}
-.th{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:white;transition:transform .2s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.tog input:checked~.th{transform:translateX(20px)}
+.hrow{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:.5px solid var(--sep)}
+.hrow:last-child{border-bottom:none}
 
-/* LABEL WITH INFO BTN */
-.lbl-row{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--tx);margin-bottom:6px}
-.lbl-row .tmu-lbl{font-size:11px;font-weight:400;color:var(--tx3);margin-left:auto}
-.info-btn{width:18px;height:18px;border-radius:50%;background:var(--s2);color:var(--tx3);border:1px solid var(--bd2);font-size:10px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font)}
-.info-btn:active{background:var(--bd)}
-
-/* FORM */
-.fg{margin-bottom:12px}
-.fg:last-child{margin-bottom:0}
-label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--tx);margin-bottom:6px}
-input[type="number"],input[type="date"],select{width:100%;background:var(--surface);border:1.5px solid var(--bd2);border-radius:var(--rs);color:var(--tx);font-family:var(--font);font-size:15px;font-weight:500;padding:10px 12px;outline:none;transition:border-color .15s;-webkit-appearance:none}
-input:focus,select:focus{border-color:var(--tx);box-shadow:0 0 0 3px rgba(17,17,17,.08)}
-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23777' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
-input[type="date"]{color-scheme:light}
-
-/* PROGRESS RING */
-.ring-outer{position:relative;width:130px;height:130px}
-.ring-svg{width:130px;height:130px}
-.ring-bg{fill:none;stroke:var(--s2);stroke-width:10}
-.ring-fill{fill:none;stroke:var(--tx);stroke-width:10;stroke-linecap:round;stroke-dasharray:314;stroke-dashoffset:314;transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 1s ease,stroke .5s}
-.ring-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
-.ring-pct{font-family:var(--disp);font-size:24px;font-weight:800;color:var(--tx);line-height:1}
-.ring-lbl{font-size:10px;color:var(--tx3)}
-
-/* PROG BAR */
-.pb-wrap{background:var(--s2);border-radius:4px;height:7px;overflow:hidden}
-.pb-fill{height:100%;border-radius:4px;transition:width .6s ease}
-
-/* CHART RANGE BTNS */
-.crb{padding:4px 10px;font-size:11px;font-weight:700;border:1.5px solid var(--bd2);border-radius:6px;background:var(--surface);color:var(--tx3);cursor:pointer;font-family:var(--font)}
-.crb.active{background:var(--tx);color:#fff;border-color:var(--tx)}
-
-/* KPI TABLE */
-.kpi-table{width:100%;border-collapse:collapse;font-size:12px}
-.kpi-table th{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--tx3);padding:6px 8px;border-bottom:1.5px solid var(--bd);text-align:left}
-.kpi-table td{padding:8px 8px;border-bottom:1px solid var(--bd);color:var(--tx);vertical-align:middle}
-.kpi-table tr:last-child td{border-bottom:none}
-.kpi-table tr.today-row td{background:var(--s2);font-weight:600}
-
-/* MODAL */
-.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end}
-.mo.hidden{display:none}
-.md{background:var(--surface);border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto}
-.mdt{font-family:var(--disp);font-size:16px;font-weight:800;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
-.mc{background:var(--s2);border:none;color:var(--tx2);width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-
-/* SCALE GUIDE */
-.scale-row{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start;font-size:13px}
-.scale-key{font-weight:700;min-width:48px;flex-shrink:0}
-.sk-bad{color:var(--red)}.sk-mid{color:var(--yellow)}.sk-good{color:var(--green)}
-
-/* HISTORY ACCORDION */
-.acc-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;cursor:pointer;font-weight:600;font-size:13px;color:var(--tx2)}
-.acc-body{display:none}.acc-body.open{display:block}
-.hist-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--bd);font-size:13px}
-.hist-row:last-child{border-bottom:none}
-
-/* SETUP */
-#setup{position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto;padding:28px 16px 40px}
-.slogo{font-family:var(--disp);font-size:26px;font-weight:800;text-align:center;margin-bottom:3px}
-.slogo span{color:var(--blue)}
-.ssub{font-size:13px;color:var(--tx3);text-align:center;margin-bottom:24px}
-.unit-tog{display:flex;border:1.5px solid var(--bd2);border-radius:7px;overflow:hidden}
-.ub{flex:1;padding:3px 10px;font-size:11px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--tx3)}
-.ub.active{background:var(--tx);color:#fff}
-.pace-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:7px}
-.pace-btn{border:2px solid var(--bd);border-radius:10px;padding:11px 7px;text-align:center;cursor:pointer;background:var(--surface)}
-.pace-btn.active{border-color:var(--tx);background:var(--s2)}
-.pace-title{font-weight:700;font-size:13px;color:var(--tx)}
-.pace-sub{font-size:10px;color:var(--tx3);margin-top:2px}
-
-/* MISC */
-.tsm{font-size:12px;color:var(--tx3)}.tmu-s{color:var(--tx2)}.tc{text-align:center}
-.mt8{margin-top:8px}.mt10{margin-top:10px}.mt12{margin-top:12px}
-.sep{height:1px;background:var(--bd);margin:12px 0}
-.save-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.chart-wrap{position:relative;width:100%;overflow:hidden}
+.cw{position:relative;width:100%;overflow:hidden}
 canvas{display:block;width:100%}
-/* CHART TOOLTIP */
-.chart-tip{position:absolute;background:var(--tx);color:#fff;border-radius:8px;padding:8px 11px;font-size:12px;line-height:1.5;pointer-events:none;white-space:nowrap;z-index:50;box-shadow:0 4px 12px rgba(0,0,0,.2);transform:translateX(-50%)}
-.chart-tip::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom:none;border-top-color:var(--tx)}
-::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+.tip{position:absolute;background:rgba(28,28,30,.95);color:#fff;border-radius:9px;padding:7px 10px;font-size:12px;line-height:1.4;pointer-events:none;white-space:nowrap;z-index:5;transform:translateX(-50%);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px}
+.legend>div{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx3)}
+
+#setup{position:fixed;inset:0;background:var(--bg);z-index:300;overflow-y:auto;padding:60px 16px 40px}
+.logo{font-size:30px;font-weight:700;text-align:center;letter-spacing:-.5px}
+.logo span{color:var(--blue)}
+.tag{font-size:15px;color:var(--tx3);text-align:center;margin:4px 0 28px}
+
+#nav{position:fixed;bottom:0;left:0;right:0;height:var(--nh);background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--sep);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--tx3);font-family:var(--font);font-size:10px;font-weight:500;cursor:pointer}
+.nb svg{width:24px;height:24px}
+.nb.active{color:var(--blue)}
+
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:400;display:flex;align-items:center;justify-content:center;padding:30px}
+.mo.hidden{display:none}
+.mc{background:var(--surface);border-radius:18px;max-width:300px;width:100%;overflow:hidden;text-align:center;animation:pop .25s ease}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.mc-body{padding:22px 20px 18px}
+.mc-emoji{font-size:34px}
+.mc-t{font-size:18px;font-weight:700;margin:8px 0 6px}
+.mc-x{font-size:14px;color:var(--tx2);line-height:1.5}
+.mc-btn{border:none;border-top:.5px solid var(--sep);background:none;width:100%;padding:13px;font-family:var(--font);font-size:17px;font-weight:600;color:var(--blue);cursor:pointer}
+
+.tsm{font-size:13px;color:var(--tx3)}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.tc{text-align:center}
+::-webkit-scrollbar{width:0}
 </style>
 </head>
 <body>
 
-<!-- ══ SETUP ══ -->
+<!-- SETUP -->
 <div id="setup">
-  <div class="slogo">Recomp<span>Coach</span></div>
-  <div class="ssub">Fat loss · Muscle gain · Feel good doing it</div>
+  <div class="logo">Weight<span>Coach</span></div>
+  <div class="tag">Am I on pace? Do I have the energy?</div>
   <div class="card">
-    <div class="fg">
-      <label style="justify-content:space-between"><span id="htl">Height (cm)</span>
-        <div class="unit-tog"><button class="ub active" id="ucm" onclick="setHU('cm')">CM</button><button class="ub" id="uft" onclick="setHU('ft')">FT</button></div>
-      </label>
-      <input type="number" id="s-ht-cm" placeholder="178" step="1">
-      <div id="s-ht-fw" style="display:none;gap:8px" class="g2">
-        <div><input type="number" id="s-ht-ft" placeholder="5"><div class="tsm mt8 tc">feet</div></div>
-        <div><input type="number" id="s-ht-in" placeholder="10"><div class="tsm mt8 tc">inches</div></div>
-      </div>
-    </div>
-    <div class="g2">
-      <div class="fg"><label>Weight (kg)</label><input type="number" id="s-wt" placeholder="84" step="0.1"></div>
-      <div class="fg"><label>Age</label><input type="number" id="s-age" placeholder="30"></div>
-    </div>
-    <div class="g2">
-      <div class="fg"><label>Current BF%</label><input type="number" id="s-bf" placeholder="27" step="0.5"></div>
-      <div class="fg"><label>Target BF%</label><input type="number" id="s-tbf" placeholder="15" step="0.5"></div>
-    </div>
-    <div class="fg"><label>Sex</label><select id="s-sex"><option value="male">Male</option><option value="female">Female</option></select></div>
-    <div class="fg"><label>Activity Level</label>
-      <select id="s-act">
-        <option value="1.2">Sedentary (desk job)</option>
-        <option value="1.375" selected>Lightly Active (some walking)</option>
-        <option value="1.55">Moderately Active</option>
-        <option value="1.725">Very Active (labour + gym)</option>
-      </select>
-    </div>
-    <div class="fg" style="margin-bottom:0">
-      <label>Training Experience <span class="tsm" style="margin-left:auto;font-weight:400">affects muscle gain estimate</span></label>
-      <select id="s-exp">
-        <option value="beginner">Beginner (0–1 year)</option>
-        <option value="intermediate" selected>Intermediate (1–3 years)</option>
-        <option value="advanced">Advanced (3–6 years)</option>
-        <option value="elite">Elite (6+ years)</option>
-      </select>
-      <div class="tsm mt8" id="exp-hint">Expected muscle gain: ~0.50 kg/month (intermediate)</div>
-    </div>
+    <div class="fld"><label>CURRENT WEIGHT (KG)</label><input type="number" id="s-cur" placeholder="84.0" step="0.1"></div>
+    <div class="fld"><label>TARGET WEIGHT (KG)</label><input type="number" id="s-tgt" placeholder="75.0" step="0.1"></div>
+    <div class="fld"><label>TARGET DATE</label><input type="date" id="s-date"></div>
   </div>
-  <div class="card">
-    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2);margin-bottom:8px">Fat Loss Pace</div>
-    <div class="pace-grid" id="pace-grid">
-      <div class="pace-btn active" data-pace="gentle" onclick="setPace(this)">
-        <div class="pace-title">Gentle</div>
-        <div class="pace-sub">150–200 kcal deficit</div>
-        <div class="pace-sub mt8" style="color:var(--green)">~0.14 kg/wk</div>
-      </div>
-      <div class="pace-btn" data-pace="moderate" onclick="setPace(this)">
-        <div class="pace-title">Moderate</div>
-        <div class="pace-sub">250–300 kcal deficit</div>
-        <div class="pace-sub mt8" style="color:var(--yellow)">~0.23 kg/wk</div>
-      </div>
-      <div class="pace-btn" data-pace="faster" onclick="setPace(this)">
-        <div class="pace-title">Faster</div>
-        <div class="pace-sub">400–450 kcal deficit</div>
-        <div class="pace-sub mt8" style="color:var(--red)">~0.37 kg/wk</div>
-      </div>
-    </div>
-    <div class="ic ic-info mt10" id="pace-hint" style="font-size:12px">
-      <div class="ic-label">GOOD FOR YOU IF</div>
-      Good for inflammation, blood sugar sensitivity or fatigue. Prioritises feeling good.
-    </div>
-  </div>
-  <div id="setup-summary" style="display:none" class="card"><div class="sl" style="margin-top:0">Your Estimated Plan</div><div id="sum-body"></div></div>
-  <button class="btn btp mt10" onclick="finishSetup()">Start My Journey →</button>
-  <div style="text-align:center;margin-top:12px"><button class="btn btg bts" onclick="loadDemo()">Load Demo Data</button></div>
+  <div id="setup-summary" style="display:none" class="card"></div>
+  <button class="btn btp mt12" onclick="finishSetup()">Start</button>
+  <button class="btn btxt mt8" onclick="loadDemo()">Load demo data</button>
 </div>
 
-<!-- ══ APP ══ -->
+<!-- APP -->
 <div id="app" style="display:none">
 <div id="content">
 
-<!-- TODAY TAB -->
+<!-- TODAY -->
 <div class="page active" id="page-today">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <div class="pt" style="margin-bottom:0">Today</div>
-    <div style="display:flex;align-items:center;gap:8px"><span class="save-dot"></span><span class="tsm" id="today-date"></span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0">
+    <div class="h1" style="margin:0">Today</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="tsm" id="today-date"></span>
+      <button onclick="openTarget()" style="display:flex;align-items:center;gap:5px;background:var(--fill);border:none;border-radius:20px;padding:7px 12px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--blue);cursor:pointer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Target
+      </button>
+    </div>
   </div>
 
-  <!-- DAILY INSIGHT -->
-  <div id="daily-insight" class="ic ic-info">
-    <div class="ic-label">📊 DAILY OBSERVATION</div>
-    <div id="daily-insight-text">Log your first check-in to receive daily observations.</div>
+  <div class="hero">
+    <div><span class="hero-big" id="h-wt">—</span><span class="hero-unit"> kg</span></div>
+    <div class="hero-delta" id="h-delta"></div>
+    <div class="hero-sub" id="h-sub">Log today's weight to begin.</div>
   </div>
 
-  <!-- STATUS STRIP -->
-  <div class="g3" style="margin-bottom:10px">
-    <div class="card csm tc" style="margin-bottom:0"><div class="tsm">Fat Lost</div><div style="font-family:var(--disp);font-size:20px;font-weight:800;color:var(--green)" id="s-fat-lost">—</div><div class="tsm">kg</div></div>
-    <div class="card csm tc" style="margin-bottom:0"><div class="tsm">Today Cals</div><div style="font-family:var(--disp);font-size:20px;font-weight:800;color:var(--blue)" id="s-today-cals">—</div><div class="tsm" id="s-cal-type">target</div></div>
-    <div class="card csm tc" style="margin-bottom:0"><div class="tsm">Week Loss</div><div style="font-family:var(--disp);font-size:20px;font-weight:800" id="s-week-fl">—</div><div class="tsm">kg</div></div>
+  <div class="card" style="padding:16px 18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:600">This week</div>
+      <span class="pill p-neut" id="pace-pill">—</span>
+    </div>
+    <div class="dual">
+      <div><div class="v" id="pace-now">—</div><div class="l">losing / week</div></div>
+      <div><div class="v" id="pace-need" style="color:var(--orange)">—</div><div class="l">needed / week</div></div>
+    </div>
   </div>
 
-  <!-- PHASE CARDS -->
-  <div class="sl">Your Current Phase</div>
-  <div id="phase-cards"></div>
+  <div class="coach coach-neut" id="coach">
+    <div class="coach-t" id="coach-t">Keep logging</div>
+    <div class="coach-b" id="coach-b">A few days of check-ins unlocks your weekly guidance.</div>
+  </div>
 
-  <!-- MORNING CHECK-IN -->
+  <div class="shdr">Check in</div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-weight:700;font-size:15px">🌅 Morning Check-In</span>
-        <span id="am-saved-badge" style="display:none;font-size:10px;font-weight:700;background:var(--gbg);color:var(--green);border:1px solid var(--gbd);padding:2px 7px;border-radius:20px">✓ Saved</span>
-      </div>
-      <input type="date" id="ci-date" style="width:auto;font-size:12px;padding:5px 8px;border:1.5px solid var(--bd2);border-radius:6px;background:var(--surface);color:var(--tx)">
-    </div>
-
-    <div class="fg">
-      <label>Morning Weight (kg)</label>
-      <input type="number" id="ci-wt" placeholder="84.0" step="0.1">
-    </div>
-
-    <div class="fg">
-      <div class="lbl-row">Energy Score <button class="info-btn" onclick="showInfo('energy')">?</button><span class="tmu-lbl" style="margin-left:auto;font-size:11px;color:var(--tx3)">1=Exhausted · 5=Peak</span></div>
-      <div class="e-btns" id="energy-btns">
-        <div style="flex:1;min-width:0" onclick="selEnergy(1)"><div class="e-btn" data-v="1" style="width:100%">1</div><div class="e-btn-lbl">Exhausted</div></div>
-        <div style="flex:1;min-width:0" onclick="selEnergy(2)"><div class="e-btn" data-v="2" style="width:100%">2</div><div class="e-btn-lbl">Low</div></div>
-        <div style="flex:1;min-width:0" onclick="selEnergy(3)"><div class="e-btn" data-v="3" style="width:100%">3</div><div class="e-btn-lbl">Moderate</div></div>
-        <div style="flex:1;min-width:0" onclick="selEnergy(4)"><div class="e-btn" data-v="4" style="width:100%">4</div><div class="e-btn-lbl">Good</div></div>
-        <div style="flex:1;min-width:0" onclick="selEnergy(5)"><div class="e-btn" data-v="5" style="width:100%">5</div><div class="e-btn-lbl">Peak</div></div>
-      </div>
-    </div>
-
-    <div class="fg">
-      <div class="lbl-row">Sleep Quality <button class="info-btn" onclick="showInfo('sleep')">?</button><span class="tmu-lbl" style="margin-left:auto;font-size:11px;color:var(--tx3)">10 = slept great</span></div>
-      <div class="sr"><input type="range" id="ci-sl" min="1" max="10" value="7" oninput="setSR('sl',this.value)"><div class="sv2" id="rv-sl">7</div></div>
-      <div class="slider-hints"><span>Poor</span><span>Great ↑</span></div>
-    </div>
-
-    <div class="tr">
-      <div><div style="font-weight:600">Trained today?</div><div class="tsm" id="ci-train-hint">Rest day calories apply</div></div>
-      <label class="tog"><input type="checkbox" id="ci-train" onchange="onTrainToggle()"><div class="tt"></div><div class="th"></div></label>
-    </div>
-
-    <div id="strength-row" style="display:none;margin-top:10px">
-      <div class="lbl-row">Strength Trend <button class="info-btn" onclick="showInfo('strength')">?</button></div>
-      <div class="str-btns">
-        <div class="str-btn" data-v="up" onclick="selStr(this)">↑ Up</div>
-        <div class="str-btn" data-v="stable" onclick="selStr(this)">→ Stable</div>
-        <div class="str-btn" data-v="down" onclick="selStr(this)">↓ Down</div>
-      </div>
-    </div>
-    <button class="btn btp mt10" onclick="saveMorningCI()">💾 Save Morning Check-In</button>
-    <div id="am-saved-msg" class="ic ic-good mt10" style="display:none">✓ Morning check-in saved!</div>
-  </div>
-
-  <!-- EVENING CHECK-IN -->
-  <div class="card">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <span style="font-weight:700;font-size:15px">🌙 Evening Check-In</span>
-      <span id="pm-saved-badge" style="display:none;font-size:10px;font-weight:700;background:var(--gbg);color:var(--green);border:1px solid var(--gbd);padding:2px 7px;border-radius:20px">✓ Saved</span>
-    </div>
-    <div id="pm-no-am" class="ic ic-info" style="display:none;margin-bottom:10px;font-size:12px">💡 Complete your morning check-in first to link this data.</div>
-
-    <div class="fg">
-      <div class="lbl-row">Focus & Mental Clarity <button class="info-btn" onclick="showInfo('focus')">?</button><span class="tmu-lbl" style="margin-left:auto;font-size:11px;color:var(--tx3)">10 = sharp</span></div>
-      <div class="sr"><input type="range" id="ci-fo" min="1" max="10" value="7" oninput="setSR('fo',this.value)"><div class="sv2" id="rv-fo">7</div></div>
-      <div class="slider-hints"><span>Brain fog</span><span>Sharp ↑</span></div>
-    </div>
-
-    <div class="fg">
-      <label>Daily Steps</label>
-      <input type="number" id="ci-steps" placeholder="8000">
-    </div>
-
-    <div class="fg" style="margin-bottom:0">
-      <div class="lbl-row">Calories Today</div>
-      <div class="cal-mode-btns">
-        <div class="cal-mode-btn sel" data-m="num" onclick="setCalMode(this)">Enter number</div>
-        <div class="cal-mode-btn" data-m="under" onclick="setCalMode(this)">Under target</div>
-        <div class="cal-mode-btn" data-m="on" onclick="setCalMode(this)">On target</div>
-        <div class="cal-mode-btn" data-m="over" onclick="setCalMode(this)">Over target</div>
-      </div>
-      <input type="number" id="ci-cals" placeholder="2100">
-    </div>
-    <button class="btn btp mt10" onclick="saveEveningCI()">💾 Save Evening Check-In</button>
-    <div id="pm-saved-msg" class="ic ic-good mt10" style="display:none">✓ Evening check-in saved!</div>
-  </div>
-
-  <!-- HISTORY -->
-  <div class="card mt10">
-    <div class="acc-hdr" onclick="toggleHistory()"><span>Past Check-Ins</span><span id="acc-arrow" style="font-size:18px;color:var(--tx3)">›</span></div>
-    <div class="acc-body" id="history-body"><div id="history-list"><div class="tsm" style="padding:8px 0">No check-ins yet.</div></div></div>
-  </div>
-</div>
-
-<!-- PROGRESS TAB -->
-<div class="page" id="page-progress">
-  <div class="pt">Progress</div>
-
-  <!-- BF RING -->
-  <div class="card" style="display:flex;align-items:center;gap:16px">
-    <div class="ring-outer">
-      <svg class="ring-svg" viewBox="0 0 110 110">
-        <circle class="ring-bg" cx="55" cy="55" r="50"/>
-        <circle class="ring-fill" id="ring-fill" cx="55" cy="55" r="50"/>
-      </svg>
-      <div class="ring-center"><div class="ring-pct" id="ring-pct">—</div><div class="ring-lbl">complete</div></div>
-    </div>
-    <div style="flex:1">
-      <div class="g2" style="gap:6px;margin-bottom:8px">
-        <div><div style="font-family:var(--disp);font-size:18px;font-weight:800" id="pr-bf-now">—</div><div class="tsm">Current BF%</div></div>
-        <div><div style="font-family:var(--disp);font-size:18px;font-weight:800;color:var(--green)" id="pr-bf-drop">—</div><div class="tsm">BF% Dropped</div></div>
-      </div>
-      <div class="g3" style="gap:6px">
-        <div><div style="font-weight:800;font-size:15px;color:var(--green)" id="pr-fat-lost">—</div><div class="tsm">Fat (kg)</div></div>
-        <div><div style="font-weight:800;font-size:15px" id="pr-muscle">—</div><div class="tsm">Muscle (kg)</div></div>
-        <div><div style="font-weight:800;font-size:15px" id="pr-scale">—</div><div class="tsm">Scale Δ</div></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card csm" style="font-size:12px;color:var(--tx2);line-height:1.5">
-    <strong style="color:var(--tx)">Why scale moves slowly:</strong> Fat lost minus muscle gained = net scale change. At a gentle deficit you lose fat but gain muscle — the scale barely moves but your body composition improves significantly.
-  </div>
-
-  <!-- JOURNEY SUMMARY BAR -->
-  <div class="card csm" id="journey-summary" style="margin-bottom:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--tx2)">Journey to Goal</div>
-      <div id="js-weeks-left" style="font-size:12px;font-weight:700;color:var(--blue)">—</div>
+      <span style="font-weight:600">Morning weigh-in</span>
+      <input type="date" id="ci-date" style="border:none;background:var(--fill);border-radius:8px;padding:5px 9px;font-family:var(--font);font-size:13px;color:var(--tx);color-scheme:light">
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:5px">
-      <span id="js-lost">Lost: —</span><span id="js-pct-txt">—% complete</span><span id="js-remain">Remaining: —</span>
+    <div class="fld" style="margin:10px 0 4px"><input type="number" id="ci-wt" placeholder="Weight in kg" step="0.1" style="text-align:center;font-size:22px"></div>
+    <div style="font-size:13px;font-weight:600;color:var(--tx3);margin-top:14px;padding-left:2px">HOW'S YOUR ENERGY?</div>
+    <div class="e-row" id="e-row">
+      <button data-v="1" onclick="selEnergy(1)">1</button>
+      <button data-v="2" onclick="selEnergy(2)">2</button>
+      <button data-v="3" onclick="selEnergy(3)">3</button>
+      <button data-v="4" onclick="selEnergy(4)">4</button>
+      <button data-v="5" onclick="selEnergy(5)">5</button>
     </div>
-    <div class="pb-wrap"><div class="pb-fill" id="js-bar" style="width:0%;background:var(--green)"></div></div>
-  </div>
-
-  <!-- WEIGHT CHART -->
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2)">Weight Over Time</div>
-      <div id="chart-range-btns" style="display:flex;align-items:center;gap:6px"></div>
-    </div>
-    <div style="display:flex;gap:4px;margin-bottom:8px">
-      <button class="crb" id="chart-mode-daily" onclick="setChartMode('daily')">Daily</button>
-      <button class="crb active" id="chart-mode-weekly" onclick="setChartMode('weekly')">Weekly Avg</button>
-    </div>
-    <div id="chart-range-label" class="tsm" style="margin-bottom:6px"></div>
-    <div class="chart-wrap"><canvas id="cwt" style="height:180px"></canvas><div id="chart-tip" class="chart-tip" style="display:none"></div></div>
-    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:12px;height:2px;background:#1d4ed8;display:inline-block;border-radius:1px"></span>Actual</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:12px;height:2px;border-top:2px dashed #888;display:inline-block"></span>Forecast</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:2px;height:10px;background:#c2410c;display:inline-block;border-radius:1px"></span>Today</div>
-    </div>
-    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--tx2);margin-bottom:8px">My Target</div>
-      <!-- Target weight — shared -->
-      <div style="margin-bottom:8px">
-        <div style="font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:4px">Target Weight (kg)</div>
-        <input type="number" id="chart-target-wt" placeholder="75.0" step="0.1" style="width:100%;padding:8px 10px;font-size:14px" oninput="onTargetInputChange()">
-      </div>
-      <!-- Mode toggle -->
-      <div class="cal-mode-btns" style="margin-bottom:8px">
-        <div class="cal-mode-btn sel" id="target-mode-rate" onclick="setTargetMode('rate')">By Rate</div>
-        <div class="cal-mode-btn" id="target-mode-date" onclick="setTargetMode('date')">By Date</div>
-      </div>
-      <!-- By Rate inputs -->
-      <div id="target-rate-section">
-        <div style="font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:4px">Loss Rate (kg/week)</div>
-        <input type="number" id="chart-fat-goal" placeholder="0.25" step="0.05" min="0.05" max="1" style="width:100%;padding:8px 10px;font-size:14px;margin-bottom:6px" oninput="onTargetInputChange()">
-        <div id="target-rate-result" class="tsm" style="color:var(--tx3)"></div>
-      </div>
-      <!-- By Date inputs -->
-      <div id="target-date-section" style="display:none">
-        <div style="font-size:11px;font-weight:600;color:var(--tx3);margin-bottom:4px">Target Date</div>
-        <input type="date" id="chart-target-date" style="width:100%;padding:8px 10px;font-size:14px;margin-bottom:6px" oninput="onTargetInputChange()">
-        <div id="target-date-result" class="tsm" style="color:var(--tx3)"></div>
-      </div>
-      <button class="btn btp" style="font-size:13px;padding:9px 16px;margin-top:8px" onclick="applyFatGoal()">Set Target</button>
-      <div id="fat-goal-hint" class="tsm mt8" style="color:var(--green);font-weight:600"></div>
-    </div>
-    <div id="weeks-to-goal" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--gbg);border:1px solid var(--gbd);font-size:13px;color:var(--green);font-weight:600"></div>
-  </div>
-
-  <!-- WELLNESS LINE CHART (unified 0–100% scale) -->
-  <div class="card">
-    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2);margin-bottom:8px">Energy · Sleep · Strength (last 14 days)</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:10px;height:10px;border-radius:50%;background:#1d4ed8;display:inline-block"></span>Energy (1–5)</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:10px;height:10px;border-radius:50%;background:#15803d;display:inline-block"></span>Sleep (1–10)</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3)"><span style="width:10px;height:10px;border-radius:50%;background:#c2410c;display:inline-block"></span>Strength</div>
-    </div>
-    <div class="tsm" style="margin-bottom:6px">All metrics shown on unified 0–100% scale — higher is always better</div>
-    <canvas id="cwl" style="height:160px"></canvas>
-  </div>
-
-  <!-- KPI TABLE -->
-  <div class="card">
-    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2);margin-bottom:10px">Daily KPIs — Last 7 Days</div>
-    <div style="overflow-x:auto"><table class="kpi-table" id="kpi-table"><thead><tr><th>Date</th><th>Steps</th><th>Gym</th><th>Cals</th><th>Strength</th><th>Energy</th></tr></thead><tbody id="kpi-tbody"></tbody></table></div>
-  </div>
-
-  <!-- 7-DAY AVERAGES -->
-  <div class="card">
-    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2);margin-bottom:10px">7-Day Averages</div>
-    <div id="week-avgs"></div>
+    <div class="e-hint"><span>Exhausted</span><span>Peak</span></div>
+    <button class="btn btp" style="margin-top:16px" onclick="saveCI()">Save</button>
+    <div id="saved-msg" class="tc tsm" style="display:none;margin-top:10px;color:var(--green-d);font-weight:600">✓ Saved</div>
   </div>
 </div>
 
-<!-- INSIGHTS TAB -->
-<div class="page" id="page-insights">
-  <div class="pt">Insights</div>
-  <div class="sl" style="margin-top:0">Today's Observation</div>
-  <div id="ins-daily" class="ic ic-info"><div class="ic-label">📊 OBSERVATION</div><div id="ins-daily-text">Log check-ins to unlock observations.</div></div>
-  <div class="sl" style="display:flex;justify-content:space-between;align-items:center">
-    <span>Weekly Review</span><span id="weekly-badge" class="tsm" style="text-transform:none;letter-spacing:0"></span>
-  </div>
-  <div id="ins-weekly" class="ic ic-info"><div class="ic-label">📅 WEEKLY REVIEW</div><div id="ins-weekly-text">Log 7+ check-ins to unlock weekly review.</div></div>
+<!-- PROGRESS -->
+<div class="page" id="page-progress">
+  <div class="h1">Progress</div>
 
-  <div class="sl">Adjust My Plan</div>
   <div class="card">
-    <div class="dr"><span class="tmu">TDEE (maintenance)</span><span class="bdg" id="adj-tdee">—</span></div>
-    <div class="dr"><span class="tmu">Current Deficit</span><span class="bdg" id="adj-deficit" style="color:var(--blue)">—</span></div>
-    <div class="dr"><span class="tmu">Fat Loss / Week</span><span class="bdg" id="adj-fat-rate" style="color:var(--green)">—</span></div>
-    <div class="sep"></div>
-    <div class="fg"><label>Training Day Calories</label><div style="display:flex;gap:8px"><input type="number" id="adj-train" placeholder="2200"><button class="btn btg bts" onclick="applyAdj()">Save</button></div></div>
-    <div class="fg" style="margin-bottom:0"><label>Rest Day Calories</label><input type="number" id="adj-rest" placeholder="1950"></div>
-    <div id="adj-preview" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--s2);color:var(--tx2);font-size:13px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+      <div style="font-size:15px;font-weight:600" id="js-headline">—</div>
+      <div class="tsm" id="js-weeks">—</div>
+    </div>
+    <div class="pb"><div id="js-bar" style="width:0%"></div></div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:13px">
+      <span id="js-start" style="color:var(--tx3)">—</span>
+      <span id="js-pct" style="font-weight:600">—</span>
+      <span id="js-target" style="color:var(--green-d);font-weight:600">—</span>
+    </div>
   </div>
 
-  <div class="sl">Settings</div>
   <div class="card">
-    <div class="dr"><span class="tmu">Last saved</span><span class="tsm" id="last-saved">—</span></div>
-    <div class="sep"></div>
-    <button class="btn btd bts" onclick="resetAll()">🗑 Reset All Data</button>
+    <div class="seg">
+      <button id="seg-daily" onclick="setMode('daily')">Daily</button>
+      <button id="seg-weekly" class="on" onclick="setMode('weekly')">Weekly avg</button>
+    </div>
+    <div class="cw"><canvas id="cwt" style="height:210px"></canvas><div id="tip" class="tip" style="display:none"></div></div>
+    <div class="legend">
+      <div><span style="width:14px;height:3px;background:var(--blue);display:inline-block;border-radius:2px"></span>You</div>
+      <div><span style="width:14px;height:0;border-top:2px dashed var(--green);display:inline-block"></span>Plan</div>
+      <div><span style="width:14px;height:0;border-top:2px dashed var(--orange);display:inline-block"></span>Your pace</div>
+    </div>
+    <div id="chart-msg" class="tsm" style="margin-top:10px;line-height:1.5"></div>
   </div>
+
+  <div class="shdr">Energy · last 14 days</div>
+  <div class="card"><canvas id="cwe" style="height:120px"></canvas></div>
+
+  <div class="shdr">Recent</div>
+  <div class="list" id="history-list"><div class="tsm" style="padding:14px 16px">No check-ins yet.</div></div>
+
+  <div class="shdr">My target</div>
+  <div class="list">
+    <div class="row"><label>Current weight</label><input type="number" id="e-cur" step="0.1" placeholder="kg"></div>
+    <div class="row"><label>Target weight</label><input type="number" id="e-tgt" step="0.1" placeholder="kg"></div>
+    <div class="row"><label>Target date</label><input type="date" id="e-date"></div>
+  </div>
+  <div id="edit-preview" class="tsm" style="padding:0 4px 4px"></div>
+  <button class="btn btg" onclick="applyEdit()">Update target</button>
+  <div id="edit-saved" class="tc tsm" style="display:none;margin-top:10px;color:var(--green-d);font-weight:600">✓ Updated</div>
+
+  <div class="shdr">Settings</div>
+  <div class="list">
+    <div class="row"><label>Started</label><span class="tsm" id="set-start">—</span></div>
+    <div class="row"><label>Last saved</label><span class="tsm" id="last-saved">—</span></div>
+  </div>
+  <button class="btn btd" onclick="resetAll()">Reset all data</button>
 </div>
 
 </div><!-- /content -->
 <nav id="nav">
   <button class="nb active" onclick="goPage('today',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Today</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg><span>Today</span>
   </button>
   <button class="nb" onclick="goPage('progress',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Progress</span>
-  </button>
-  <button class="nb" onclick="goPage('insights',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Insights</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 16 9 10 13 14 21 6"/><polyline points="16 6 21 6 21 11"/></svg><span>Progress</span>
   </button>
 </nav>
 </div><!-- /app -->
 
-<!-- INFO MODAL -->
-<div class="mo hidden" id="info-modal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="md"><div class="mdt"><span id="info-title">Guide</span><button class="mc" onclick="document.getElementById('info-modal').classList.add('hidden')">✕</button></div><div id="info-body"></div></div>
+<!-- TARGET MODAL -->
+<div class="mo hidden" id="target-modal" onclick="if(event.target===this)closeTarget()">
+  <div class="mc" style="max-width:340px">
+    <div style="padding:18px 18px 8px;font-size:18px;font-weight:700;text-align:center">Set your target</div>
+    <div style="padding:0 16px">
+      <div class="row"><label>Current weight</label><input type="number" id="m-cur" step="0.1" placeholder="kg"></div>
+      <div class="row"><label>Target weight</label><input type="number" id="m-tgt" step="0.1" placeholder="kg"></div>
+      <div class="row" style="border-bottom:none"><label>Target date</label><input type="date" id="m-date"></div>
+    </div>
+    <div id="m-preview" class="tsm tc" style="padding:2px 18px 12px;min-height:16px"></div>
+    <div style="display:flex">
+      <button class="mc-btn" style="color:var(--tx2)" onclick="closeTarget()">Cancel</button>
+      <button class="mc-btn" style="border-left:.5px solid var(--sep)" onclick="applyTargetModal()">Save</button>
+    </div>
+  </div>
 </div>
 
-<!-- PHASE DETAIL MODAL -->
-<div class="mo hidden" id="phase-modal" onclick="if(event.target===this)this.classList.add('hidden')">
-  <div class="md"><div class="mdt"><span id="phase-modal-title">Phase</span><button class="mc" onclick="document.getElementById('phase-modal').classList.add('hidden')">✕</button></div><div id="phase-modal-body"></div></div>
+<!-- ENERGY POPUP -->
+<div class="mo hidden" id="popup">
+  <div class="mc">
+    <div class="mc-body">
+      <div class="mc-emoji" id="pop-emoji">😴</div>
+      <div class="mc-t" id="pop-t">Heads up</div>
+      <div class="mc-x" id="pop-x"></div>
+    </div>
+    <button class="mc-btn" onclick="document.getElementById('popup').classList.add('hidden')">Got it</button>
+  </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════
 // STORAGE
-// ══════════════════════════════════════════
 let P={}, CI=[];
 function save(){
-  localStorage.setItem('rc4_p',JSON.stringify(P));
-  localStorage.setItem('rc4_c',JSON.stringify(CI));
-  const ts=new Date().toLocaleTimeString('en-AU');
-  localStorage.setItem('rc4_ts',ts);
+  localStorage.setItem('wc1_p',JSON.stringify(P));
+  localStorage.setItem('wc1_c',JSON.stringify(CI));
+  const ts=new Date().toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'});
+  localStorage.setItem('wc1_ts',ts);
   const el=document.getElementById('last-saved');if(el)el.textContent=ts;
 }
-function saveTarget(){
-  localStorage.setItem('rc4_target',JSON.stringify({rate:chartFatGoalKgPerWeek,wt:chartTargetWt}));
-}
 function load(){
-  try{P=JSON.parse(localStorage.getItem('rc4_p'))||{};}catch(e){P={};}
-  try{CI=JSON.parse(localStorage.getItem('rc4_c'))||[];}catch(e){CI=[];}
-  try{
-    const t=JSON.parse(localStorage.getItem('rc4_target'));
-    if(t){chartFatGoalKgPerWeek=t.rate||null;chartTargetWt=t.wt||null;}
-  }catch(e){}
+  try{P=JSON.parse(localStorage.getItem('wc1_p'))||{};}catch(e){P={};}
+  try{CI=JSON.parse(localStorage.getItem('wc1_c'))||[];}catch(e){CI=[];}
+  if(!P.startWt){
+    try{
+      const oP=JSON.parse(localStorage.getItem('rc4_p')),oC=JSON.parse(localStorage.getItem('rc4_c')),oT=JSON.parse(localStorage.getItem('rc4_target'));
+      if(oP&&oP.startWt){P={startWt:oP.startWt,startDate:oP.startDate||tod()};if(oT&&oT.wt)P.targetWt=oT.wt;if(oC&&oC.length)CI=oC.filter(c=>c.weight).map(c=>({date:c.date,weight:c.weight,energy:c.energy||null}));}
+    }catch(e){}
+  }
 }
 
-// ══════════════════════════════════════════
-// FORMULAS
-// ══════════════════════════════════════════
-function calcBMR(w,h,a,s){return s==='male'?10*w+6.25*h-5*a+5:10*w+6.25*h-5*a-161;}
-function calcTDEE(w,h,a,s,act){return Math.round(calcBMR(w,h,a,s)*act);}
-function fatLostKg(def,days){return parseFloat((def*days/7700).toFixed(2));}
-function muscleRateMonthly(){return({beginner:.75,intermediate:.5,advanced:.25,elite:.1})[P.exp||'intermediate']||.5;}
-function estimatedBF(days){
-  if(!P.startWt||!P.startBF)return null;
-  const fl=fatLostKg(P.deficit,days),mg=(muscleRateMonthly()/30*days);
-  const fm=P.startWt*(P.startBF/100)-fl,lbm=P.startWt*(1-P.startBF/100)+mg,cw=fm+lbm;
-  return cw>0?parseFloat((fm/cw*100).toFixed(1)):null;
-}
-const PACE_DEF={gentle:175,moderate:275,faster:425};
-const PACE_HINTS={gentle:'Good for inflammation, blood sugar sensitivity or fatigue.',moderate:'Balanced pace. Steady fat loss, energy stable.',faster:'Faster results. Monitor energy closely.'};
+// DATES
+function tod(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(ds,n){const d=new Date(ds+' 00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function lp(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function dbtw(a,b){return Math.round((lp(b)-lp(a))/86400000);}
+function fS(ds){return new Date(ds+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'});}
+function fF(ds){return new Date(ds+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});}
 
-// ══════════════════════════════════════════
-// LOCAL DATE (Australia timezone safe)
-// ══════════════════════════════════════════
-function tod(){
-  const d=new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-function addDays(ds,n){
-  const d=new Date(ds+' 00:00');d.setDate(d.getDate()+n);
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-function localParse(s){const p=s.split('-');return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));}
-function daysSince(from){if(!from)return 0;return Math.max(0,Math.round((localParse(tod())-localParse(from))/86400000));}
-function fmtDate(ds){const d=new Date(ds+' 00:00');return d.getDate()+'/'+(d.getMonth()+1);}
-function fmtDateFull(ds){const d=new Date(ds+' 00:00');return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();}
-
-// ══════════════════════════════════════════
 // SETUP
-// ══════════════════════════════════════════
-let htU='cm',selectedPace='gentle';
-function setHU(u){
-  htU=u;
-  document.getElementById('ucm').classList.toggle('active',u==='cm');
-  document.getElementById('uft').classList.toggle('active',u==='ft');
-  document.getElementById('s-ht-cm').style.display=u==='cm'?'block':'none';
-  document.getElementById('s-ht-fw').style.display=u==='ft'?'grid':'none';
-  document.getElementById('htl').textContent=u==='cm'?'Height (cm)':'Height (ft/in)';
-  if(u==='ft'){const c=parseFloat(document.getElementById('s-ht-cm').value);if(c){const t=c/2.54;document.getElementById('s-ht-ft').value=Math.floor(t/12);document.getElementById('s-ht-in').value=Math.round(t%12);}}
-  else{const ft=parseFloat(document.getElementById('s-ht-ft').value)||0,i=parseFloat(document.getElementById('s-ht-in').value)||0;if(ft)document.getElementById('s-ht-cm').value=Math.round(ft*30.48+i*2.54);}
+function setupPreview(){
+  const cur=parseFloat(document.getElementById('s-cur').value),tgt=parseFloat(document.getElementById('s-tgt').value),date=document.getElementById('s-date').value;
+  const box=document.getElementById('setup-summary');
+  if(!cur||!tgt||!date){box.style.display='none';return;}
+  box.style.display='block';
+  if(tgt>=cur){box.innerHTML='<div class="coach-b" style="color:var(--red)">Target must be below current weight.</div>';return;}
+  const days=dbtw(tod(),date);
+  if(days<=0){box.innerHTML='<div class="coach-b" style="color:var(--red)">Pick a date in the future.</div>';return;}
+  const rate=(cur-tgt)/(days/7);
+  box.innerHTML='<div style="font-size:15px;line-height:1.5">Lose <b>'+(cur-tgt).toFixed(1)+' kg</b> in <b>'+Math.round(days/7)+' weeks</b> — about <b style="color:'+(rate>1?'var(--red)':'var(--green-d)')+'">'+rate.toFixed(2)+' kg/week</b>.'+(rate>1?'<br><span class="tsm" style="color:var(--red)">That\'s aggressive — a later date is easier to sustain.</span>':'')+'</div>';
 }
-function getH(){if(htU==='cm')return parseFloat(document.getElementById('s-ht-cm').value)||0;const ft=parseFloat(document.getElementById('s-ht-ft').value)||0,i=parseFloat(document.getElementById('s-ht-in').value)||0;return parseFloat((ft*30.48+i*2.54).toFixed(1));}
-function setPace(el){document.querySelectorAll('.pace-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');selectedPace=el.dataset.pace;document.getElementById('pace-hint').innerHTML='<div class="ic-label">GOOD FOR YOU IF</div>'+PACE_HINTS[selectedPace];updateSetupPreview();}
-function updateSetupPreview(){
-  const w=parseFloat(document.getElementById('s-wt').value),h=getH(),a=parseFloat(document.getElementById('s-age').value);
-  const s=document.getElementById('s-sex').value,act=parseFloat(document.getElementById('s-act').value)||1.375;
-  const bf=parseFloat(document.getElementById('s-bf').value),tbf=parseFloat(document.getElementById('s-tbf').value);
-  if(!w||!h||!a||!bf||!tbf)return;
-  const td=calcTDEE(w,h,a,s,act),def=PACE_DEF[selectedPace];
-  const lbm=w*(1-bf/100),tFM=lbm/(1-tbf/100)-lbm,fat=(w-lbm)-tFM;
-  const tc=td-def+150,rc=td-def-150,fpw=def/7700*7;
-  const wks=Math.min(Math.ceil(fat/fpw),104);
-  const exp=document.getElementById('s-exp').value||'intermediate';
-  const mr=({beginner:.75,intermediate:.5,advanced:.25,elite:.1})[exp]||.5;
-  document.getElementById('setup-summary').style.display='block';
-  document.getElementById('sum-body').innerHTML=`
-    <div class="dr"><span class="tmu">TDEE</span><span class="bdg">${td} kcal/day</span></div>
-    <div class="dr"><span class="tmu">Deficit</span><span class="bdg" style="color:var(--blue)">${def} kcal/day</span></div>
-    <div class="dr"><span class="tmu">Training Day</span><span class="bdg" style="color:var(--blue)">${tc} kcal</span></div>
-    <div class="dr"><span class="tmu">Rest Day</span><span class="bdg" style="color:var(--green)">${rc} kcal</span></div>
-    <div class="dr"><span class="tmu">Fat to Lose</span><span class="bdg">${fat.toFixed(1)} kg</span></div>
-    <div class="dr"><span class="tmu">Fat Loss / Week</span><span class="bdg">~${fpw.toFixed(2)} kg</span></div>
-    <div class="dr"><span class="tmu">Muscle / Month</span><span class="bdg">~${mr.toFixed(2)} kg</span></div>
-    <div class="dr" style="border:none"><span class="tmu">Timeline</span><span class="bdg">${wks} weeks (~${Math.round(wks/4.33)} months)</span></div>`;
-}
-['s-wt','s-age','s-ht-cm','s-ht-ft','s-ht-in','s-bf','s-tbf'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',updateSetupPreview);});
-document.getElementById('s-sex').addEventListener('change',updateSetupPreview);
-document.getElementById('s-act').addEventListener('change',updateSetupPreview);
-document.getElementById('s-exp').addEventListener('change',function(){
-  const r={beginner:'0.75',intermediate:'0.50',advanced:'0.25',elite:'0.10'};
-  document.getElementById('exp-hint').textContent='Expected muscle gain: ~'+r[this.value]+' kg/month ('+this.value+')';
-  updateSetupPreview();
-});
+['s-cur','s-tgt','s-date'].forEach(id=>document.getElementById(id).addEventListener('input',setupPreview));
 function finishSetup(){
-  const w=parseFloat(document.getElementById('s-wt').value),h=getH(),a=parseFloat(document.getElementById('s-age').value);
-  const s=document.getElementById('s-sex').value,act=parseFloat(document.getElementById('s-act').value)||1.375;
-  const bf=parseFloat(document.getElementById('s-bf').value),tbf=parseFloat(document.getElementById('s-tbf').value);
-  if(!w||!h||!a||!bf||!tbf){alert('Please fill in all fields.');return;}
-  if(tbf>=bf){alert('Target BF% must be lower than current BF%.');return;}
-  const td=calcTDEE(w,h,a,s,act),def=PACE_DEF[selectedPace];
-  const lbm=w*(1-bf/100),tFM=lbm/(1-tbf/100)-lbm,fat=(w-lbm)-tFM;
-  P={startWt:w,ht:h,age:a,sex:s,activity:act,startBF:bf,targetBF:tbf,lbm:parseFloat(lbm.toFixed(2)),fatToLose:parseFloat(fat.toFixed(2)),targetWt:parseFloat((lbm+tFM).toFixed(1)),tdee:td,deficit:def,pace:selectedPace,trainDay:td-def+150,restDay:td-def-150,exp:document.getElementById('s-exp').value||'intermediate',startDate:tod()};
-  save();launchApp();
+  const cur=parseFloat(document.getElementById('s-cur').value),tgt=parseFloat(document.getElementById('s-tgt').value),date=document.getElementById('s-date').value;
+  if(!cur||!tgt||!date){alert('Please fill in all fields.');return;}
+  if(tgt>=cur){alert('Target weight must be lower than current weight.');return;}
+  if(dbtw(tod(),date)<=0){alert('Target date must be in the future.');return;}
+  P={startWt:cur,startDate:tod(),targetWt:tgt,targetDate:date};CI=[];save();launchApp();
 }
-
-// ══════════════════════════════════════════
-// DEMO DATA
-// ══════════════════════════════════════════
 function loadDemo(){
-  const sd=new Date();sd.setDate(sd.getDate()-21);
-  P={startWt:84.4,ht:178,age:30,sex:'male',activity:1.375,startBF:27,targetBF:15,lbm:61.6,fatToLose:10.2,targetWt:71.6,tdee:2450,deficit:250,pace:'gentle',trainDay:2350,restDay:2050,exp:'intermediate',startDate:addDays(tod(),-21)};
-  CI=[];
-  for(let i=21;i>=0;i--){
-    const de=21-i,wt=parseFloat((P.startWt-(de*P.deficit/7700)+(Math.random()-.5)*.4).toFixed(1));
-    const bw=5+Math.min(de*.1,2),tr=Math.random()>.4;
-    const e1to5=Math.min(5,Math.max(1,Math.round(bw/2+Math.random())));
-    const str=tr?(['up','stable','stable','down'][Math.floor(Math.random()*4)]):null;
-    CI.push({date:addDays(tod(),-i),weight:wt,trained:tr,strength:str,energy:e1to5,sleep:Math.min(10,parseFloat((bw+Math.random()*2).toFixed(1))),focus:Math.min(10,parseFloat((bw+Math.random()*2).toFixed(1))),steps:6000+Math.floor(Math.random()*6000),calories:1900+Math.floor(Math.random()*400),calMode:'num'});
-  }
+  const start=addDays(tod(),-28);
+  P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84)};CI=[];
+  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en});}
   save();launchApp();
 }
 
-// ══════════════════════════════════════════
-// UTILITIES
-// ══════════════════════════════════════════
-function lastN(n){return[...CI].sort((a,b)=>localParse(b.date)-localParse(a.date)).slice(0,n);}
-function avg(arr,k){const v=arr.filter(c=>c[k]!=null).map(c=>parseFloat(c[k]));return v.length?parseFloat((v.reduce((s,x)=>s+x,0)/v.length).toFixed(1)):null;}
-function forecastWt(days){if(!P.startWt||!P.deficit)return null;return parseFloat((P.startWt-P.deficit/7700*days+(muscleRateMonthly()/30*days)).toFixed(2));}
-// Energy 1-5 to % (for unified chart)
-function energyPct(v){return v?Math.round((v-1)/4*100):null;}
-// Sleep 1-10 to %
-function sleepPct(v){return v?Math.round((v-1)/9*100):null;}
-// Strength to %
-function strengthPct(v){return v==='up'?100:v==='stable'?50:v==='down'?0:null;}
-// hl() inline highlight
-function hl(text,type){return type==='good'?'<strong style="color:var(--green)">'+text+'</strong>':type==='bad'?'<strong style="color:var(--red)">'+text+'</strong>':'<strong>'+text+'</strong>';}
-
-// ══════════════════════════════════════════
-// PHASE ENGINE
-// ══════════════════════════════════════════
-const PHASES=[
-  {
-    id:'steady',
-    name:'Steady Progress',
-    icon:'✅',
-    sub:'Losing 0.2–0.7 kg/week',
-    badgeTxt:'ON TRACK',
-    badgeColor:'var(--green)',
-    badgeBg:'var(--gbg)',
-    cardClass:'phase-good',
-    trigger:'Weight dropping at expected rate. Energy stable.',
-    action:'Do Nothing Rule — stay exactly where you are. If you\'re losing at your target rate, do not drop calories further. Eat as much as possible for as long as possible.',
-    signals:['Scale dropping 0.2–0.7 kg/week','Energy score 3–5','Strength stable or improving','No significant hunger'],
-    why:'The biggest mistake people make is dropping calories when things are already working. Unnecessary restriction creates fatigue and muscle loss. If it\'s working, don\'t change it.',
-    fixes:[]
-  },
-  {
-    id:'plateau',
-    name:'Plateau',
-    icon:'⚠️',
-    sub:'Scale stuck for 14+ days',
-    badgeTxt:'STALLED',
-    badgeColor:'var(--red)',
-    badgeBg:'var(--rbg)',
-    cardClass:'phase-warn',
-    trigger:'Scale has not moved meaningfully for 14 consecutive days.',
-    action:'Pick ONE lever — not both:\n\n→ Lever 1 (Activity): Add 15 minutes of walking (LISS). Do not do high-intensity cardio — it makes you hungry and tired.\n\n→ Lever 2 (Food): Drop 25g of carbs from one meal.\n\nMost people crash their energy by doing both at once. Pick one, wait 10 days.',
-    signals:['Less than 0.05 kg change over 3 weeks','Weight staying flat despite consistent deficit','Energy may still be fine'],
-    why:'A plateau means your body has adapted to your current deficit. The step fix (walking) is preferred because it burns calories without triggering hunger hormones. The carb reduction is second choice.',
-    fixes:['Step Fix: Add 15 min walk daily instead of cutting food — it\'s "free" calorie burning that doesn\'t stress the body.']
-  },
-  {
-    id:'refeed',
-    name:'Refeed Day',
-    icon:'🍚',
-    sub:'Feeling flat or low energy',
-    badgeTxt:'REFEED',
-    badgeColor:'var(--yellow)',
-    badgeBg:'var(--ybg)',
-    cardClass:'phase-orange',
-    trigger:'Energy score 2–3 for multiple days. Muscles look flat or soft. Slight mental fog.',
-    action:'Increase carbs by 50–100g for ONE day on a heavy training day. Eat an extra 2 cups of rice, a large sweet potato, or similar whole food carbs. Do not add fats or processed food.\n\nReturn to normal deficit the next day.',
-    signals:['Energy score 2–3','Muscles look flat or soft','Slight mental fog but not severe','Weight loss still happening'],
-    why:'A refeed day refills glycogen (stored carbs) in your muscles. This is why your muscles look flat — they\'re empty of glycogen, not shrinking. One high-carb day restores this without interrupting fat loss. It also resets leptin (the "fullness" hormone) briefly.',
-    fixes:['Brain Fix: Fatigue from a deficit usually comes from low carbs. A single refeed day fixes this without stopping progress.','Volume Fix: If you feel fried at the gym, cut your sets in half for one session. You\'ll keep your muscle but drop fatigue.']
-  },
-  {
-    id:'dietbreak',
-    name:'Diet Break',
-    icon:'🛑',
-    sub:'Strength dropping + mental fog',
-    badgeTxt:'BREAK NEEDED',
-    badgeColor:'var(--red)',
-    badgeBg:'var(--rbg)',
-    cardClass:'phase-warn',
-    trigger:'Strength trending Down for multiple sessions. Energy score 1–2. Mental clarity gone. Sleep poor.',
-    action:'Stop the deficit entirely. Eat at your maintenance calories (TDEE) for 7–14 days. Keep training — do not stop lifting.\n\nMaintenace means no deficit, no surplus. Just fuel your body at its baseline. Resume the deficit only when energy score returns to 3+ and strength stabilises.',
-    signals:['Strength trending Down 3+ sessions','Energy score 1–2 multiple days','Focus consistently low','Sleep quality poor','Possibly irritable or mood changes'],
-    why:'This is your body signalling cortisol overload — the stress hormone that breaks down muscle and stores fat. A diet break lowers cortisol, resets hunger hormones, and allows full recovery. Skipping this and pushing through is the #1 reason people lose muscle and stop making progress.',
-    fixes:['Brain Fix: Mental clarity gone = cortisol too high. Maintenance eating for 7 days restores hormonal balance faster than any supplement.','Volume Fix: Reduce gym volume by 30–40% during the break. Keep the movements, reduce the sets.']
-  }
-];
-
-function detectPhase(){
-  if(!CI.length)return'steady';
-  const l7=lastN(7),l14=lastN(14),l3=lastN(3);
-  const aE3=avg(l3,'energy');
-  const aFo=avg(l7,'focus');
-
-  // Check for diet break signals (most urgent)
-  const strDownCount=l7.filter(c=>c.strength==='down').length;
-  if(aE3!==null&&aE3<=2&&strDownCount>=2)return'dietbreak';
-  if(aE3!==null&&aE3<=2&&aFo!==null&&aFo<4)return'dietbreak';
-
-  // Check for refeed signals
-  if(aE3!==null&&aE3<=3&&strDownCount===0)return'refeed';
-
-  // Check for plateau (stalled weight)
-  const sortedW=[...CI].filter(c=>c.weight).sort((a,b)=>localParse(a.date)-localParse(b.date));
-  if(sortedW.length>=14&&daysSince(P.startDate)>=21){
-    const early=sortedW.slice(-14).slice(0,7).reduce((s,c)=>s+c.weight,0)/7;
-    const late=sortedW.slice(-7).reduce((s,c)=>s+c.weight,0)/7;
-    if((early-late)<0.05)return'plateau';
-  }
-
-  return'steady';
-}
-
-function renderPhaseCards(){
-  const currentPhase=detectPhase();
-  const container=document.getElementById('phase-cards');
-  const active=PHASES.find(ph=>ph.id===currentPhase);
-  const others=PHASES.filter(ph=>ph.id!==currentPhase);
-
-  function phaseHTML(ph,isCurrent,startOpen){
-    const cls='phase-card '+ph.cardClass+(isCurrent?' active-phase':'');
-    return`<div class="${cls}" onclick="togglePhase('${ph.id}',this)">
-      <div class="phase-header">
-        <div style="display:flex;align-items:center">
-          <span class="phase-icon">${ph.icon}</span>
-          <div><div class="phase-name">${ph.name}</div><div class="phase-sub">${ph.sub}</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          ${isCurrent?`<span class="phase-badge" style="background:${ph.badgeBg};color:${ph.badgeColor}">${ph.badgeTxt}</span>`:''}
-          <span style="font-size:16px;color:var(--tx3)" id="arrow-${ph.id}">${startOpen?'⌄':'›'}</span>
-        </div>
-      </div>
-      <div class="phase-body${startOpen?' open':''}" id="body-${ph.id}">
-        <div style="font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.55">${ph.trigger}</div>
-        <div class="phase-action"><strong style="color:var(--tx)">What to do:</strong><br><span style="white-space:pre-line">${ph.action}</span></div>
-        ${ph.signals.length?`<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:5px">SIGNALS TO WATCH</div>${ph.signals.map(s=>`<div style="font-size:12px;color:var(--tx2);margin-bottom:3px">· ${s}</div>`).join('')}</div>`:''}
-        <div class="phase-why"><strong>Why this works:</strong> ${ph.why}</div>
-        ${ph.fixes.length?`<div style="margin-top:8px">${ph.fixes.map(f=>`<div style="font-size:12px;color:var(--blue);margin-bottom:4px">💡 ${f}</div>`).join('')}</div>`:''}
-        ${isCurrent?`<div style="margin-top:10px;padding:8px 10px;background:var(--gbg);border-radius:8px;font-size:12px;color:var(--green);font-weight:600">● Active on ${new Date().toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})}</div>`:''}
-      </div>
-    </div>`;
-  }
-
-  let html='';
-  // Active phase — on top, starts closed (tap to open)
-  if(active) html+=phaseHTML(active,true,false);
-
-  // Other phases — collapsed under a toggle
-  if(others.length){
-    html+=`<div style="margin-top:4px">
-      <div onclick="toggleOtherPhases(this)" style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px;cursor:pointer;font-size:12px;font-weight:600;color:var(--tx3)">
-        <span>Other phases (${others.length})</span><span id="other-phases-arrow" style="font-size:15px">›</span>
-      </div>
-      <div id="other-phases-body" style="display:none">
-        ${others.map(ph=>phaseHTML(ph,false,false)).join('')}
-      </div>
-    </div>`;
-  }
-  container.innerHTML=html;
-}
-
-function toggleOtherPhases(el){
-  const body=document.getElementById('other-phases-body');
-  const arrow=document.getElementById('other-phases-arrow');
-  const open=body.style.display==='none';
-  body.style.display=open?'block':'none';
-  arrow.textContent=open?'⌄':'›';
-}
-
-function togglePhase(id,card){
-  const body=document.getElementById('body-'+id);
-  const arrow=document.getElementById('arrow-'+id);
-  const isOpen=body.classList.toggle('open');
-  arrow.textContent=isOpen?'⌄':'›';
-}
-
-// ══════════════════════════════════════════
 // CHECK-IN
-// ══════════════════════════════════════════
-let selectedEnergy=3,selectedStr=null,selectedCalMode='num';
-
-function initCIDate(){
-  const ci=document.getElementById('ci-date');
-  if(ci){ci.max=tod();if(!ci.value||ci.value>tod())ci.value=tod();}
-  document.getElementById('today-date').textContent=new Date().toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
-  initTodayCI();
-}
-
-function selEnergy(v){
-  selectedEnergy=v;
-  document.querySelectorAll('.e-btn').forEach(b=>b.classList.remove('sel'));
-  const btn=document.querySelector(`.e-btn[data-v="${v}"]`);
-  if(btn)btn.classList.add('sel');
-}
-
-function selStr(el){
-  document.querySelectorAll('.str-btn').forEach(b=>{b.className='str-btn';});
-  const v=el.dataset.v;
-  selectedStr=v;
-  el.classList.add(v==='up'?'sel-up':v==='stable'?'sel-stable':'sel-down');
-}
-
-function setSR(f,v){
-  document.getElementById('rv-'+f).textContent=v;
-  const pct=((v-1)/9*100);
-  document.getElementById('ci-'+f).style.backgroundSize=pct+'% 100%';
-  const col=v>=7?'var(--green)':v>=5?'var(--tx2)':'var(--red)';
-  document.getElementById('rv-'+f).style.color=col;
-}
-
-function onTrainToggle(){
-  const tr=document.getElementById('ci-train').checked;
-  document.getElementById('ci-train-hint').textContent=tr?'Training day calories apply':'Rest day calories apply';
-  document.getElementById('s-today-cals').textContent=tr?(P.trainDay||'—'):(P.restDay||'—');
-  document.getElementById('s-cal-type').textContent=tr?'training day':'rest day';
-  document.getElementById('strength-row').style.display=tr?'block':'none';
-  if(!tr){selectedStr=null;document.querySelectorAll('.str-btn').forEach(b=>b.className='str-btn');}
-}
-
-function setCalMode(el){
-  selectedCalMode=el.dataset.m;
-  document.querySelectorAll('.cal-mode-btn').forEach(b=>b.classList.remove('sel'));
-  el.classList.add('sel');
-  document.getElementById('ci-cals').style.display=selectedCalMode==='num'?'block':'none';
-}
-
-function saveMorningCI(){
+let selEnergyV=null;
+function selEnergy(v){selEnergyV=v;document.querySelectorAll('#e-row button').forEach(b=>b.classList.toggle('sel',+b.dataset.v===v));}
+function saveCI(){
+  const date=document.getElementById('ci-date').value||tod();
   const wt=parseFloat(document.getElementById('ci-wt').value);
-  let date=document.getElementById('ci-date').value;
-  if(!date||date.trim()==='')date=tod();
-  if(!wt){alert('Please enter your weight.');return;}
-  if(date>tod()){alert('Cannot log a future date.');return;}
-  const trained=document.getElementById('ci-train').checked;
-  const existing=CI.find(c=>c.date===date)||{};
-  const entry={...existing,date,weight:wt,trained,strength:trained?selectedStr:(existing.strength||null),energy:selectedEnergy,sleep:parseFloat(document.getElementById('ci-sl').value)};
+  if(!wt){alert('Enter your weight.');return;}
   const idx=CI.findIndex(c=>c.date===date);
-  if(idx>=0)CI[idx]=entry;else CI.push(entry);
+  if(idx>=0)CI[idx]={...CI[idx],date,weight:wt,energy:selEnergyV};else CI.push({date,weight:wt,energy:selEnergyV});
   save();
-  const badge=document.getElementById('am-saved-badge');if(badge)badge.style.display='inline';
-  const msg=document.getElementById('am-saved-msg');if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}
-  try{renderAll();}catch(e){console.warn(e);}
+  const m=document.getElementById('saved-msg');m.style.display='block';setTimeout(()=>m.style.display='none',2000);
+  renderAll();maybePopup();
+}
+function loadTodayCI(){const e=CI.find(c=>c.date===tod());if(e){if(e.weight)document.getElementById('ci-wt').value=e.weight;if(e.energy)selEnergy(e.energy);}document.getElementById('ci-date').value=tod();}
+
+// MATH
+function sw(){return [...CI].filter(c=>c.weight).sort((a,b)=>lp(a.date)-lp(b.date));}
+function avg(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
+function pace(){
+  const s=sw();if(s.length<2)return null;
+  const r=s.slice(-14),x0=lp(r[0].date);
+  const pts=r.map(c=>({x:(lp(c.date)-x0)/86400000,y:c.weight}));
+  if(pts[pts.length-1].x-pts[0].x<3)return null;
+  const n=pts.length,sx=pts.reduce((a,p)=>a+p.x,0),sy=pts.reduce((a,p)=>a+p.y,0),sxy=pts.reduce((a,p)=>a+p.x*p.y,0),sxx=pts.reduce((a,p)=>a+p.x*p.x,0);
+  return -((n*sxy-sx*sy)/(n*sxx-sx*sx))*7;
+}
+function metrics(){
+  const start=P.startWt,tgt=P.targetWt,sd=P.startDate,td=P.targetDate,s=sw();
+  const current=s.length?s[s.length-1].weight:start;
+  const totalToLose=start-tgt,lost=start-current,remaining=current-tgt;
+  const pct=totalToLose>0?Math.max(0,Math.min(100,Math.round(lost/totalToLose*100))):0;
+  const daysTotal=Math.max(1,dbtw(sd,td)),daysElapsed=Math.max(0,dbtw(sd,tod())),daysLeft=dbtw(tod(),td);
+  const reqRate=totalToLose/(daysTotal/7);
+  const expWtNow=start-Math.min(totalToLose,reqRate*(daysElapsed/7));
+  const ahead=expWtNow-current;
+  const pc=pace();
+  const needNow=daysLeft>0?remaining/(daysLeft/7):null;
+  let projDate=null,projEarly=null;
+  if(pc&&pc>.01&&remaining>0){const wks=remaining/pc;projDate=addDays(tod(),Math.round(wks*7));projEarly=daysLeft>0?(daysLeft/7-wks):null;}
+  return {start,tgt,sd,td,current,totalToLose,lost,remaining,pct,daysTotal,daysElapsed,daysLeft,reqRate,ahead,pace:pc,needNow,projDate,projEarly};
+}
+function energyStats(){
+  const s=[...CI].filter(c=>c.energy).sort((a,b)=>lp(a.date)-lp(b.date));
+  if(!s.length)return{n:0};
+  const v=s.map(c=>c.energy);
+  return{n:s.length,latest:v[v.length-1],a3:avg(v.slice(-3)),prev3:v.length>=4?avg(v.slice(-6,-3)):null,a7:avg(v.slice(-7))};
+}
+function energyDeclining(){const e=energyStats();if(!e.n)return false;return e.a3!=null&&(e.a3<=2||(e.prev3!=null&&e.a3<=e.prev3-0.8));}
+function weeklyPts(){
+  const s=sw();if(!s.length)return [];
+  const sd=P.startDate;const bins={};
+  s.forEach(c=>{const w=Math.floor(dbtw(sd,c.date)/7);(bins[w]=bins[w]||[]).push(c.weight);});
+  return Object.keys(bins).map(Number).sort((a,b)=>a-b).map(w=>({w,day:w*7+3.5,avg:+avg(bins[w]).toFixed(2),n:bins[w].length}));
 }
 
-function saveEveningCI(){
-  let date=document.getElementById('ci-date').value;
-  if(!date||date.trim()==='')date=tod();
-  if(date>tod()){alert('Cannot log a future date.');return;}
-  const trained=document.getElementById('ci-train').checked;
-  let cals=null;
-  if(selectedCalMode==='num')cals=parseFloat(document.getElementById('ci-cals').value)||null;
-  else if(selectedCalMode==='under')cals=(P.restDay||2000)-150;
-  else if(selectedCalMode==='on')cals=trained?(P.trainDay||2200):(P.restDay||2000);
-  else cals=(P.trainDay||2200)+200;
-  const existing=CI.find(c=>c.date===date)||{};
-  const entry={...existing,date,focus:parseFloat(document.getElementById('ci-fo').value),steps:parseInt(document.getElementById('ci-steps').value)||null,calories:cals,calMode:selectedCalMode};
-  // Preserve morning fields if they exist
-  if(!entry.weight&&existing.weight)entry.weight=existing.weight;
-  const idx=CI.findIndex(c=>c.date===date);
-  if(idx>=0)CI[idx]=entry;else CI.push(entry);
-  save();
-  const badge=document.getElementById('pm-saved-badge');if(badge)badge.style.display='inline';
-  const msg=document.getElementById('pm-saved-msg');if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}
-  try{renderAll();}catch(e){console.warn(e);}
+// COACHING
+function coaching(){
+  const m=metrics(),e=energyStats();
+  if(m.remaining<=0)return{tone:'good',t:'Goal reached 🎉',b:'You\'re at or below '+m.tgt+' kg. Lovely work.'};
+  if(m.pace==null)return{tone:'neut',t:'Keep logging',b:'A few more daily weigh-ins unlocks your weekly guidance.'};
+  const lowEnergy=e.a3!=null&&(e.a3<=2||(e.prev3!=null&&e.a3<=e.prev3-0.8));
+  const p=m.pace,need=m.needNow||0,diff=p-need;
+  if(lowEnergy)
+    return{tone:'warn',t:'Ease off — don\'t cut more',b:'Your energy\'s been low ('+e.a3.toFixed(0)+'/5). Add a little food this week — more protein and carbs — and protect your sleep. Sort the energy out before chasing the scale harder.'};
+  if(p<=0.02)
+    return{tone:'info',t:'Scale\'s drifting up',b:'Your average weight ticked up this week. Revisit portions and the basics (sleep, alcohol, weekend meals) before your next weigh-in.'};
+  if(diff>0.1)
+    return{tone:'good',t:'Room to eat a bit more',b:'You\'re losing ~'+p.toFixed(2)+' kg/wk — faster than the ~'+need.toFixed(2)+' you need. You can eat slightly more and still hit '+m.tgt+' kg by '+fF(m.td)+'. Good if you want more energy.'};
+  if(diff<-0.1)
+    return{tone:'info',t:'Tighten up a little',b:'You\'re losing ~'+p.toFixed(2)+' kg/wk but need ~'+need.toFixed(2)+' to stay on track. Trim a little — slightly smaller portions or a few more steps — then recheck next week.'};
+  return{tone:'good',t:'Keep it exactly here',b:'Losing ~'+p.toFixed(2)+' kg/wk, right where you need to be, and energy\'s holding. Don\'t change a thing.'};
 }
 
-// Keep saveCI as alias for backwards compat
-function saveCI(){saveMorningCI();}
-
-function initTodayCI(){
-  const date=tod();
-  const existing=CI.find(c=>c.date===date);
-  if(existing){
-    if(existing.weight){document.getElementById('ci-wt').value=existing.weight;}
-    if(existing.energy){selEnergy(existing.energy);}
-    if(existing.sleep){setSR('sl',existing.sleep);document.getElementById('ci-sl').value=existing.sleep;}
-    if(existing.trained){document.getElementById('ci-train').checked=true;onTrainToggle();}
-    if(existing.focus){setSR('fo',existing.focus);document.getElementById('ci-fo').value=existing.focus;}
-    if(existing.steps){document.getElementById('ci-steps').value=existing.steps;}
-    if(existing.calories&&existing.calMode==='num'){document.getElementById('ci-cals').value=existing.calories;}
-    // Show saved badges
-    const hasMorning=existing.weight||existing.energy||existing.sleep;
-    const hasEvening=existing.focus||existing.steps||existing.calories;
-    const amb=document.getElementById('am-saved-badge');if(amb&&hasMorning)amb.style.display='inline';
-    const pmb=document.getElementById('pm-saved-badge');if(pmb&&hasEvening)pmb.style.display='inline';
-  }
-}
-
-// ══════════════════════════════════════════
-// INFO GUIDES
-// ══════════════════════════════════════════
-const INFO_GUIDES={
-  energy:{title:'⚡ Energy Score Guide',html:`
-    <div style="font-size:13px;margin-bottom:12px;color:var(--tx2)">Rate how you feel overall — not just physically but mentally too.</div>
-    <div class="scale-row"><span class="scale-key sk-bad">1 — Exhausted</span><span>Can barely function. Brain fog. Would not be able to train effectively. This is a red flag.</span></div>
-    <div class="scale-row"><span class="scale-key sk-bad">2 — Low</span><span>Getting through the day but struggling. Training possible but hard. Hunger probably high.</span></div>
-    <div class="scale-row"><span class="scale-key sk-mid">3 — Moderate</span><span>Acceptable. Functioning normally. Not great, not bad. This is where most deficit days land.</span></div>
-    <div class="scale-row"><span class="scale-key sk-good">4 — Good</span><span>Feeling solid. Training well. Hunger manageable. This is the target range.</span></div>
-    <div class="scale-row"><span class="scale-key sk-good">5 — Peak</span><span>High energy, sharp focus, strong session. Everything clicking.</span></div>
-    <div style="margin-top:12px;padding:10px;background:var(--s2);border-radius:8px;font-size:12px;color:var(--tx2)"><strong>Action trigger:</strong> 2 days at score 2 or below → consider a Refeed Day. 3+ days at score 1–2 → Diet Break.</div>`},
-  sleep:{title:'💤 Sleep Quality Guide',html:`
-    <div style="font-size:13px;margin-bottom:12px;color:var(--tx2)">Rate how rested you feel, not just hours. 7 hours of deep sleep beats 9 hours of broken sleep.</div>
-    <div class="scale-row"><span class="scale-key sk-bad">1–3</span><span>Poor sleep. Woke up multiple times, or feel unrested. This directly slows fat loss and muscle gain.</span></div>
-    <div class="scale-row"><span class="scale-key sk-mid">4–6</span><span>Average sleep. Got some rest but not fully recovered. Common during high-stress periods.</span></div>
-    <div class="scale-row"><span class="scale-key sk-good">7–9</span><span>Good sleep. Woke up rested. Training and recovery will be solid.</span></div>
-    <div class="scale-row"><span class="scale-key sk-good">10</span><span>Perfect sleep. Rare but happens. Hormone recovery at its best.</span></div>
-    <div style="margin-top:12px;padding:10px;background:var(--s2);border-radius:8px;font-size:12px;color:var(--tx2)"><strong>Why it matters:</strong> Poor sleep raises cortisol (the stress hormone) which causes muscle breakdown and fat storage. It also increases hunger by 20–30% the next day.</div>`},
-  strength:{title:'💪 Strength Trend Guide',html:`
-    <div style="font-size:13px;margin-bottom:12px;color:var(--tx2)">How did your main lifts feel today compared to your last session?</div>
-    <div class="scale-row"><span class="scale-key sk-good">↑ Up</span><span>Added weight, reps, or sets. Moved the same weight and it felt noticeably easier. You are building muscle even in a deficit.</span></div>
-    <div class="scale-row"><span class="scale-key sk-mid">→ Stable</span><span>Matched your last session. Performance the same. This is the goal — maintaining strength during fat loss.</span></div>
-    <div class="scale-row"><span class="scale-key sk-bad">↓ Down</span><span>Lost reps, had to reduce weight, or felt significantly weaker than last session. This is a warning signal.</span></div>
-    <div style="margin-top:12px;padding:10px;background:var(--s2);border-radius:8px;font-size:12px;color:var(--tx2)"><strong>Action trigger:</strong> Strength Down for 2–3 sessions in a row = your body needs a Refeed or Diet Break. Persistent strength loss = muscle is being lost.</div>`},
-  focus:{title:'🧠 Focus & Clarity Guide',html:`
-    <div style="font-size:13px;margin-bottom:12px;color:var(--tx2)">Rate your mental sharpness and ability to concentrate today.</div>
-    <div class="scale-row"><span class="scale-key sk-bad">1–3</span><span>Brain fog. Struggling to concentrate. Forgetting things. Tasks taking longer than usual.</span></div>
-    <div class="scale-row"><span class="scale-key sk-mid">4–6</span><span>Average. Getting work done but not sharp. Some mental fatigue by afternoon.</span></div>
-    <div class="scale-row"><span class="scale-key sk-good">7–9</span><span>Clear and productive. Making decisions easily. Mentally sharp.</span></div>
-    <div class="scale-row"><span class="scale-key sk-good">10</span><span>Peak cognitive performance. In flow state.</span></div>
-    <div style="margin-top:12px;padding:10px;background:var(--s2);border-radius:8px;font-size:12px;color:var(--tx2)"><strong>Common cause of low focus:</strong> Dehydration (drink water first), low carbs (especially on non-training days), or poor sleep the night before.</div>`}
-};
-function showInfo(k){
-  const g=INFO_GUIDES[k];if(!g)return;
-  document.getElementById('info-title').textContent=g.title;
-  document.getElementById('info-body').innerHTML=g.html;
-  document.getElementById('info-modal').classList.remove('hidden');
-}
-
-// ══════════════════════════════════════════
-// INSIGHT ENGINE
-// ══════════════════════════════════════════
-function buildInsight(){
-  const res={html:'',cls:'ic-info'};
-  if(!CI.length){res.html='Log your first check-in to start receiving daily observations.';return res;}
-  const l3=lastN(3),l7=lastN(7);
-  const aE3=avg(l3,'energy'),aSl3=avg(l3,'sleep'),aFo3=avg(l3,'focus');
-  const aE7=avg(l7,'energy'),aSl7=avg(l7,'sleep');
-  const sortedW=[...CI].filter(c=>c.weight).sort((a,b)=>localParse(a.date)-localParse(b.date));
-  let weeklyWtChange=null;
-  if(sortedW.length>=2){const r=sortedW.slice(-Math.min(7,sortedW.length));weeklyWtChange=parseFloat((r[0].weight-r[r.length-1].weight).toFixed(2));}
-  const strDown=l7.filter(c=>c.strength==='down').length;
-  const lines=[],suggestions=[];
-
-  // Weight line
-  const days=daysSince(P.startDate);
-  const fl=P.deficit?parseFloat((P.deficit*days/7700).toFixed(2)):0;
-  if(weeklyWtChange!==null){
-    if(weeklyWtChange>0.05)lines.push({t:'good',text:'Weight: '+hl(weeklyWtChange.toFixed(2)+' kg lost','good')+' this week — fat loss is happening.'});
-    else if(weeklyWtChange<-0.3)lines.push({t:'bad',text:'Weight: '+hl('gained '+Math.abs(weeklyWtChange).toFixed(2)+' kg','bad')+' this week. Check calorie consistency.'});
-    else lines.push({t:'neutral',text:'Weight: '+hl('holding steady','plain')+' — normal when building muscle alongside fat loss.'});
-  }
-
-  // Energy
-  if(aE3!==null){
-    if(aE3>=4)lines.push({t:'good',text:'Energy: '+hl(aE3+'/5 — good','good')+'. Deficit is not impacting performance.'});
-    else if(aE3<=2){lines.push({t:'bad',text:'Energy: '+hl(aE3+'/5 — low','bad')+' for 3 days. This needs attention.'});suggestions.push('Low energy for 3+ days means your deficit may be too aggressive, or you need more carbs. Drink more water first, then consider a Refeed Day if it continues.');res.cls='ic-warn';}
-    else lines.push({t:'neutral',text:'Energy: '+hl(aE3+'/5','plain')+' — moderate. Monitor over the next few days.'});
-  }
-
-  // Sleep
-  if(aSl3!==null){
-    if(aSl3>=7)lines.push({t:'good',text:'Sleep: '+hl(aSl3+'/10 — good','good')+'. Recovery is solid.'});
-    else if(aSl3<5){lines.push({t:'bad',text:'Sleep: '+hl(aSl3+'/10 — poor','bad')+'. Poor sleep directly slows fat loss and increases hunger.'});suggestions.push('Prioritise sleep above everything this week. Even one extra hour makes a measurable difference to recovery and hunger levels.');if(res.cls!=='ic-warn')res.cls='ic-warn';}
-  }
-
-  // Strength
-  if(strDown>=2){lines.push({t:'bad',text:'Strength: '+hl('declining '+strDown+' sessions','bad')+' this week. Risk of muscle loss.'});suggestions.push('Strength declining = body under too much stress. Try a Refeed Day first. If it continues for 3+ sessions, take a full Diet Break at maintenance calories.');res.cls='ic-warn';}
-  else if(l7.filter(c=>c.strength==='up').length>=2)lines.push({t:'good',text:'Strength: '+hl('improving','good')+' — you are building muscle even in a deficit.'});
-
-  // All good
-  if(lines.length===0||lines.every(l=>l.t==='good')){
-    res.cls='ic-good';
-    const good=[];
-    if(weeklyWtChange>0.05)good.push(hl(weeklyWtChange.toFixed(2)+' kg lost','good')+' this week');
-    if(aE3>=4)good.push('energy '+hl(aE3+'/5','good'));
-    if(aSl3>=7)good.push('sleep '+hl(aSl3+'/10','good'));
-    res.html='<div class="ic-label">✓ ON TRACK</div>'+(good.length?good.join(' · ')+'. ':'')+' Everything tracking well. Keep going.';
-    return res;
-  }
-
-  if(CI.length<3){res.html='Keep checking in daily. '+hl('3+ days','plain')+' unlocks full observations.';return res;}
-
-  const lineHTML=lines.map(l=>{const dot=l.t==='good'?'<span style="color:var(--green);margin-right:6px">●</span>':l.t==='bad'?'<span style="color:var(--red);margin-right:6px">●</span>':'<span style="color:var(--tx3);margin-right:6px">●</span>';return'<div style="margin-bottom:7px;line-height:1.55">'+dot+l.text+'</div>';}).join('');
-  let sugHTML='';
-  if(suggestions.length){sugHTML='<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--bd)"><div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:6px">SUGGESTIONS</div>'+suggestions.map(s=>'<div style="margin-bottom:6px;font-size:13px;line-height:1.5;color:var(--tx2)">→ '+s+'</div>').join('')+'</div>';}
-  res.html=lineHTML+sugHTML;
-  return res;
-}
-
-function buildWeeklyInsight(){
-  const today=new Date(),dow=today.getDay(),isSun=dow===0,dtu=isSun?0:(7-dow);
-  if(CI.length<7)return'Log 7+ check-ins to unlock your weekly review.'+(dtu>0?' Next review in '+dtu+' day'+(dtu===1?'':'s')+' (Sunday).':'');
-  const reviewNote=isSun?'':'<div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Preview — full review updates each Sunday</div>';
-  const l7=lastN(7);
-  const aE=avg(l7,'energy'),aSl=avg(l7,'sleep'),aFo=avg(l7,'focus');
-  const sortedW=[...CI].filter(c=>c.weight).sort((a,b)=>localParse(a.date)-localParse(b.date));
-  let weekLoss=null;
-  if(sortedW.length>=2){const r=sortedW.slice(-Math.min(7,sortedW.length));weekLoss=parseFloat((r[0].weight-r[r.length-1].weight).toFixed(2));}
-  const fatEst=P.deficit?parseFloat((P.deficit/7700*7).toFixed(2)):null;
-  const days=daysSince(P.startDate);
-  const mgTotal=parseFloat((muscleRateMonthly()/30*days).toFixed(2));
-  let html=reviewNote;
-  html+='<div style="margin-bottom:10px">';
-  if(weekLoss!==null){if(weekLoss>0.05)html+='<div style="margin-bottom:4px">⚖️ Scale: '+hl(weekLoss.toFixed(2)+' kg lost','good')+' this week.</div>';else if(weekLoss<-0.1)html+='<div style="margin-bottom:4px">⚖️ Scale: '+hl('gained '+Math.abs(weekLoss).toFixed(2)+' kg','bad')+'.</div>';else html+='<div style="margin-bottom:4px">⚖️ Scale: <strong>steady</strong> — normal during muscle gain.</div>';}
-  if(fatEst)html+='<div style="font-size:13px;color:var(--tx2)">Est. fat lost: '+hl('~'+fatEst+' kg','good')+' from your '+P.deficit+' kcal deficit. Scale moves slowly because you\'re also building muscle.</div>';
-  html+='</div>';
-  html+='<div style="margin-bottom:10px;padding:10px 12px;background:var(--s2);border-radius:8px">';
-  html+='<div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:8px">WEEKLY AVERAGES</div>';
-  [{l:'Energy',v:aE,max:5,bad:2},{l:'Sleep',v:aSl,max:10,bad:5},{l:'Focus',v:aFo,max:10,bad:5}].forEach(m=>{
-    if(m.v===null)return;
-    const pct=Math.round(m.v/m.max*100);
-    const col=pct>=70?'var(--green)':pct<40?'var(--red)':'var(--tx2)';
-    const tag=pct>=70?'✓ Good':pct<40?'✗ Low':'— OK';
-    html+=`<div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px"><span style="color:var(--tx)">${m.l}</span><span style="font-weight:700;color:${col}">${m.v}/${m.max} ${tag}</span></div>`;
-  });
-  html+='</div>';
-  const lowScores=[];
-  if(aE!==null&&aE<=2)lowScores.push('energy');
-  if(aSl!==null&&aSl<5)lowScores.push('sleep');
-  if(aFo!==null&&aFo<4)lowScores.push('focus');
-  html+='<div style="padding-top:8px;border-top:1px solid var(--bd)"><div style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--tx3);margin-bottom:6px">SUGGESTION FOR NEXT WEEK</div>';
-  if(!lowScores.length)html+='<div style="font-size:13px;color:var(--tx2)">→ Everything stable. Stay at your current calorie target and keep logging consistently.</div>';
-  else html+='<div style="font-size:13px;color:var(--tx2)">→ '+hl(lowScores.join(' and '),'bad')+' is consistently low. Before cutting calories, first drink more water, eat more whole foods and protein, and aim for more consistent sleep. If no improvement in 5–7 days, consider a Refeed Day.</div>';
-  html+='</div>';
-  return html;
-}
-
-// ══════════════════════════════════════════
 // RENDER TODAY
-// ══════════════════════════════════════════
 function renderToday(){
-  document.getElementById('today-date').textContent=new Date().toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'});
-  const days=daysSince(P.startDate);
-  const fl=P.deficit?parseFloat((P.deficit*days/7700).toFixed(2)):0;
-  document.getElementById('s-fat-lost').textContent=fl?fl.toFixed(2):'—';
-  const trained=document.getElementById('ci-train').checked;
-  document.getElementById('s-today-cals').textContent=trained?(P.trainDay||'—'):(P.restDay||'—');
-  document.getElementById('s-cal-type').textContent=trained?'training day':'rest day';
-  const sortedW=[...CI].filter(c=>c.weight).sort((a,b)=>localParse(a.date)-localParse(b.date));
-  if(sortedW.length>=2){const r=sortedW.slice(-Math.min(7,sortedW.length)),diff=parseFloat((r[0].weight-r[r.length-1].weight).toFixed(2));const el=document.getElementById('s-week-fl');el.textContent=diff>0?'+'+diff:diff;el.style.color=diff>0?'var(--green)':diff<-0.3?'var(--red)':'var(--tx)';}
-  else document.getElementById('s-week-fl').textContent='—';
+  document.getElementById('today-date').textContent=new Date().toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
+  const m=metrics(),hasData=sw().length>0;
+  document.getElementById('h-wt').textContent=m.current!=null?m.current.toFixed(1):'—';
+  const last7=CI.filter(c=>c.weight&&c.date>=addDays(tod(),-6)),prev7=CI.filter(c=>c.weight&&c.date>=addDays(tod(),-13)&&c.date<=addDays(tod(),-7));
+  const de=document.getElementById('h-delta');
+  if(last7.length&&prev7.length){const d=+(avg(last7.map(c=>c.weight))-avg(prev7.map(c=>c.weight))).toFixed(1);de.innerHTML=d<0?'<span style="color:var(--green-d)">↓ '+Math.abs(d).toFixed(1)+' kg this week</span>':d>0?'<span style="color:var(--red)">↑ '+d.toFixed(1)+' kg this week</span>':'<span style="color:var(--tx3)">no change this week</span>';}
+  else de.innerHTML=hasData?'<span style="color:var(--tx3)">tracking…</span>':'';
+  document.getElementById('h-sub').textContent=hasData?(m.remaining>0?m.remaining.toFixed(1)+' kg to go · target '+m.tgt+' kg by '+fF(m.td):'at your '+m.tgt+' kg goal'):'Log today\'s weight to begin.';
 
-  let ins={html:'',cls:'ic-info'};
-  try{ins=buildInsight();}catch(e){ins={html:'Log check-ins to see observations.',cls:'ic-info'};}
-  const ie=document.getElementById('daily-insight'),it=document.getElementById('daily-insight-text');
-  if(ie)ie.className='ic '+ins.cls;if(it)it.innerHTML=ins.html||'';
-  const id2=document.getElementById('ins-daily'),id2t=document.getElementById('ins-daily-text');
-  if(id2)id2.className='ic '+ins.cls;if(id2t)id2t.innerHTML=ins.html||'';
+  document.getElementById('pace-now').textContent=m.pace!=null?(m.pace>0?m.pace.toFixed(2):'0'):'—';
+  document.getElementById('pace-need').textContent=m.needNow!=null&&m.remaining>0?m.needNow.toFixed(2):(m.remaining<=0?'0':'—');
+  const pill=document.getElementById('pace-pill');
+  if(m.remaining<=0){pill.className='pill p-good';pill.textContent='Goal reached';}
+  else if(m.daysLeft<=0){pill.className='pill p-warn';pill.textContent='Date passed';}
+  else if(!hasData||m.pace==null){pill.className='pill p-neut';pill.textContent='—';}
+  else if(m.ahead>0.3){pill.className='pill p-good';pill.textContent='Ahead';}
+  else if(m.ahead<-0.3){pill.className='pill p-warn';pill.textContent='Behind';}
+  else{pill.className='pill p-info';pill.textContent='On pace';}
 
-  renderPhaseCards();
-  renderHistory();
+  const c=coaching(),cd=document.getElementById('coach');
+  cd.className='coach coach-'+c.tone;
+  document.getElementById('coach-t').textContent=c.t;
+  document.getElementById('coach-b').textContent=c.b;
 }
 
-// ══════════════════════════════════════════
-// HISTORY
-// ══════════════════════════════════════════
-function renderHistory(){
-  const sorted=[...CI].sort((a,b)=>localParse(b.date)-localParse(a.date));
-  const el=document.getElementById('history-list');
-  if(!sorted.length){el.innerHTML='<div class="tsm" style="padding:8px 0">No check-ins yet.</div>';return;}
-  el.innerHTML=sorted.map(c=>{
-    const ec=c.energy>=4?'var(--green)':c.energy<=2?'var(--red)':'var(--tx2)';
-    const sc=c.strength==='up'?'↑':c.strength==='down'?'↓':c.strength==='stable'?'→':'—';
-    const scol=c.strength==='up'?'var(--green)':c.strength==='down'?'var(--red)':'var(--tx3)';
-    return`<div class="hist-row">
-      <div><div style="font-weight:600;font-size:13px;color:var(--tx)">${new Date(c.date+' 00:00').toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})}</div>
-      <div class="tsm">${c.trained?'🏋️':'😴'} ${c.weight} kg · Energy <span style="font-weight:700;color:${ec}">${c.energy||'—'}/5</span></div></div>
-      <div style="text-align:right"><div class="tsm">Sleep ${c.sleep||'—'} · Focus ${c.focus||'—'}</div><div style="font-size:12px;font-weight:700;color:${scol}">Str ${sc}</div></div>
-    </div>`;
-  }).join('');
-}
-function toggleHistory(){const b=document.getElementById('history-body'),a=document.getElementById('acc-arrow');const o=b.classList.toggle('open');a.textContent=o?'⌄':'›';}
-
-// ══════════════════════════════════════════
-// PROGRESS
-// ══════════════════════════════════════════
+// RENDER PROGRESS
 function renderProgress(){
-  const days=daysSince(P.startDate);
-  const fl=P.deficit?parseFloat((P.deficit*days/7700).toFixed(2)):0;
-  const mg=parseFloat((muscleRateMonthly()/30*days).toFixed(2));
-  const net=parseFloat((fl-mg).toFixed(2));
-  const bf=estimatedBF(days),startBF=P.startBF||27,targetBF=P.targetBF||15;
-  const bfDrop=bf?parseFloat((startBF-bf).toFixed(1)):0;
-  const totalDrop=startBF-targetBF;
-  const pct=totalDrop>0?Math.min(100,Math.round(bfDrop/totalDrop*100)):0;
-  const circ=314;
-  const ring=document.getElementById('ring-fill');
-  setTimeout(()=>ring.style.strokeDashoffset=circ-(pct/100)*circ,100);
-  ring.style.stroke=pct>=70?'var(--green)':pct>=40?'var(--yellow)':'var(--tx)';
-  document.getElementById('ring-pct').textContent=pct+'%';
-  document.getElementById('pr-bf-now').textContent=bf?bf+'%':'—';
-  document.getElementById('pr-bf-drop').textContent=bfDrop>0?'-'+bfDrop+'%':'0%';
-  document.getElementById('pr-fat-lost').textContent=fl>0?'-'+fl.toFixed(2):'—';
-  document.getElementById('pr-muscle').textContent=mg>0?'+'+mg.toFixed(2):'—';
-  const se=document.getElementById('pr-scale');se.textContent=net>0?'-'+net.toFixed(2):net<0?'+'+Math.abs(net).toFixed(2):'—';se.style.color=net>0?'var(--green)':'var(--tx)';
-
-  // 7-day averages
-  const l7=lastN(7);
-  const avgs={energy:avg(l7,'energy'),sleep:avg(l7,'sleep'),focus:avg(l7,'focus'),steps:avg(l7,'steps')};
-  const ae=document.getElementById('week-avgs');
-  ae.innerHTML=[
-    {l:'Energy',v:avgs.energy,max:5,unit:'/5'},
-    {l:'Sleep',v:avgs.sleep,max:10,unit:'/10'},
-    {l:'Focus',v:avgs.focus,max:10,unit:'/10'},
-    {l:'Daily Steps',v:avgs.steps,max:10000,unit:'',fmt:v=>Math.round(v).toLocaleString()},
-  ].map(m=>{
-    if(m.v===null)return'';
-    const disp=m.fmt?m.fmt(m.v):m.v+m.unit;
-    const pct=Math.min(100,Math.round(m.v/m.max*100));
-    const col=pct>=70?'var(--green)':pct<40?'var(--red)':'var(--tx3)';
-    return`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:14px;font-weight:600">${m.l}</span><span style="font-size:14px;font-weight:700;color:${col}">${disp}</span></div><div class="pb-wrap"><div class="pb-fill" style="width:${pct}%;background:${col}"></div></div></div>`;
+  const m=metrics();
+  document.getElementById('js-headline').textContent=m.lost>0?m.lost.toFixed(1)+' kg lost':'starting out';
+  document.getElementById('js-weeks').textContent=m.daysLeft>0?Math.ceil(m.daysLeft/7)+' weeks left':'date passed';
+  document.getElementById('js-bar').style.width=m.pct+'%';
+  document.getElementById('js-start').textContent=m.start.toFixed(1)+' kg';
+  document.getElementById('js-pct').textContent=m.pct+'%';
+  document.getElementById('js-target').textContent=m.tgt.toFixed(1)+' kg';
+  document.getElementById('set-start').textContent=fF(m.sd);
+  document.getElementById('e-cur').value=m.current.toFixed(1);
+  document.getElementById('e-tgt').value=m.tgt;
+  document.getElementById('e-date').value=m.td;
+  renderHistory();drawWeightChart();drawEnergyChart();
+}
+function renderHistory(){
+  const s=[...CI].filter(c=>c.weight).sort((a,b)=>lp(b.date)-lp(a.date)).slice(0,12);
+  const el=document.getElementById('history-list');
+  if(!s.length){el.innerHTML='<div class="tsm" style="padding:14px 16px">No check-ins yet.</div>';return;}
+  el.innerHTML=s.map((c,i)=>{
+    const prev=s[i+1];let d='';
+    if(prev){const dd=+(c.weight-prev.weight).toFixed(1);d=dd<0?'<span style="color:var(--green-d)">↓'+Math.abs(dd).toFixed(1)+'</span>':dd>0?'<span style="color:var(--red)">↑'+dd.toFixed(1)+'</span>':'<span style="color:var(--tx3)">→</span>';}
+    const ec=c.energy>=4?'var(--green-d)':c.energy<=2?'var(--red)':'var(--tx3)';
+    return '<div class="hrow"><div><div style="font-weight:500">'+new Date(c.date+' 00:00').toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})+'</div>'+(c.energy?'<div class="tsm">energy <span style="color:'+ec+';font-weight:600">'+c.energy+'/5</span></div>':'')+'</div><div style="text-align:right"><div style="font-weight:600">'+c.weight.toFixed(1)+' kg</div><div class="tsm">'+d+'</div></div></div>';
   }).join('');
-
-  // KPI table
-  const last7=[...CI].sort((a,b)=>localParse(b.date)-localParse(a.date)).slice(0,7).reverse();
-  const tbody=document.getElementById('kpi-tbody');
-  tbody.innerHTML=last7.map(c=>{
-    const isToday=c.date===tod();
-    const sc=c.strength==='up'?'<span style="color:var(--green);font-weight:700">↑</span>':c.strength==='down'?'<span style="color:var(--red);font-weight:700">↓</span>':c.strength==='stable'?'→':'—';
-    const ec=c.energy>=4?'var(--green)':c.energy<=2?'var(--red)':'var(--tx2)';
-    return`<tr class="${isToday?'today-row':''}">
-      <td>${new Date(c.date+' 00:00').toLocaleDateString('en-AU',{weekday:'short',day:'numeric'})}</td>
-      <td>${c.steps?c.steps.toLocaleString():'—'}</td>
-      <td>${c.trained?'✓':'—'}</td>
-      <td>${c.calories?c.calories:'—'}</td>
-      <td>${sc}</td>
-      <td><span style="font-weight:700;color:${ec}">${c.energy||'—'}</span></td>
-    </tr>`;
-  }).join('');
-
-  renderWeekRangeBtns();
-  renderJourneySummary();
-  drawWeightChart();
-  drawWellnessChart();
 }
 
-function renderJourneySummary(){
-  const startWt=P.startWt||0;
-  const fatRatePerWeek=chartFatGoalKgPerWeek||(P.deficit?P.deficit/7700*7:0);
-  const musclePerWeek=muscleRateMonthly()/4.33;
-  let targetWt=chartTargetWt||null;
-  if(!targetWt&&P.bf&&P.targetBF){const lm=startWt*(1-P.bf/100);targetWt=parseFloat((lm/(1-P.targetBF/100)).toFixed(2));}
-  // Latest logged weight
-  const sorted=[...CI].filter(c=>c.weight).sort((a,b)=>localParse(b.date)-localParse(a.date));
-  const currentWt=sorted.length?sorted[0].weight:startWt;
-  const totalToLose=targetWt?parseFloat((startWt-targetWt).toFixed(2)):null;
-  const lost=parseFloat((startWt-currentWt).toFixed(2));
-  const remaining=targetWt?parseFloat((currentWt-targetWt).toFixed(2)):null;
-  const pct=totalToLose&&totalToLose>0?Math.min(100,Math.max(0,Math.round(lost/totalToLose*100))):0;
-  const weeksLeft=fatRatePerWeek>0&&remaining>0?Math.ceil(remaining/fatRatePerWeek):null;
-  document.getElementById('js-lost').textContent='Lost: '+(lost>0?lost.toFixed(2):'0')+' kg';
-  document.getElementById('js-pct-txt').textContent=pct+'% complete';
-  document.getElementById('js-remain').textContent=remaining&&remaining>0?'Left: '+remaining.toFixed(2)+' kg':'—';
-  document.getElementById('js-weeks-left').textContent=weeksLeft?weeksLeft+' weeks left':'Set target to track';
-  document.getElementById('js-bar').style.width=pct+'%';
-}
-
-// ══════════════════════════════════════════
-// CHARTS
-// ══════════════════════════════════════════
-let chartRange='8w';
-let chartWkWindow=8;
-let chartPageOffset=0; // page offset in weeks (0=most recent, positive=further back)
-let chartMode='weekly';
-let chartFatGoalKgPerWeek=null;
-let chartTargetWt=null;
-
-function renderWeekRangeBtns(){
-  const container=document.getElementById('chart-range-btns');
-  if(!container)return;
-  const canFwd=chartPageOffset>0;
-  // For weekly: can go back if there's more history/forecast beyond current page
-  const startDate=P.startDate||tod();
-  const fatRatePerWeek=chartFatGoalKgPerWeek||(P.deficit?P.deficit/7700*7:0);
-  const startWt=P.startWt||0;
-  let targetWt=chartTargetWt||null;
-  if(!targetWt&&P.bf&&P.targetBF){const lm=startWt*(1-P.bf/100);targetWt=parseFloat((lm/(1-P.targetBF/100)).toFixed(2));}
-  const fatToLose=targetWt?parseFloat((startWt-targetWt).toFixed(2)):null;
-  const weeksToGoal=fatRatePerWeek>0&&fatToLose>0?Math.ceil(fatToLose/fatRatePerWeek):null;
-  const totalFcWeeks=weeksToGoal||Math.ceil((localParse(tod())-localParse(startDate))/86400000/7)+12;
-  const pageSize=chartWkWindow||8;
-  const canBack=chartMode==='weekly'?(chartPageOffset<totalFcWeeks-pageSize):(chartPageOffset<200);
-  container.innerHTML=
-    `<button class="crb" onclick="pageChart(1)" ${canBack?'':'disabled'} style="padding:0 10px;font-size:15px;opacity:${canBack?1:0.3}">‹</button>`+
-    `<button class="crb" onclick="pageChart(-1)" ${canFwd?'':'disabled'} style="padding:0 10px;font-size:15px;opacity:${canFwd?1:0.3}">›</button>`;
-}
-
-function pageChart(dir){
-  // weekly: page by weeks; daily: page by days (28 at a time)
-  const pageSize=chartMode==='weekly'?(chartWkWindow||8):28;
-  chartPageOffset=Math.max(0,chartPageOffset+dir*pageSize);
-  renderWeekRangeBtns();
-  drawWeightChart();
-}
-
-function setWkWindowAll(){
-  chartWkWindow=null;
-  chartPageOffset=0;
-  renderWeekRangeBtns();
-  drawWeightChart();
-}
-function setChartMode(mode){
-  chartMode=mode;
-  chartPageOffset=0;
-  document.getElementById('chart-mode-daily').classList.toggle('active',mode==='daily');
-  document.getElementById('chart-mode-weekly').classList.toggle('active',mode==='weekly');
-  renderWeekRangeBtns();
-  drawWeightChart();
-}
-let targetMode='rate'; // 'rate' or 'date'
-
-function setTargetMode(mode){
-  targetMode=mode;
-  document.getElementById('target-mode-rate').classList.toggle('sel',mode==='rate');
-  document.getElementById('target-mode-date').classList.toggle('sel',mode==='date');
-  document.getElementById('target-rate-section').style.display=mode==='rate'?'block':'none';
-  document.getElementById('target-date-section').style.display=mode==='date'?'block':'none';
-  onTargetInputChange();
-}
-
-function onTargetInputChange(){
-  const tw=parseFloat(document.getElementById('chart-target-wt').value);
-  const startWt=P.startWt||0;
-  if(!tw||!startWt)return;
-  const fatToLose=parseFloat((startWt-tw).toFixed(2));
-  if(fatToLose<=0){document.getElementById(targetMode==='rate'?'target-rate-result':'target-date-result').textContent='Target must be less than start weight.';return;}
-  if(targetMode==='rate'){
-    const rate=parseFloat(document.getElementById('chart-fat-goal').value);
-    if(!rate||rate<0.05)return;
-    const weeks=Math.ceil(fatToLose/rate);
-    const arrDate=addDays(P.startDate||tod(),weeks*7);
-    const arrFmt=new Date(arrDate+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
-    document.getElementById('target-rate-result').textContent='→ '+weeks+' weeks to reach '+tw+' kg · Est. '+arrFmt;
-    // Pre-fill date field for reference
-    const tdi=document.getElementById('chart-target-date');if(tdi)tdi.value=arrDate;
-  } else {
-    const dateVal=document.getElementById('chart-target-date').value;
-    if(!dateVal)return;
-    const daysLeft=Math.round((localParse(dateVal)-localParse(tod()))/86400000);
-    if(daysLeft<=0){document.getElementById('target-date-result').textContent='Date must be in the future.';return;}
-    const weeksLeft=daysLeft/7;
-    const requiredRate=parseFloat((fatToLose/weeksLeft).toFixed(3));
-    const kcal=Math.round(requiredRate/7*7700);
-    document.getElementById('target-date-result').textContent='→ Need '+requiredRate+' kg/week (≈ '+kcal+' kcal/day deficit)';
-    // Pre-fill rate field
-    const rfi=document.getElementById('chart-fat-goal');if(rfi)rfi.value=requiredRate;
-  }
-}
-
-function applyFatGoal(){
-  const tw=parseFloat(document.getElementById('chart-target-wt').value);
-  if(!tw){alert('Enter your target weight.');return;}
-  const startWt=P.startWt||0;
-  if(tw>=startWt){alert('Target weight must be less than your start weight ('+startWt+' kg).');return;}
-  let rate=parseFloat(document.getElementById('chart-fat-goal').value);
-  if(targetMode==='date'){
-    const dateVal=document.getElementById('chart-target-date').value;
-    if(!dateVal){alert('Enter a target date.');return;}
-    const daysLeft=Math.round((localParse(dateVal)-localParse(tod()))/86400000);
-    if(daysLeft<=0){alert('Target date must be in the future.');return;}
-    const fatToLose=startWt-tw;
-    rate=parseFloat((fatToLose/(daysLeft/7)).toFixed(3));
-  }
-  if(!rate||rate<0.01){alert('Could not calculate a valid rate. Check your inputs.');return;}
-  chartFatGoalKgPerWeek=rate;
-  chartTargetWt=tw;
-  saveTarget();
-  const weeks=Math.ceil((startWt-tw)/rate);
-  const arrDate=addDays(P.startDate||tod(),weeks*7);
-  const arrFmt=new Date(arrDate+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
-  const hint=document.getElementById('fat-goal-hint');
-  hint.textContent='✓ Target set: '+tw+' kg at '+rate.toFixed(2)+' kg/week · Est. '+arrFmt;
-  renderWeekRangeBtns();
-  renderJourneySummary();
-  drawWeightChart();
-}
-function isoWeek(dateStr){
-  const d=new Date(dateStr+' 00:00');const day=d.getDay()||7;d.setDate(d.getDate()+4-day);
-  const yr=d.getFullYear(),s=new Date(yr,0,1),wk=Math.ceil(((d-s)/86400000+1)/7);
-  return yr+'-W'+(wk<10?'0':'')+wk;
-}
-function buildWeeklyPoints(filtCI){
-  const byWeek={};
-  filtCI.forEach(c=>{const wk=isoWeek(c.date);if(!byWeek[wk])byWeek[wk]={sum:0,n:0,dates:[]};byWeek[wk].sum+=c.weight;byWeek[wk].n++;byWeek[wk].dates.push(c.date);});
-  return Object.entries(byWeek).sort((a,b)=>a[0]>b[0]?1:-1).map(([,v])=>{
-    const lastDate=v.dates[v.dates.length-1];
-    return{date:lastDate,label:fmtDate(lastDate),weight:parseFloat((v.sum/v.n).toFixed(2))};
-  });
-}
-
+// CHART
+let mode='weekly',_dots=[],_tipBound=false;
+function getFont(){return '-apple-system,system-ui,sans-serif';}
+function setMode(md){mode=md;document.getElementById('seg-daily').classList.toggle('on',md==='daily');document.getElementById('seg-weekly').classList.toggle('on',md==='weekly');drawWeightChart();}
 function drawWeightChart(){
   const cv=document.getElementById('cwt'),ctx=cv.getContext('2d');
-  const dpr=window.devicePixelRatio||1;
-  cv.width=cv.offsetWidth*dpr;cv.height=180*dpr;ctx.scale(dpr,dpr);
-  const W=cv.offsetWidth||340,H=180;ctx.clearRect(0,0,W,H);
-  const allCI=[...CI].filter(c=>c.weight).sort((a,b)=>localParse(a.date)-localParse(b.date));
-  const todayStr=tod(),startStr=P.startDate||todayStr;
-  const fatRatePerDay=chartFatGoalKgPerWeek?(chartFatGoalKgPerWeek/7):(P.deficit?P.deficit/7700:0);
-  const musclePerDay=muscleRateMonthly()/30;
-  const forecastDays=chartMode==='weekly'?56:21;
-  const futureFc=[];
-  for(let i=1;i<=forecastDays;i++){const ds=addDays(todayStr,i),df=Math.round((localParse(ds)-localParse(startStr))/86400000);const fw=P.startWt?parseFloat((P.startWt-fatRatePerDay*df+musclePerDay*df).toFixed(2)):null;if(fw)futureFc.push({date:ds,fwt:fw});}
-  const rangeDays=chartRange==='8w'?56:chartRange==='12w'?84:null;
-  const rangeStart=rangeDays?addDays(todayStr,-rangeDays):startStr;
-  const filtCI=allCI.filter(c=>c.date>=rangeStart&&c.date<=todayStr);
-  const lbl=document.getElementById('chart-range-label');
-
-  if(chartMode==='weekly'){
-    const allWkPts=buildWeeklyPoints(allCI);
-    const fatRatePerWeek=chartFatGoalKgPerWeek||(P.deficit?P.deficit/7700*7:0);
-    const musclePerWeek=muscleRateMonthly()/4.33;
-    const netChangePerWeek=-fatRatePerWeek+musclePerWeek;
-    const startWt=P.startWt||0;
-    const startDate=P.startDate||todayStr;
-
-    // Target weight: user-entered takes priority, else derive from BF%
-    let targetWt=chartTargetWt||null;
-    if(!targetWt&&P.bf&&P.targetBF){
-      const leanMass=startWt*(1-P.bf/100);
-      targetWt=parseFloat((leanMass/(1-P.targetBF/100)).toFixed(2));
-    }
-    const fatToLose=targetWt?parseFloat((startWt-targetWt).toFixed(2)):null;
-    const weeksToGoal=fatRatePerWeek>0&&fatToLose>0?Math.ceil(fatToLose/fatRatePerWeek):null;
-
-    // Full forecast: week 0 (startWt) → weeksToGoal (or today+12 if no target)
-    const totalFcWeeks=weeksToGoal||Math.ceil((localParse(todayStr)-localParse(startDate))/86400000/7)+12;
-    const startMs=localParse(startDate);
-    const toWk=d=>Math.round((localParse(d)-startMs)/86400000/7);
-    const fullFcPts=[];
-    for(let w=0;w<=totalFcWeeks;w++){
-      fullFcPts.push({w,weight:parseFloat((startWt+netChangePerWeek*w).toFixed(2))});
-    }
-
-    // Determine page window using chartPageOffset
-    const pageSize=chartWkWindow||8;
-    const todayWk=toWk(todayStr);
-    const visEnd=Math.max(totalFcWeeks-chartPageOffset,todayWk);
-    const visStart=Math.max(0,visEnd-pageSize);
-
-    // Actual points mapped to week index — use .date stored directly in allWkPts
-    const acWkPts=allWkPts
-      .map(p=>({w:toWk(p.date),v:p.weight,label:p.label}))
-      .filter(p=>p.w>=visStart&&p.w<=visEnd);
-
-    const allV=[...acWkPts.map(p=>p.v),...fullFcPts.filter(p=>p.w>=visStart&&p.w<=visEnd).map(p=>p.weight),...(targetWt?[targetWt]:[])];
-    if(!allV.length){ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';ctx.fillText('Complete setup to see forecast',W/2,H/2);return;}
-    const mn=Math.min(...allV)-.5,mx=Math.max(...allV)+.5;
-    const pd={l:42,r:10,t:10,b:26},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
-    const span=visEnd-visStart||1;
-    const xS=w=>pd.l+((w-visStart)/span)*gW;
-    const yS=v=>pd.t+gH-((v-mn)/(mx-mn))*gH;
-
-    // Grid
-    [0,.33,.67,1].forEach(t=>{const y=pd.t+t*gH;ctx.strokeStyle='rgba(0,0,0,.05)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(W-pd.r,y);ctx.stroke();ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='right';ctx.fillText((mx-t*(mx-mn)).toFixed(1),pd.l-4,y+3);});
-
-    // NOW line
-    if(todayWk>=visStart&&todayWk<=visEnd){const tx=xS(todayWk);ctx.strokeStyle='#c2410c';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(tx,pd.t);ctx.lineTo(tx,H-pd.b);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#c2410c';ctx.font='8px Inter';ctx.textAlign='center';ctx.fillText('NOW',tx,pd.t+7);}
-
-    // Goal weight horizontal line — always draw if set, regardless of y range
-    if(targetWt){
-      const clampedTgt=Math.max(mn,Math.min(mx,targetWt));
-      const ty=yS(clampedTgt);
-      ctx.strokeStyle='#15803d';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);
-      ctx.beginPath();ctx.moveTo(pd.l,ty);ctx.lineTo(W-pd.r,ty);ctx.stroke();ctx.setLineDash([]);
-      ctx.fillStyle='#15803d';ctx.font='8px Inter';ctx.textAlign='left';
-      ctx.fillText('GOAL '+targetWt+'kg',pd.l+3,ty-3);
-    }
-
-    // Forecast line — starts from first actual logged week OR week 0 if no data
-    // Spans the full visible window
-    const firstActualWk=acWkPts.length?acWkPts[0].w:visStart;
-    const fcStartW=Math.min(firstActualWk,visStart);
-    const visFcPtsAdj=fullFcPts.filter(p=>p.w>=fcStartW&&p.w<=visEnd);
-    if(visFcPtsAdj.length>=2){
-      ctx.strokeStyle='#bbb';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
-      ctx.beginPath();visFcPtsAdj.forEach((p,j)=>j===0?ctx.moveTo(xS(p.w),yS(p.weight)):ctx.lineTo(xS(p.w),yS(p.weight)));
-      ctx.stroke();ctx.setLineDash([]);
-    }
-
-    // Actual weekly avg line + fill — fill drops straight to bottom of chart area
-    const dotHits=[];
-    if(acWkPts.length>=2){
-      const g=ctx.createLinearGradient(0,pd.t,0,H-pd.b);
-      g.addColorStop(0,'rgba(29,78,216,.18)');g.addColorStop(1,'rgba(29,78,216,0)');
-      // Fill: go along the line, then drop straight down from last point, across bottom, up to first
-      ctx.beginPath();
-      ctx.moveTo(xS(acWkPts[0].w),H-pd.b); // start at bottom-left of first point
-      acWkPts.forEach(p=>ctx.lineTo(xS(p.w),yS(p.v)));
-      ctx.lineTo(xS(acWkPts[acWkPts.length-1].w),H-pd.b);
-      ctx.closePath();ctx.fillStyle=g;ctx.fill();
-      // Line on top
-      ctx.strokeStyle='#1d4ed8';ctx.lineWidth=2.5;
-      ctx.beginPath();acWkPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.w),yS(p.v)):ctx.lineTo(xS(p.w),yS(p.v)));
-      ctx.stroke();
-      acWkPts.forEach((p,i)=>{
-        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),4,0,Math.PI*2);ctx.fill();
-        ctx.strokeStyle='#1d4ed8';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),4,0,Math.PI*2);ctx.stroke();
-        const prev=acWkPts[i-1];
-        dotHits.push({cx:xS(p.w),cy:yS(p.v),w:p.w,avg:p.v,diff:prev?parseFloat((p.v-prev.v).toFixed(2)):null});
-      });
-    } else if(acWkPts.length===1){
-      const p=acWkPts[0];
-      ctx.fillStyle='#1d4ed8';ctx.beginPath();ctx.arc(xS(p.w),yS(p.v),5,0,Math.PI*2);ctx.fill();
-      dotHits.push({cx:xS(p.w),cy:yS(p.v),w:p.w,avg:p.v,diff:null});
-    }
-
-    // X axis — actual dates, short format "1 Apr"
-    ctx.font='9px Inter';ctx.textAlign='center';
-    const span2=visEnd-visStart||1;
-    const step=Math.max(1,Math.floor(span2/6));
-    for(let w=visStart;w<=visEnd;w++){
-      if((w-visStart)%step===0||w===visEnd){
-        const dateForW=addDays(startDate,w*7);
-        const dateLbl=new Date(dateForW+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'});
-        ctx.fillStyle=w>todayWk?'#c2410c':'#9aa0b0';
-        ctx.fillText(dateLbl,xS(w),H-5);
-      }
-    }
-
-    // Sub-label and weeks-to-goal banner
-    const d1=new Date(addDays(startDate,visStart*7)+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'});
-    const d2=new Date(addDays(startDate,visEnd*7)+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'});
-    if(lbl)lbl.textContent=d1+' → '+d2+' · '+acWkPts.length+' weeks shown';
-    const wtg=document.getElementById('weeks-to-goal');
-    if(wtg){
-      if(weeksToGoal&&fatRatePerWeek>0&&targetWt){
-        const arrDate=addDays(startDate,weeksToGoal*7);
-        const arrFmt=new Date(arrDate+' 00:00').toLocaleDateString('en-AU',{month:'short',year:'numeric'});
-        wtg.style.display='block';
-        wtg.innerHTML='🎯 At <strong>'+fatRatePerWeek.toFixed(2)+' kg/week</strong> → <strong>'+weeksToGoal+' weeks</strong> to reach <strong>'+targetWt+' kg</strong> · Est. <strong>'+arrFmt+'</strong>';
-      } else {wtg.style.display='none';}
-    }
-
-    // Register dot hit-test for tooltip
-    registerChartDots(cv,dotHits);
-    return;
+  const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=210*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=cv.offsetWidth||340,H=210;ctx.clearRect(0,0,W,H);
+  const m=metrics(),sd=m.sd,td=m.td,totalDays=Math.max(1,dbtw(sd,td)),s=sw();
+  const pd={l:38,r:14,t:14,b:24},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
+  const xS=d=>pd.l+(d/totalDays)*gW;
+  const plotPts=(mode==='weekly'?weeklyPts().map(p=>({d:p.day,v:p.avg,date:addDays(sd,Math.round(p.day)),wk:p.w})):s.map(c=>({d:dbtw(sd,c.date),v:c.weight,date:c.date}))).filter(p=>p.d>=0&&p.d<=totalDays);
+  const ys=[m.start,m.tgt,...plotPts.map(p=>p.v)];
+  let mn=Math.min(...ys)-.6,mx=Math.max(...ys)+.6;if(mx-mn<1){mn-=.5;mx+=.5;}
+  const yS=v=>pd.t+gH-((v-mn)/(mx-mn))*gH;
+  [0,.5,1].forEach(t=>{const y=pd.t+t*gH;ctx.strokeStyle='rgba(60,60,67,.08)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(W-pd.r,y);ctx.stroke();ctx.fillStyle='#aeaeb2';ctx.font='10px '+getFont();ctx.textAlign='right';ctx.fillText((mx-t*(mx-mn)).toFixed(1),pd.l-5,y+3);});
+  // plan
+  ctx.strokeStyle='#34c759';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(xS(0),yS(m.start));ctx.lineTo(xS(totalDays),yS(m.tgt));ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#34c759';ctx.beginPath();ctx.arc(xS(totalDays),yS(m.tgt),3.5,0,7);ctx.fill();
+  ctx.font='9px '+getFont();ctx.textAlign='right';ctx.fillText(m.tgt+'kg',xS(totalDays)-2,yS(m.tgt)-6);
+  // today
+  const tDay=Math.min(totalDays,Math.max(0,dbtw(sd,tod())));
+  ctx.strokeStyle='#ff9500';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(xS(tDay),pd.t);ctx.lineTo(xS(tDay),H-pd.b);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#ff9500';ctx.font='9px '+getFont();ctx.textAlign='center';ctx.fillText('NOW',xS(tDay),pd.t-3);
+  // projection
+  _dots=[];
+  if(plotPts.length>=2&&m.pace!=null&&m.pace>.01){const last=plotPts[plotPts.length-1];const pw=last.v-(m.pace/7)*(totalDays-last.d);ctx.strokeStyle='#ff9500';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(xS(last.d),yS(last.v));ctx.lineTo(xS(totalDays),yS(Math.max(mn,Math.min(mx,pw))));ctx.stroke();ctx.setLineDash([]);}
+  // actual
+  if(plotPts.length>=2){
+    const g=ctx.createLinearGradient(0,pd.t,0,H-pd.b);g.addColorStop(0,'rgba(0,122,255,.14)');g.addColorStop(1,'rgba(0,122,255,0)');
+    ctx.beginPath();ctx.moveTo(xS(plotPts[0].d),H-pd.b);plotPts.forEach(p=>ctx.lineTo(xS(p.d),yS(p.v)));ctx.lineTo(xS(plotPts[plotPts.length-1].d),H-pd.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='#007aff';ctx.lineWidth=2.5;ctx.beginPath();plotPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.d),yS(p.v)):ctx.lineTo(xS(p.d),yS(p.v)));ctx.stroke();
   }
-
-  // ── DAILY MODE — paged 28-day window with future forecast ──
-  const pageSize=28;
-  const dailyEnd=addDays(todayStr,14-chartPageOffset);
-  const dailyStart=addDays(dailyEnd,-(pageSize-1));
-  const filtCIDaily=allCI.filter(c=>c.date>=dailyStart&&c.date<=todayStr);
-  const allDailyDates=[];
-  for(let d=0;d<pageSize;d++)allDailyDates.push(addDays(dailyStart,d));
-  const n=allDailyDates.length;
-  if(lbl){
-    const s=new Date(dailyStart+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'});
-    const e=new Date(dailyEnd+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'});
-    lbl.textContent=s+' → '+e;
-  }
-  const actWts=allDailyDates.map(d=>{const c=filtCIDaily.find(x=>x.date===d);return c?c.weight:null;});
-  // Forecast from first ever logged entry — past (projected) and future
-  const firstEntryDate=allCI.length?allCI[0].date:todayStr;
-  const fcWts=allDailyDates.map(d=>{
-    if(d<firstEntryDate)return null;
-    const df=Math.round((localParse(d)-localParse(startStr))/86400000);
-    return P.startWt?parseFloat((P.startWt-fatRatePerDay*df+musclePerDay*df).toFixed(2)):null;
-  });
-  const targetLineWt=chartTargetWt||null;
-  const allDV=[...actWts.filter(Boolean),...fcWts.filter(Boolean),...(targetLineWt?[targetLineWt]:[])];
-  if(!allDV.length){ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';ctx.fillText('Log check-ins to see chart',W/2,H/2);return;}
-  const mn=Math.min(...allDV)-.5,mx=Math.max(...allDV)+.5;
-  const pd={l:42,r:10,t:10,b:26},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
-  const xS=i=>pd.l+(n<=1?0:(i/(n-1)))*gW,yS=v=>pd.t+gH-((v-mn)/(mx-mn))*gH;
-  // Grid
-  [0,.33,.67,1].forEach(t=>{const y=pd.t+t*gH;ctx.strokeStyle='rgba(0,0,0,.05)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(W-pd.r,y);ctx.stroke();ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='right';ctx.fillText((mx-t*(mx-mn)).toFixed(1),pd.l-4,y+3);});
-  // Goal line — always visible when set, clamp to chart bounds
-  if(targetLineWt){
-    const clampedY=yS(Math.max(mn,Math.min(mx,targetLineWt)));
-    ctx.strokeStyle='#15803d';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);
-    ctx.beginPath();ctx.moveTo(pd.l,clampedY);ctx.lineTo(W-pd.r,clampedY);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='#15803d';ctx.font='8px Inter';ctx.textAlign='left';
-    ctx.fillText('GOAL '+targetLineWt+'kg',pd.l+3,clampedY-3);
-  }
-  // Today line
-  const ti=allDailyDates.indexOf(todayStr);
-  if(ti>=0){const tx=xS(ti);ctx.strokeStyle='#c2410c';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(tx,pd.t);ctx.lineTo(tx,H-pd.b);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#c2410c';ctx.font='8px Inter';ctx.textAlign='center';ctx.fillText('TODAY',tx,pd.t+7);}
-  // Forecast line (full — past projected + future)
-  ctx.strokeStyle='#bbb';ctx.lineWidth=1.2;ctx.setLineDash([4,3]);
-  ctx.beginPath();let fcs=false;
-  fcWts.forEach((v,i)=>{
-    if(v===null)return;
-    if(!fcs){ctx.moveTo(xS(i),yS(v));fcs=true;}
-    else if(allDailyDates[i]>todayStr){ctx.strokeStyle='#999';ctx.lineWidth=1.5;}
-    ctx.lineTo(xS(i),yS(v));
-  });
-  ctx.stroke();ctx.setLineDash([]);
-  // Actual line + fill — fill drops to x-axis from first/last actual point
-  const ap=allDailyDates.map((d,i)=>actWts[i]!==null?{i,v:actWts[i]}:null).filter(Boolean);
-  if(ap.length>=2){
-    const g=ctx.createLinearGradient(0,pd.t,0,H-pd.b);g.addColorStop(0,'rgba(29,78,216,.15)');g.addColorStop(1,'rgba(29,78,216,0)');
-    ctx.beginPath();
-    ctx.moveTo(xS(ap[0].i),H-pd.b);
-    ap.forEach(p=>ctx.lineTo(xS(p.i),yS(p.v)));
-    ctx.lineTo(xS(ap[ap.length-1].i),H-pd.b);
-    ctx.closePath();ctx.fillStyle=g;ctx.fill();
-    ctx.strokeStyle='#1d4ed8';ctx.lineWidth=2.5;
-    ctx.beginPath();ap.forEach((p,j)=>j===0?ctx.moveTo(xS(p.i),yS(p.v)):ctx.lineTo(xS(p.i),yS(p.v)));ctx.stroke();
-  }
-  ap.forEach(p=>{ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(p.i),yS(p.v),3.5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#1d4ed8';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(p.i),yS(p.v),3.5,0,Math.PI*2);ctx.stroke();});
-  // X axis dates
-  ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='center';
-  const dstep=Math.max(1,Math.floor(n/7));
-  allDailyDates.forEach((d,i)=>{if(i%dstep===0||i===n-1){const dl=new Date(d+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'});ctx.fillStyle=d>todayStr?'#c2410c':'#9aa0b0';ctx.fillText(dl,xS(i),H-5);}});
-}
-
-function drawWellnessChart(){
-  const cv=document.getElementById('cwl'),ctx=cv.getContext('2d');
-  const dpr=window.devicePixelRatio||1;
-  cv.width=cv.offsetWidth*dpr;cv.height=160*dpr;ctx.scale(dpr,dpr);
-  const W=cv.offsetWidth||340,H=160;ctx.clearRect(0,0,W,H);
-  const s=[...CI].sort((a,b)=>localParse(a.date)-localParse(b.date)).slice(-14);
-  if(s.length<2){ctx.fillStyle='#9aa0b0';ctx.font='13px Inter';ctx.textAlign='center';ctx.fillText('Log check-ins to see wellness chart',W/2,H/2);return;}
-  const pd={l:28,r:10,t:10,b:24};
-  const gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
-  const xS=i=>pd.l+(i/(s.length-1))*gW,yS=v=>pd.t+gH-(v/100)*gH;
-  // Grid at 0, 50, 100%
-  [0,50,100].forEach(v=>{ctx.strokeStyle='rgba(0,0,0,.04)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,yS(v));ctx.lineTo(W-pd.r,yS(v));ctx.stroke();ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='right';ctx.fillText(v+'%',pd.l-4,yS(v)+3);});
-  // Lines: Energy (1-5 → 0-100%), Sleep (1-10 → 0-100%), Strength (up/stable/down → 100/50/0%)
-  const metrics=[
-    {key:'energy',conv:v=>v!=null?Math.round((v-1)/4*100):null,col:'#1d4ed8'},
-    {key:'sleep', conv:v=>v!=null?Math.round((v-1)/9*100):null,col:'#15803d'},
-    {key:'strength',conv:v=>v==='up'?100:v==='stable'?50:v==='down'?0:null,col:'#c2410c'},
-  ];
-  metrics.forEach(m=>{
-    const pts=s.map((c,i)=>({i,v:m.conv(c[m.key])})).filter(p=>p.v!==null);
-    if(pts.length<2)return;
-    ctx.strokeStyle=m.col;ctx.lineWidth=2;
-    ctx.beginPath();pts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.i),yS(p.v)):ctx.lineTo(xS(p.i),yS(p.v)));ctx.stroke();
-    pts.forEach(p=>{ctx.fillStyle=m.col;ctx.beginPath();ctx.arc(xS(p.i),yS(p.v),3,0,Math.PI*2);ctx.fill();});
-  });
-  ctx.fillStyle='#9aa0b0';ctx.font='9px Inter';ctx.textAlign='center';
-  const step=Math.max(1,Math.floor(s.length/5));
-  s.forEach((c,i)=>{if(i%step===0||i===s.length-1)ctx.fillText(fmtDate(c.date),xS(i),H-5);});
-}
-
-// ── CHART DOT TOOLTIP ──
-let _chartDotHits=[];
-let _chartListenerSet=false;
-function registerChartDots(cv,dots){
-  _chartDotHits=dots.slice();
-  if(_chartListenerSet)return;
-  _chartListenerSet=true;
-  document.getElementById('cwt').addEventListener('click',e=>onChartClick(e));
-  document.getElementById('cwt').addEventListener('touchend',e=>{e.preventDefault();onChartClick(e.changedTouches[0]);},{passive:false});
-}
-
-function onChartClick(e){
-  const cv=document.getElementById('cwt');
-  if(!cv)return;
-  const rect=cv.getBoundingClientRect();
-  const mx=e.clientX-rect.left;
-  const my=e.clientY-rect.top;
-  const tip=document.getElementById('chart-tip');
-  let best=null,bestDist=22;
-  _chartDotHits.forEach(d=>{
-    const dist=Math.sqrt((d.cx-mx)**2+(d.cy-my)**2);
-    if(dist<bestDist){bestDist=dist;best=d;}
-  });
-  if(!best){tip.style.display='none';return;}
-  const diffStr=best.diff===null?'First week logged'
-    :best.diff<0?'↓ '+Math.abs(best.diff).toFixed(2)+' kg vs prev week'
-    :best.diff>0?'↑ +'+best.diff.toFixed(2)+' kg vs prev week'
-    :'→ No change vs prev week';
-  const col=best.diff===null?'#aaa':best.diff<0?'#86efac':best.diff>0?'#fca5a5':'#aaa';
-  tip.innerHTML=`<div style="font-weight:700;margin-bottom:2px">Wk ${best.w} · ${best.avg} kg</div><div style="color:${col};font-size:11px">${diffStr}</div>`;
-  tip.style.display='block';
-  const clampedLeft=Math.min(Math.max(best.cx,60),rect.width-60);
-  tip.style.left=clampedLeft+'px';
-  tip.style.top=(best.cy-48)+'px';
-  clearTimeout(tip._hide);
-  tip._hide=setTimeout(()=>tip.style.display='none',2500);
-}
-function renderInsights(){
-  const wkTxt=buildWeeklyInsight();
-  document.getElementById('ins-weekly-text').innerHTML=wkTxt;
-  const dow=new Date().getDay(),isSun=dow===0,dtu=isSun?0:(7-dow);
-  const badge=document.getElementById('weekly-badge');
-  if(badge){badge.textContent=isSun?'✓ Updated today':'Next update in '+dtu+' day'+(dtu===1?'':'s');badge.style.color=isSun?'var(--green)':'var(--tx3)';}
-  document.getElementById('adj-tdee').textContent=P.tdee?P.tdee+' kcal':'—';
-  document.getElementById('adj-deficit').textContent=P.deficit?P.deficit+' kcal/day':'—';
-  document.getElementById('adj-fat-rate').textContent=P.deficit?'~'+(P.deficit/7700*7).toFixed(2)+' kg fat/week':'—';
-  document.getElementById('adj-train').value=P.trainDay||'';
-  document.getElementById('adj-rest').value=P.restDay||'';
-}
-document.getElementById('adj-train').addEventListener('input',previewAdj);
-document.getElementById('adj-rest').addEventListener('input',previewAdj);
-function previewAdj(){
-  const t=parseInt(document.getElementById('adj-train').value),r=parseInt(document.getElementById('adj-rest').value);
-  if(!t||!r||!P.tdee)return;
-  const def=Math.round(P.tdee-(t+r)/2),fpw=parseFloat((def/7700*7).toFixed(2)),wks=P.fatToLose&&def>0?Math.min(Math.ceil(P.fatToLose/fpw),104):0;
-  const pv=document.getElementById('adj-preview');pv.style.display='block';
-  pv.innerHTML=`New deficit: <strong>${def} kcal/day</strong> → Fat loss: <strong>~${fpw} kg/week</strong> → Timeline: <strong>~${wks} weeks</strong>`;
-  if(def<0){pv.innerHTML='⚠️ These calories exceed your TDEE — you would be in a surplus.';}
-}
-function applyAdj(){
-  const t=parseInt(document.getElementById('adj-train').value),r=parseInt(document.getElementById('adj-rest').value);
-  if(!t||!r){alert('Enter both values.');return;}
-  if(t<1000||r<800){alert('Calories too low — check your values.');return;}
-  P.trainDay=t;P.restDay=r;P.avgTarget=Math.round((t+r)/2);P.deficit=Math.round(P.tdee-P.avgTarget);
-  if(P.deficit<0){alert('These calories are above your TDEE. Adjust and try again.');return;}
-  save();renderAll();
-  document.getElementById('adj-preview').innerHTML='✓ Saved. Plan updated.';
-}
-
-// ══════════════════════════════════════════
-// NAV + RENDER
-// ══════════════════════════════════════════
-function renderAll(){renderToday();renderInsights();const ap=document.querySelector('.page.active');if(ap&&ap.id==='page-progress')renderProgress();}
-function goPage(name,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');btn.classList.add('active');if(name==='progress')renderProgress();if(name==='insights')renderInsights();if(name==='today')renderToday();}
-
-function restoreTargetUI(){
-  if(!chartTargetWt&&!chartFatGoalKgPerWeek)return;
-  const twEl=document.getElementById('chart-target-wt');
-  const rEl=document.getElementById('chart-fat-goal');
-  if(twEl&&chartTargetWt)twEl.value=chartTargetWt;
-  if(rEl&&chartFatGoalKgPerWeek)rEl.value=chartFatGoalKgPerWeek;
-  const hint=document.getElementById('fat-goal-hint');
-  if(hint&&chartTargetWt&&chartFatGoalKgPerWeek){
-    const startWt=P.startWt||0;
-    const weeks=Math.ceil((startWt-chartTargetWt)/chartFatGoalKgPerWeek);
-    const arrDate=addDays(P.startDate||tod(),weeks*7);
-    const arrFmt=new Date(arrDate+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
-    hint.textContent='✓ Target: '+chartTargetWt+' kg at '+chartFatGoalKgPerWeek.toFixed(2)+' kg/week · Est. '+arrFmt;
+  plotPts.forEach(p=>{const r=mode==='weekly'?4:3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(p.d),yS(p.v),r,0,7);ctx.fill();ctx.strokeStyle='#007aff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(p.d),yS(p.v),r,0,7);ctx.stroke();_dots.push({cx:xS(p.d),cy:yS(p.v),date:p.date,v:p.v,wk:p.wk});});
+  // x labels
+  ctx.fillStyle='#aeaeb2';ctx.font='10px '+getFont();ctx.textAlign='center';
+  ctx.fillText(fS(sd),xS(0),H-6);ctx.fillText(fS(td),xS(totalDays),H-6);
+  if(tDay>totalDays*.2&&tDay<totalDays*.8){ctx.fillStyle='#ff9500';ctx.fillText(fS(tod()),xS(tDay),H-6);}
+  bindTip(cv);
+  const msg=document.getElementById('chart-msg');
+  if(plotPts.length<2){msg.textContent='Log a few days to see your line against the plan.';}
+  else if(mode==='weekly'){
+    const wp=weeklyPts(),lastWk=wp[wp.length-1];
+    const planNow=m.start-m.reqRate*(m.daysElapsed/7);
+    const gap=lastWk.avg-planNow;
+    msg.innerHTML='This week\'s average: <b>'+lastWk.avg.toFixed(1)+' kg</b>. Plan says <b>'+planNow.toFixed(1)+' kg</b> by now — you\'re '+(Math.abs(gap)<0.3?'<span style="color:var(--green-d)">right on it.</span>':gap<0?'<span style="color:var(--green-d)">'+Math.abs(gap).toFixed(1)+' kg ahead.</span>':'<span style="color:var(--red)">'+gap.toFixed(1)+' kg behind.</span>')+(m.needNow&&m.remaining>0?' To finish on time, lose ~<b>'+m.needNow.toFixed(2)+' kg/week</b> from here.':'');
+  }else{
+    msg.innerHTML=m.projDate&&m.remaining>0?'At your current pace you\'ll reach <b>'+m.tgt+' kg</b> around <b>'+fF(m.projDate)+'</b> — '+(lp(m.projDate)<=lp(m.td)?'<span style="color:var(--green-d)">on or ahead of target.</span>':'<span style="color:var(--red)">after your target date.</span>'):'';
   }
 }
+function bindTip(cv){
+  if(_tipBound)return;_tipBound=true;
+  const h=e=>{const pt=e.touches?e.changedTouches[0]:e;const r=cv.getBoundingClientRect();const mx=pt.clientX-r.left,my=pt.clientY-r.top;const tip=document.getElementById('tip');let best=null,bd=26;_dots.forEach(d=>{const dist=Math.hypot(d.cx-mx,d.cy-my);if(dist<bd){bd=dist;best=d;}});if(!best){tip.style.display='none';return;}tip.innerHTML='<b>'+best.v.toFixed(1)+' kg</b><br>'+(best.wk!=null?'week of ':'')+fF(best.date);tip.style.display='block';tip.style.left=Math.min(Math.max(best.cx,55),r.width-55)+'px';let _t=best.cy-48;if(_t<4)_t=best.cy+12;tip.style.top=_t+'px';clearTimeout(tip._h);tip._h=setTimeout(()=>tip.style.display='none',2400);};
+  cv.addEventListener('click',h);cv.addEventListener('touchend',e=>{e.preventDefault();h(e);},{passive:false});
+}
+function drawEnergyChart(){
+  const cv=document.getElementById('cwe'),ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=120*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=cv.offsetWidth||340,H=120;ctx.clearRect(0,0,W,H);
+  const s=[...CI].filter(c=>c.energy).sort((a,b)=>lp(a.date)-lp(b.date)).slice(-14);
+  if(s.length<2){ctx.fillStyle='#aeaeb2';ctx.font='13px '+getFont();ctx.textAlign='center';ctx.fillText('Log how you feel to see this',W/2,H/2);return;}
+  const pd={l:22,r:10,t:12,b:20},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
+  const xS=i=>pd.l+(i/(s.length-1))*gW,yS=v=>pd.t+gH-((v-1)/4)*gH;
+  [1,3,5].forEach(v=>{ctx.strokeStyle='rgba(60,60,67,.08)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,yS(v));ctx.lineTo(W-pd.r,yS(v));ctx.stroke();ctx.fillStyle='#aeaeb2';ctx.font='10px '+getFont();ctx.textAlign='right';ctx.fillText(v,pd.l-5,yS(v)+3);});
+  ctx.strokeStyle='#ff9500';ctx.lineWidth=2.5;ctx.beginPath();s.forEach((c,i)=>i===0?ctx.moveTo(xS(i),yS(c.energy)):ctx.lineTo(xS(i),yS(c.energy)));ctx.stroke();
+  s.forEach((c,i)=>{ctx.fillStyle='#ff9500';ctx.beginPath();ctx.arc(xS(i),yS(c.energy),3,0,7);ctx.fill();});
+  ctx.fillStyle='#aeaeb2';ctx.font='10px '+getFont();ctx.textAlign='center';const st=Math.max(1,Math.floor(s.length/5));
+  s.forEach((c,i)=>{if(i%st===0||i===s.length-1)ctx.fillText(fS(c.date),xS(i),H-5);});
+}
 
-function resetAll(){if(confirm('Reset all data?')){['rc4_p','rc4_c','rc4_ts','rc4_target'].forEach(k=>localStorage.removeItem(k));location.reload();}}
-function launchApp(){document.getElementById('setup').style.display='none';document.getElementById('app').style.display='flex';initCIDate();selEnergy(3);restoreTargetUI();renderAll();}
+// EDIT
+['e-cur','e-tgt','e-date'].forEach(id=>document.getElementById(id).addEventListener('input',editPreview));
+function editPreview(){
+  const cur=parseFloat(document.getElementById('e-cur').value),tgt=parseFloat(document.getElementById('e-tgt').value),date=document.getElementById('e-date').value,pv=document.getElementById('edit-preview');
+  if(!cur||!tgt||!date){pv.textContent='';return;}
+  if(tgt>=cur){pv.textContent='Target must be below current weight.';return;}
+  const days=dbtw(tod(),date);if(days<=0){pv.textContent='Pick a future date.';return;}
+  pv.textContent='→ '+(cur-tgt).toFixed(1)+' kg over '+Math.ceil(days/7)+' weeks ≈ '+((cur-tgt)/(days/7)).toFixed(2)+' kg/week.';
+}
+function commitTarget(cur,tgt,date){
+  if(!cur||!tgt||!date){alert('Fill in all three.');return false;}
+  if(tgt>=cur){alert('Target must be below current weight.');return false;}
+  if(dbtw(tod(),date)<=0){alert('Date must be in the future.');return false;}
+  P.targetWt=tgt;P.targetDate=date;
+  const idx=CI.findIndex(c=>c.date===tod());if(idx>=0)CI[idx].weight=cur;else CI.push({date:tod(),weight:cur,energy:selEnergyV});
+  if(!P.startWt)P.startWt=cur;
+  save();renderAll();return true;
+}
+function applyEdit(){
+  if(commitTarget(parseFloat(document.getElementById('e-cur').value),parseFloat(document.getElementById('e-tgt').value),document.getElementById('e-date').value)){
+    const sm=document.getElementById('edit-saved');sm.style.display='block';setTimeout(()=>sm.style.display='none',2000);
+  }
+}
+// Target modal (reachable from Today header)
+function openTarget(){const m=metrics();document.getElementById('m-cur').value=m.current.toFixed(1);document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;mPreview();document.getElementById('target-modal').classList.remove('hidden');}
+function closeTarget(){document.getElementById('target-modal').classList.add('hidden');}
+['m-cur','m-tgt','m-date'].forEach(id=>document.getElementById(id).addEventListener('input',mPreview));
+function mPreview(){
+  const cur=parseFloat(document.getElementById('m-cur').value),tgt=parseFloat(document.getElementById('m-tgt').value),date=document.getElementById('m-date').value,pv=document.getElementById('m-preview');
+  if(!cur||!tgt||!date){pv.textContent='';return;}
+  if(tgt>=cur){pv.style.color='var(--red)';pv.textContent='Target must be below current weight.';return;}
+  const days=dbtw(tod(),date);if(days<=0){pv.style.color='var(--red)';pv.textContent='Pick a future date.';return;}
+  pv.style.color='var(--tx3)';pv.textContent='→ '+(cur-tgt).toFixed(1)+' kg over '+Math.ceil(days/7)+' weeks ≈ '+((cur-tgt)/(days/7)).toFixed(2)+' kg/week.';
+}
+function applyTargetModal(){if(commitTarget(parseFloat(document.getElementById('m-cur').value),parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value))closeTarget();}
 
-window.addEventListener('load',()=>{load();if(P.startWt)launchApp();else{document.getElementById('setup').style.display='block';document.getElementById('app').style.display='none';}});
-window.addEventListener('resize',()=>{if(document.querySelector('#page-progress.active')){drawWeightChart();drawWellnessChart();}});
-['sl','fo'].forEach(f=>setSR(f,document.getElementById('ci-'+f).value));
+// POPUP
+function maybePopup(){
+  if(!energyDeclining())return;
+  if(localStorage.getItem('wc1_pop')===tod())return;
+  const e=energyStats();
+  document.getElementById('pop-emoji').textContent='😴';
+  document.getElementById('pop-t').textContent='Your energy is slipping';
+  document.getElementById('pop-x').textContent='Recent energy is averaging '+e.a3.toFixed(0)+'/5 and trending down. This is usually a sign you\'re cutting too hard. Add a little food this week — more protein and carbs — and protect your sleep before pushing the scale further.';
+  document.getElementById('popup').classList.remove('hidden');
+  localStorage.setItem('wc1_pop',tod());
+}
+
+// NAV / LIFECYCLE
+function renderAll(){renderToday();const ap=document.querySelector('.page.active');if(ap&&ap.id==='page-progress')renderProgress();}
+function goPage(n,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress')renderProgress();}
+function resetAll(){if(confirm('Reset all data? This cannot be undone.')){['wc1_p','wc1_c','wc1_ts','wc1_pop'].forEach(k=>localStorage.removeItem(k));location.reload();}}
+function launchApp(){document.getElementById('setup').style.display='none';document.getElementById('app').style.display='flex';loadTodayCI();renderAll();setTimeout(maybePopup,400);}
+
+window.addEventListener('load',()=>{
+  load();
+  const sd=document.getElementById('s-date');if(sd)sd.value=addDays(tod(),84);
+  if(P.startWt&&P.targetWt&&P.targetDate)launchApp();
+  else{if(P.startWt)document.getElementById('s-cur').value=P.startWt;if(P.targetWt)document.getElementById('s-tgt').value=P.targetWt;document.getElementById('setup').style.display='block';document.getElementById('app').style.display='none';setupPreview();}
+});
+window.addEventListener('resize',()=>{if(document.querySelector('#page-progress.active')){drawWeightChart();drawEnergyChart();}});
 </script>
 </body>
 </html>
