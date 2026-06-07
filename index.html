@@ -49,7 +49,7 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fon
 .dual{display:flex}
 .dual>div{flex:1;text-align:center}
 .dual>div+div{border-left:.5px solid var(--sep)}
-.dual .v{font-size:26px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.dual .v{font-size:23px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
 .dual .l{font-size:12px;color:var(--tx3);margin-top:2px}
 
 .coach{border-radius:var(--r);padding:16px 18px;margin-bottom:12px}
@@ -165,7 +165,8 @@ canvas{display:block;width:100%}
     <div id="plan-line" style="font-size:14px;line-height:1.45;margin-bottom:12px;color:var(--tx2)">—</div>
     <div class="dual">
       <div><div class="v" id="pace-now">—</div><div class="l">losing / week</div></div>
-      <div><div class="v" id="pace-need" style="color:var(--orange)">—</div><div class="l">needed / week</div></div>
+      <div><div class="v" id="pace-day" style="color:var(--orange)">—</div><div class="l">needed / day</div></div>
+      <div><div class="v" id="pace-need">—</div><div class="l">needed / week</div></div>
     </div>
   </div>
 
@@ -389,6 +390,22 @@ function metrics(){
   if(pc&&pc>.01&&remaining>0){const wks=remaining/pc;projDate=addDays(tod(),Math.round(wks*7));projEarly=daysLeft>0?(daysLeft/7-wks):null;}
   return {start,tgt,sd,td,current,totalToLose,lost,remaining,pct,daysTotal,daysElapsed,daysLeft,reqRate,expWtNow,ahead,pace:pc,needNow,projDate,projEarly};
 }
+// daily loss needed to hit this week's quota, spread over the days left in the week
+function weekDaily(weeklyTarget){
+  const sd=P.startDate,today=tod();
+  const daysElapsed=Math.max(0,dbtw(sd,today));
+  const weekIdx=Math.floor(daysElapsed/7);
+  const weekStartDate=addDays(sd,weekIdx*7);
+  const dayInWeek=Math.max(0,Math.min(6,dbtw(weekStartDate,today)));
+  const daysLeft=Math.max(1,7-dayInWeek);
+  const s=sw();
+  const before=s.filter(c=>c.date<=weekStartDate);
+  const wkStart=before.length?before[before.length-1].weight:P.startWt;
+  const current=s.length?s[s.length-1].weight:P.startWt;
+  const lostThisWeek=wkStart-current;
+  const rem=Math.max(0,weeklyTarget-lostThisWeek);
+  return {daily:rem/daysLeft,daysLeft,dayInWeek,lostThisWeek,rem};
+}
 function energyStats(){
   const s=[...CI].filter(c=>c.energy).sort((a,b)=>lp(a.date)-lp(b.date));
   if(!s.length)return{n:0};
@@ -434,6 +451,9 @@ function renderToday(){
 
   document.getElementById('pace-now').textContent=m.pace!=null?(m.pace>0?m.pace.toFixed(2):'0'):'—';
   document.getElementById('pace-need').textContent=m.needNow!=null&&m.remaining>0?m.needNow.toFixed(2):(m.remaining<=0?'0':'—');
+  const dayEl=document.getElementById('pace-day');
+  if(m.needNow!=null&&m.remaining>0&&m.daysLeft>0){dayEl.textContent=weekDaily(m.needNow).daily.toFixed(2);}
+  else{dayEl.textContent=m.remaining<=0?'0':'—';}
   const pill=document.getElementById('pace-pill');
   if(m.remaining<=0){pill.className='pill p-good';pill.textContent='Goal reached';}
   else if(m.daysLeft<=0){pill.className='pill p-warn';pill.textContent='Date passed';}
