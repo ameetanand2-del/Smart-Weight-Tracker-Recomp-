@@ -126,7 +126,7 @@ canvas{display:block;width:100%}
   <div class="logo">Weight<span>Coach</span></div>
   <div class="tag">Am I on pace? Do I have the energy?</div>
   <div class="card">
-    <div class="fld"><label>CURRENT WEIGHT (KG)</label><input type="number" id="s-cur" placeholder="84.0" step="0.1"></div>
+    <div class="fld"><label>STARTING WEIGHT (KG)</label><input type="number" id="s-cur" placeholder="84.0" step="0.1"></div>
     <div class="fld"><label>TARGET WEIGHT (KG)</label><input type="number" id="s-tgt" placeholder="75.0" step="0.1"></div>
     <div class="fld"><label>TARGET DATE</label><input type="date" id="s-date"></div>
   </div>
@@ -232,14 +232,15 @@ canvas{display:block;width:100%}
   <div class="shdr">Recent</div>
   <div class="list" id="history-list"><div class="tsm" style="padding:14px 16px">No check-ins yet.</div></div>
 
-  <div class="shdr">My target</div>
+  <div class="shdr">My plan</div>
   <div class="list">
-    <div class="row"><label>Current weight</label><input type="number" id="e-cur" step="0.1" placeholder="kg"></div>
+    <div class="row"><label>Starting weight</label><input type="number" id="e-start" step="0.1" placeholder="kg"></div>
+    <div class="row"><label>Start date</label><input type="date" id="e-sdate"></div>
     <div class="row"><label>Target weight</label><input type="number" id="e-tgt" step="0.1" placeholder="kg"></div>
     <div class="row"><label>Target date</label><input type="date" id="e-date"></div>
   </div>
   <div id="edit-preview" class="tsm" style="padding:0 4px 4px"></div>
-  <button class="btn btg" onclick="applyEdit()">Update target</button>
+  <button class="btn btg" onclick="applyEdit()">Update plan</button>
   <div id="edit-saved" class="tc tsm" style="display:none;margin-top:10px;color:var(--green-d);font-weight:600">✓ Updated</div>
 
   <div class="shdr">Settings</div>
@@ -264,9 +265,10 @@ canvas{display:block;width:100%}
 <!-- TARGET MODAL -->
 <div class="mo hidden" id="target-modal" onclick="if(event.target===this)closeTarget()">
   <div class="mc" style="max-width:340px">
-    <div style="padding:18px 18px 8px;font-size:18px;font-weight:700;text-align:center">Set your target</div>
+    <div style="padding:18px 18px 8px;font-size:18px;font-weight:700;text-align:center">Your plan</div>
     <div style="padding:0 16px">
-      <div class="row"><label>Current weight</label><input type="number" id="m-cur" step="0.1" placeholder="kg"></div>
+      <div class="row"><label>Starting weight</label><input type="number" id="m-start" step="0.1" placeholder="kg"></div>
+      <div class="row"><label>Start date</label><input type="date" id="m-sdate"></div>
       <div class="row"><label>Target weight</label><input type="number" id="m-tgt" step="0.1" placeholder="kg"></div>
       <div class="row" style="border-bottom:none"><label>Target date</label><input type="date" id="m-date"></div>
     </div>
@@ -468,7 +470,8 @@ function renderProgress(){
   document.getElementById('js-pct').textContent=m.pct+'%';
   document.getElementById('js-target').textContent=m.tgt.toFixed(1)+' kg';
   document.getElementById('set-start').textContent=fF(m.sd);
-  document.getElementById('e-cur').value=m.current.toFixed(1);
+  document.getElementById('e-start').value=m.start;
+  document.getElementById('e-sdate').value=m.sd;
   document.getElementById('e-tgt').value=m.tgt;
   document.getElementById('e-date').value=m.td;
   renderHistory();drawWeightChart();drawEnergyChart();
@@ -556,40 +559,39 @@ function drawEnergyChart(){
 }
 
 // EDIT
-['e-cur','e-tgt','e-date'].forEach(id=>document.getElementById(id).addEventListener('input',editPreview));
+['e-start','e-sdate','e-tgt','e-date'].forEach(id=>document.getElementById(id).addEventListener('input',editPreview));
 function editPreview(){
-  const cur=parseFloat(document.getElementById('e-cur').value),tgt=parseFloat(document.getElementById('e-tgt').value),date=document.getElementById('e-date').value,pv=document.getElementById('edit-preview');
-  if(!cur||!tgt||!date){pv.textContent='';return;}
-  if(tgt>=cur){pv.textContent='Target must be below current weight.';return;}
-  const days=dbtw(tod(),date);if(days<=0){pv.textContent='Pick a future date.';return;}
-  pv.textContent='→ '+(cur-tgt).toFixed(1)+' kg over '+Math.ceil(days/7)+' weeks ≈ '+((cur-tgt)/(days/7)).toFixed(2)+' kg/week.';
+  const [t,c]=planLine(parseFloat(document.getElementById('e-start').value),document.getElementById('e-sdate').value,parseFloat(document.getElementById('e-tgt').value),document.getElementById('e-date').value);
+  const pv=document.getElementById('edit-preview');pv.textContent=t;pv.style.color=c;
 }
-function commitTarget(cur,tgt,date){
-  if(!cur||!tgt||!date){alert('Fill in all three.');return false;}
-  if(tgt>=cur){alert('Target must be below current weight.');return false;}
-  if(dbtw(tod(),date)<=0){alert('Date must be in the future.');return false;}
-  P.targetWt=tgt;P.targetDate=date;
-  const idx=CI.findIndex(c=>c.date===tod());if(idx>=0)CI[idx].weight=cur;else CI.push({date:tod(),weight:cur,energy:selEnergyV});
-  if(!P.startWt)P.startWt=cur;
+function commitPlan(sWt,sDate,tWt,tDate){
+  if(!sWt||!tWt||!sDate||!tDate){alert('Fill in all fields.');return false;}
+  if(tWt>=sWt){alert('Target weight must be below your starting weight.');return false;}
+  if(dbtw(sDate,tDate)<=0){alert('Target date must be after the start date.');return false;}
+  if(dbtw(tod(),tDate)<=0){alert('Target date must be in the future.');return false;}
+  P.startWt=sWt;P.startDate=sDate;P.targetWt=tWt;P.targetDate=tDate;
   save();renderAll();return true;
 }
 function applyEdit(){
-  if(commitTarget(parseFloat(document.getElementById('e-cur').value),parseFloat(document.getElementById('e-tgt').value),document.getElementById('e-date').value)){
+  if(commitPlan(parseFloat(document.getElementById('e-start').value),document.getElementById('e-sdate').value,parseFloat(document.getElementById('e-tgt').value),document.getElementById('e-date').value)){
     const sm=document.getElementById('edit-saved');sm.style.display='block';setTimeout(()=>sm.style.display='none',2000);
   }
 }
-// Target modal (reachable from Today header)
-function openTarget(){const m=metrics();document.getElementById('m-cur').value=m.current.toFixed(1);document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;mPreview();document.getElementById('target-modal').classList.remove('hidden');}
+// Plan modal (reachable from Today header)
+function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;mPreview();document.getElementById('target-modal').classList.remove('hidden');}
 function closeTarget(){document.getElementById('target-modal').classList.add('hidden');}
-['m-cur','m-tgt','m-date'].forEach(id=>document.getElementById(id).addEventListener('input',mPreview));
-function mPreview(){
-  const cur=parseFloat(document.getElementById('m-cur').value),tgt=parseFloat(document.getElementById('m-tgt').value),date=document.getElementById('m-date').value,pv=document.getElementById('m-preview');
-  if(!cur||!tgt||!date){pv.textContent='';return;}
-  if(tgt>=cur){pv.style.color='var(--red)';pv.textContent='Target must be below current weight.';return;}
-  const days=dbtw(tod(),date);if(days<=0){pv.style.color='var(--red)';pv.textContent='Pick a future date.';return;}
-  pv.style.color='var(--tx3)';pv.textContent='→ '+(cur-tgt).toFixed(1)+' kg over '+Math.ceil(days/7)+' weeks ≈ '+((cur-tgt)/(days/7)).toFixed(2)+' kg/week.';
+['m-start','m-sdate','m-tgt','m-date'].forEach(id=>document.getElementById(id).addEventListener('input',mPreview));
+function planLine(sWt,sDate,tWt,tDate){
+  if(!sWt||!tWt||!sDate||!tDate)return['',''];
+  if(tWt>=sWt)return['Target must be below starting weight.','var(--red)'];
+  const days=dbtw(sDate,tDate);if(days<=0)return['Target date must be after start date.','var(--red)'];
+  return['→ '+(sWt-tWt).toFixed(1)+' kg over '+Math.ceil(days/7)+' weeks ≈ '+((sWt-tWt)/(days/7)).toFixed(2)+' kg/week.','var(--tx3)'];
 }
-function applyTargetModal(){if(commitTarget(parseFloat(document.getElementById('m-cur').value),parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value))closeTarget();}
+function mPreview(){
+  const [t,c]=planLine(parseFloat(document.getElementById('m-start').value),document.getElementById('m-sdate').value,parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value);
+  const pv=document.getElementById('m-preview');pv.textContent=t;pv.style.color=c;
+}
+function applyTargetModal(){if(commitPlan(parseFloat(document.getElementById('m-start').value),document.getElementById('m-sdate').value,parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value))closeTarget();}
 
 // POPUP
 function maybePopup(){
