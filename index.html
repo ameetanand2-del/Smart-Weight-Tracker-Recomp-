@@ -162,6 +162,7 @@ canvas{display:block;width:100%}
       <div style="font-size:15px;font-weight:600">This week</div>
       <span class="pill p-neut" id="pace-pill">—</span>
     </div>
+    <div id="plan-line" style="font-size:14px;line-height:1.45;margin-bottom:12px;color:var(--tx2)">—</div>
     <div class="dual">
       <div><div class="v" id="pace-now">—</div><div class="l">losing / week</div></div>
       <div><div class="v" id="pace-need" style="color:var(--orange)">—</div><div class="l">needed / week</div></div>
@@ -384,7 +385,7 @@ function metrics(){
   const needNow=daysLeft>0?remaining/(daysLeft/7):null;
   let projDate=null,projEarly=null;
   if(pc&&pc>.01&&remaining>0){const wks=remaining/pc;projDate=addDays(tod(),Math.round(wks*7));projEarly=daysLeft>0?(daysLeft/7-wks):null;}
-  return {start,tgt,sd,td,current,totalToLose,lost,remaining,pct,daysTotal,daysElapsed,daysLeft,reqRate,ahead,pace:pc,needNow,projDate,projEarly};
+  return {start,tgt,sd,td,current,totalToLose,lost,remaining,pct,daysTotal,daysElapsed,daysLeft,reqRate,expWtNow,ahead,pace:pc,needNow,projDate,projEarly};
 }
 function energyStats(){
   const s=[...CI].filter(c=>c.energy).sort((a,b)=>lp(a.date)-lp(b.date));
@@ -435,9 +436,21 @@ function renderToday(){
   if(m.remaining<=0){pill.className='pill p-good';pill.textContent='Goal reached';}
   else if(m.daysLeft<=0){pill.className='pill p-warn';pill.textContent='Date passed';}
   else if(!hasData||m.pace==null){pill.className='pill p-neut';pill.textContent='—';}
-  else if(m.ahead>0.3){pill.className='pill p-good';pill.textContent='Ahead';}
+  else if(m.ahead>0.3){pill.className='pill p-good';pill.textContent='Losing faster';}
   else if(m.ahead<-0.3){pill.className='pill p-warn';pill.textContent='Behind';}
-  else{pill.className='pill p-info';pill.textContent='On pace';}
+  else{pill.className='pill p-info';pill.textContent='On track';}
+
+  const pl=document.getElementById('plan-line');
+  if(!hasData)pl.innerHTML='Log a weigh-in to see your weekly target.';
+  else if(m.remaining<=0)pl.innerHTML='You\'ve reached your goal of <b>'+m.tgt+' kg</b>. 🎉';
+  else if(m.daysLeft<=0)pl.innerHTML='Your target date has passed — set a new one to keep tracking.';
+  else{
+    let cmp;
+    if(m.ahead>0.3)cmp=' — <span style="color:var(--green-d);font-weight:600">'+m.ahead.toFixed(1)+' kg ahead, losing faster than planned.</span>';
+    else if(m.ahead<-0.3)cmp=' — <span style="color:var(--red);font-weight:600">'+Math.abs(m.ahead).toFixed(1)+' kg behind plan.</span>';
+    else cmp=' — <span style="color:var(--blue);font-weight:600">right on plan.</span>';
+    pl.innerHTML='By this week you should be around <b>'+m.expWtNow.toFixed(1)+' kg</b>. You\'re at <b>'+m.current.toFixed(1)+' kg</b>'+cmp;
+  }
 
   const c=coaching(),cd=document.getElementById('coach');
   cd.className='coach coach-'+c.tone;
