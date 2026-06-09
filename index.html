@@ -227,6 +227,12 @@ canvas{display:block;width:100%}
     <div id="chart-msg" class="tsm" style="margin-top:10px;line-height:1.5"></div>
   </div>
 
+  <div class="shdr">Weekly loss vs target</div>
+  <div class="card">
+    <canvas id="cwl" style="height:160px"></canvas>
+    <div id="cwl-msg" class="tsm" style="margin-top:8px;line-height:1.5"></div>
+  </div>
+
   <div class="shdr">Energy · last 14 days</div>
   <div class="card"><canvas id="cwe" style="height:120px"></canvas></div>
 
@@ -377,7 +383,10 @@ function pace(){
 }
 function metrics(){
   const start=P.startWt,tgt=P.targetWt,sd=P.startDate,td=P.targetDate,s=sw();
-  const current=s.length?s[s.length-1].weight:start;
+  const latest=s.length?s[s.length-1].weight:start;
+  const wk=weeklyPts();
+  const currentAvg=wk.length?wk[wk.length-1].avg:latest;
+  const current=currentAvg; // weekly average drives pace / status / progress
   const totalToLose=start-tgt,lost=start-current,remaining=current-tgt;
   const pct=totalToLose>0?Math.max(0,Math.min(100,Math.round(lost/totalToLose*100))):0;
   const daysTotal=Math.max(1,dbtw(sd,td)),daysElapsed=Math.max(0,dbtw(sd,tod())),daysLeft=dbtw(tod(),td);
@@ -388,7 +397,7 @@ function metrics(){
   const needNow=daysLeft>0?remaining/(daysLeft/7):null;
   let projDate=null,projEarly=null;
   if(pc&&pc>.01&&remaining>0){const wks=remaining/pc;projDate=addDays(tod(),Math.round(wks*7));projEarly=daysLeft>0?(daysLeft/7-wks):null;}
-  return {start,tgt,sd,td,current,totalToLose,lost,remaining,pct,daysTotal,daysElapsed,daysLeft,reqRate,expWtNow,ahead,pace:pc,needNow,projDate,projEarly};
+  return {start,tgt,sd,td,latest,currentAvg,current,totalToLose,lost,remaining,pct,daysTotal,daysElapsed,daysLeft,reqRate,expWtNow,ahead,pace:pc,needNow,projDate,projEarly};
 }
 // daily loss needed to hit this week's quota, spread over the days left in the week
 function weekDaily(weeklyTarget){
@@ -419,6 +428,12 @@ function weeklyPts(){
   s.forEach(c=>{const w=Math.floor(dbtw(sd,c.date)/7);(bins[w]=bins[w]||[]).push(c.weight);});
   return Object.keys(bins).map(Number).sort((a,b)=>a-b).map(w=>({w,day:w*7+3.5,avg:+avg(bins[w]).toFixed(2),n:bins[w].length}));
 }
+// actual weight lost in each week (from weekly averages, vs the prior week / start)
+function weeklyLoss(){
+  const wk=weeklyPts();const out=[];
+  for(let i=0;i<wk.length;i++){const prev=i===0?P.startWt:wk[i-1].avg;out.push({w:wk[i].w,loss:+(prev-wk[i].avg).toFixed(2)});}
+  return out;
+}
 
 // COACHING
 function coaching(){
@@ -442,7 +457,7 @@ function coaching(){
 function renderToday(){
   document.getElementById('today-date').textContent=new Date().toLocaleDateString('en-AU',{weekday:'long',day:'numeric',month:'long'});
   const m=metrics(),hasData=sw().length>0;
-  document.getElementById('h-wt').textContent=m.current!=null?m.current.toFixed(1):'—';
+  document.getElementById('h-wt').textContent=m.latest!=null?m.latest.toFixed(1):'—';
   const last7=CI.filter(c=>c.weight&&c.date>=addDays(tod(),-6)),prev7=CI.filter(c=>c.weight&&c.date>=addDays(tod(),-13)&&c.date<=addDays(tod(),-7));
   const de=document.getElementById('h-delta');
   if(last7.length&&prev7.length){const d=+(avg(last7.map(c=>c.weight))-avg(prev7.map(c=>c.weight))).toFixed(1);de.innerHTML=d<0?'<span style="color:var(--green-d)">↓ '+Math.abs(d).toFixed(1)+' kg this week</span>':d>0?'<span style="color:var(--red)">↑ '+d.toFixed(1)+' kg this week</span>':'<span style="color:var(--tx3)">no change this week</span>';}
@@ -471,7 +486,7 @@ function renderToday(){
     if(m.ahead>0.3)cmp=' — <span style="color:var(--green-d);font-weight:600">'+m.ahead.toFixed(1)+' kg ahead, losing faster than planned.</span>';
     else if(m.ahead<-0.3)cmp=' — <span style="color:var(--red);font-weight:600">'+Math.abs(m.ahead).toFixed(1)+' kg behind plan.</span>';
     else cmp=' — <span style="color:var(--blue);font-weight:600">right on plan.</span>';
-    pl.innerHTML='By this week you should be around <b>'+m.expWtNow.toFixed(1)+' kg</b>. You\'re at <b>'+m.current.toFixed(1)+' kg</b>'+cmp;
+    pl.innerHTML='By this week you should be around <b>'+m.expWtNow.toFixed(1)+' kg</b>. Your weekly average is <b>'+m.current.toFixed(1)+' kg</b>'+cmp;
   }
 
   const c=coaching(),cd=document.getElementById('coach');
@@ -494,7 +509,7 @@ function renderProgress(){
   document.getElementById('e-sdate').value=m.sd;
   document.getElementById('e-tgt').value=m.tgt;
   document.getElementById('e-date').value=m.td;
-  renderHistory();drawWeightChart();drawEnergyChart();
+  renderHistory();drawWeightChart();drawWeeklyLossChart();drawEnergyChart();
 }
 function renderHistory(){
   const s=[...CI].filter(c=>c.weight).sort((a,b)=>lp(b.date)-lp(a.date)).slice(0,12);
@@ -541,7 +556,7 @@ function drawWeightChart(){
     ctx.beginPath();ctx.moveTo(xS(plotPts[0].d),H-pd.b);plotPts.forEach(p=>ctx.lineTo(xS(p.d),yS(p.v)));ctx.lineTo(xS(plotPts[plotPts.length-1].d),H-pd.b);ctx.closePath();ctx.fillStyle=g;ctx.fill();
     ctx.strokeStyle='#007aff';ctx.lineWidth=2.5;ctx.beginPath();plotPts.forEach((p,j)=>j===0?ctx.moveTo(xS(p.d),yS(p.v)):ctx.lineTo(xS(p.d),yS(p.v)));ctx.stroke();
   }
-  plotPts.forEach(p=>{const r=mode==='weekly'?4:3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(p.d),yS(p.v),r,0,7);ctx.fill();ctx.strokeStyle='#007aff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(p.d),yS(p.v),r,0,7);ctx.stroke();_dots.push({cx:xS(p.d),cy:yS(p.v),date:p.date,v:p.v,wk:p.wk});});
+  plotPts.forEach(p=>{const r=mode==='weekly'?4:3;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(xS(p.d),yS(p.v),r,0,7);ctx.fill();ctx.strokeStyle='#007aff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(xS(p.d),yS(p.v),r,0,7);ctx.stroke();const planAt=Math.max(m.tgt,Math.min(m.start,m.start-m.reqRate*(p.d/7)));_dots.push({cx:xS(p.d),cy:yS(p.v),date:p.date,v:p.v,wk:p.wk,plan:planAt});});
   // x labels
   ctx.fillStyle='#aeaeb2';ctx.font='10px '+getFont();ctx.textAlign='center';
   ctx.fillText(fS(sd),xS(0),H-6);ctx.fillText(fS(td),xS(totalDays),H-6);
@@ -560,9 +575,41 @@ function drawWeightChart(){
 }
 function bindTip(cv){
   if(_tipBound)return;_tipBound=true;
-  const h=e=>{const pt=e.touches?e.changedTouches[0]:e;const r=cv.getBoundingClientRect();const mx=pt.clientX-r.left,my=pt.clientY-r.top;const tip=document.getElementById('tip');let best=null,bd=26;_dots.forEach(d=>{const dist=Math.hypot(d.cx-mx,d.cy-my);if(dist<bd){bd=dist;best=d;}});if(!best){tip.style.display='none';return;}tip.innerHTML='<b>'+best.v.toFixed(1)+' kg</b><br>'+(best.wk!=null?'week of ':'')+fF(best.date);tip.style.display='block';tip.style.left=Math.min(Math.max(best.cx,55),r.width-55)+'px';let _t=best.cy-48;if(_t<4)_t=best.cy+12;tip.style.top=_t+'px';clearTimeout(tip._h);tip._h=setTimeout(()=>tip.style.display='none',2400);};
+  const h=e=>{const pt=e.touches?e.changedTouches[0]:e;const r=cv.getBoundingClientRect();const mx=pt.clientX-r.left,my=pt.clientY-r.top;const tip=document.getElementById('tip');let best=null,bd=26;_dots.forEach(d=>{const dist=Math.hypot(d.cx-mx,d.cy-my);if(dist<bd){bd=dist;best=d;}});if(!best){tip.style.display='none';return;}const _lbl=best.wk!=null?'avg '+best.v.toFixed(1)+' kg':best.v.toFixed(1)+' kg';const _plan=best.plan!=null?'<br><span style="opacity:.7">plan: '+best.plan.toFixed(1)+' kg</span>':'';tip.innerHTML='<b>'+_lbl+'</b>'+_plan+'<br><span style="opacity:.7">'+(best.wk!=null?'week of ':'')+fF(best.date)+'</span>';tip.style.display='block';tip.style.left=Math.min(Math.max(best.cx,55),r.width-55)+'px';let _t=best.cy-48;if(_t<4)_t=best.cy+12;tip.style.top=_t+'px';clearTimeout(tip._h);tip._h=setTimeout(()=>tip.style.display='none',2400);};
   cv.addEventListener('click',h);cv.addEventListener('touchend',e=>{e.preventDefault();h(e);},{passive:false});
 }
+function drawWeeklyLossChart(){
+  const cv=document.getElementById('cwl'),ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=160*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=cv.offsetWidth||340,H=160;ctx.clearRect(0,0,W,H);
+  const m=metrics(),target=m.reqRate,totalWeeks=Math.max(1,Math.ceil(m.daysTotal/7));
+  const lossMap={};weeklyLoss().forEach(x=>lossMap[x.w]=x.loss);
+  const weeks=[];for(let w=0;w<totalWeeks;w++)weeks.push({w,loss:(w in lossMap)?lossMap[w]:null});
+  const msg=document.getElementById('cwl-msg');
+  const have=weeks.filter(x=>x.loss!=null);
+  if(!have.length){ctx.fillStyle='#aeaeb2';ctx.font='13px '+getFont();ctx.textAlign='center';ctx.fillText('Log a full week to see this',W/2,H/2);msg.innerHTML='Each week you\'re aiming to lose about <b>'+target.toFixed(2)+' kg</b>.';return;}
+  const losses=have.map(x=>x.loss);
+  let mx=Math.max(target,...losses)*1.18,mn=Math.min(0,...losses);if(mn<0)mn*=1.18;if(mx-mn<.1)mx=mn+.1;
+  const pd={l:34,r:10,t:14,b:22},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
+  const yS=v=>pd.t+gH-((v-mn)/(mx-mn))*gH;
+  const bw=Math.min(26,gW/totalWeeks*0.62),step=gW/totalWeeks;
+  const xC=w=>pd.l+step*w+step/2;
+  // y labels
+  [mn,(mn+mx)/2,mx].forEach(v=>{const y=yS(v);ctx.strokeStyle='rgba(60,60,67,.07)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(W-pd.r,y);ctx.stroke();ctx.fillStyle='#aeaeb2';ctx.font='9px '+getFont();ctx.textAlign='right';ctx.fillText(v.toFixed(1),pd.l-4,y+3);});
+  // zero baseline
+  if(mn<0){ctx.strokeStyle='rgba(60,60,67,.25)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,yS(0));ctx.lineTo(W-pd.r,yS(0));ctx.stroke();}
+  // bars
+  weeks.forEach(x=>{if(x.loss==null)return;const c=x.loss>=target*0.95?'#34c759':x.loss>0?'#ff9500':'#ff3b30';ctx.fillStyle=c;const y0=yS(0),y1=yS(x.loss);const top=Math.min(y0,y1),h=Math.max(2,Math.abs(y1-y0));roundRect(ctx,xC(x.w)-bw/2,top,bw,h,3);ctx.fill();});
+  // target line (dashed) on top
+  ctx.strokeStyle='#1c1c1e';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(pd.l,yS(target));ctx.lineTo(W-pd.r,yS(target));ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#1c1c1e';ctx.font='9px '+getFont();ctx.textAlign='left';ctx.fillText('target '+target.toFixed(2),pd.l+2,yS(target)-4);
+  // x labels (every few weeks)
+  ctx.fillStyle='#aeaeb2';ctx.font='9px '+getFont();ctx.textAlign='center';const lblStep=Math.ceil(totalWeeks/8);
+  weeks.forEach(x=>{if(x.w%lblStep===0||x.w===totalWeeks-1)ctx.fillText('W'+(x.w+1),xC(x.w),H-6);});
+  const met=have.filter(x=>x.loss>=target*0.95).length;
+  msg.innerHTML='Target is ~<b>'+target.toFixed(2)+' kg/week</b> (dashed line). You\'ve hit it in <b>'+met+' of '+have.length+'</b> weeks. Green = on/over target, orange = under, red = gained.';
+}
+function roundRect(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 function drawEnergyChart(){
   const cv=document.getElementById('cwe'),ctx=cv.getContext('2d');
   const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=120*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -637,7 +684,7 @@ window.addEventListener('load',()=>{
   if(P.startWt&&P.targetWt&&P.targetDate)launchApp();
   else{if(P.startWt)document.getElementById('s-cur').value=P.startWt;if(P.targetWt)document.getElementById('s-tgt').value=P.targetWt;document.getElementById('setup').style.display='block';document.getElementById('app').style.display='none';setupPreview();}
 });
-window.addEventListener('resize',()=>{if(document.querySelector('#page-progress.active')){drawWeightChart();drawEnergyChart();}});
+window.addEventListener('resize',()=>{if(document.querySelector('#page-progress.active')){drawWeightChart();drawWeeklyLossChart();drawEnergyChart();}});
 </script>
 </body>
 </html>
