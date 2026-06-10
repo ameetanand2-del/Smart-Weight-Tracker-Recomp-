@@ -244,18 +244,13 @@ canvas{display:block;width:100%}
   <div class="card"><canvas id="cwe" style="height:120px"></canvas></div>
 
   <div class="shdr">Recent</div>
-  <div class="list" id="history-list"><div class="tsm" style="padding:14px 16px">No check-ins yet.</div></div>
-
-  <div class="shdr">My plan</div>
   <div class="list">
-    <div class="row"><label>Starting weight</label><input type="number" id="e-start" step="0.1" placeholder="kg"></div>
-    <div class="row"><label>Start date</label><input type="date" id="e-sdate"></div>
-    <div class="row"><label>Target weight</label><input type="number" id="e-tgt" step="0.1" placeholder="kg"></div>
-    <div class="row"><label>Target date</label><input type="date" id="e-date"></div>
+    <button id="recent-toggle" onclick="toggleRecent()" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border:none;background:none;font-family:var(--font);font-size:16px;font-weight:600;color:var(--tx);cursor:pointer">
+      <span>Recent check-ins <span id="recent-count" class="tsm" style="font-weight:400"></span></span>
+      <span id="recent-chev" style="color:var(--tx3)">▾</span>
+    </button>
+    <div id="history-list" style="display:none;border-top:.5px solid var(--sep)"><div class="tsm" style="padding:14px 16px">No check-ins yet.</div></div>
   </div>
-  <div id="edit-preview" class="tsm" style="padding:0 4px 4px"></div>
-  <button class="btn btg" onclick="applyEdit()">Update plan</button>
-  <div id="edit-saved" class="tc tsm" style="display:none;margin-top:10px;color:var(--green-d);font-weight:600">✓ Updated</div>
 
   <div class="shdr">Settings</div>
   <div class="list">
@@ -424,8 +419,17 @@ function weekDaily(weeklyTarget){
 }
 // this-week performance vs the steady weekly plan target
 function weekPerf(){
-  const m=metrics();const target=m.reqRate;const wd=weekDaily(target);
-  return {target,lost:wd.lostThisWeek,rem:wd.rem,daysLeft:wd.daysLeft,dayInWeek:wd.dayInWeek,perDay:wd.daily};
+  const m=metrics(),target=m.reqRate;
+  const sd=P.startDate,daysElapsed=Math.max(0,dbtw(sd,tod()));
+  const weekIdx=Math.floor(daysElapsed/7);
+  const weekStartDate=addDays(sd,weekIdx*7);
+  const dayInWeek=Math.max(0,Math.min(6,dbtw(weekStartDate,tod())));
+  const daysLeft=Math.max(1,7-dayInWeek);
+  // average-based loss this week: this week's avg vs the previous week's avg (matches the bar chart)
+  const entry=weeklyLoss().find(x=>x.w===weekIdx);
+  const lost=entry?entry.loss:0;
+  const rem=Math.max(0,target-lost);
+  return {target,lost,rem,daysLeft,dayInWeek,perDay:rem/daysLeft};
 }
 function energyStats(){
   const s=[...CI].filter(c=>c.energy).sort((a,b)=>lp(a.date)-lp(b.date));
@@ -522,15 +526,13 @@ function renderProgress(){
   document.getElementById('js-pct').textContent=m.pct+'%';
   document.getElementById('js-target').textContent=m.tgt.toFixed(1)+' kg';
   document.getElementById('set-start').textContent=fF(m.sd);
-  document.getElementById('e-start').value=m.start;
-  document.getElementById('e-sdate').value=m.sd;
-  document.getElementById('e-tgt').value=m.tgt;
-  document.getElementById('e-date').value=m.td;
   renderHistory();drawWeightChart();drawWeeklyLossChart();drawEnergyChart();
 }
+function toggleRecent(){const el=document.getElementById('history-list'),ch=document.getElementById('recent-chev');const open=el.style.display==='none';el.style.display=open?'block':'none';ch.textContent=open?'▴':'▾';}
 function renderHistory(){
-  const s=[...CI].filter(c=>c.weight).sort((a,b)=>lp(b.date)-lp(a.date)).slice(0,12);
-  const el=document.getElementById('history-list');
+  const s=[...CI].filter(c=>c.weight).sort((a,b)=>lp(b.date)-lp(a.date));
+  const el=document.getElementById('history-list'),cnt=document.getElementById('recent-count');
+  if(cnt)cnt.textContent=s.length?'('+s.length+')':'';
   if(!s.length){el.innerHTML='<div class="tsm" style="padding:14px 16px">No check-ins yet.</div>';return;}
   el.innerHTML=s.map((c,i)=>{
     const prev=s[i+1];let d='';
@@ -648,11 +650,6 @@ function drawEnergyChart(){
 }
 
 // EDIT
-['e-start','e-sdate','e-tgt','e-date'].forEach(id=>document.getElementById(id).addEventListener('input',editPreview));
-function editPreview(){
-  const [t,c]=planLine(parseFloat(document.getElementById('e-start').value),document.getElementById('e-sdate').value,parseFloat(document.getElementById('e-tgt').value),document.getElementById('e-date').value);
-  const pv=document.getElementById('edit-preview');pv.textContent=t;pv.style.color=c;
-}
 function commitPlan(sWt,sDate,tWt,tDate){
   if(!sWt||!tWt||!sDate||!tDate){alert('Fill in all fields.');return false;}
   if(tWt>=sWt){alert('Target weight must be below your starting weight.');return false;}
@@ -660,11 +657,6 @@ function commitPlan(sWt,sDate,tWt,tDate){
   if(dbtw(tod(),tDate)<=0){alert('Target date must be in the future.');return false;}
   P.startWt=sWt;P.startDate=sDate;P.targetWt=tWt;P.targetDate=tDate;
   save();renderAll();return true;
-}
-function applyEdit(){
-  if(commitPlan(parseFloat(document.getElementById('e-start').value),document.getElementById('e-sdate').value,parseFloat(document.getElementById('e-tgt').value),document.getElementById('e-date').value)){
-    const sm=document.getElementById('edit-saved');sm.style.display='block';setTimeout(()=>sm.style.display='none',2000);
-  }
 }
 // Plan modal (reachable from Today header)
 function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;mPreview();document.getElementById('target-modal').classList.remove('hidden');}
