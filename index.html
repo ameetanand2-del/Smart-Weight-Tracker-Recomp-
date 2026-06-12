@@ -68,6 +68,15 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fon
 .e-row>button{flex:1;aspect-ratio:1;max-height:54px;border:none;border-radius:13px;background:var(--fill);font-family:var(--font);font-size:18px;font-weight:600;color:var(--tx2);cursor:pointer;transition:all .15s}
 .e-row>button.sel{background:var(--blue);color:#fff;transform:scale(1.04)}
 .e-hint{display:flex;justify-content:space-between;font-size:12px;color:var(--tx3);margin-top:6px;padding:0 2px}
+.stp{width:36px;height:36px;border:none;border-radius:9px;background:var(--surface);font-size:22px;font-weight:600;color:var(--blue);cursor:pointer;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.stp:active{opacity:.6}
+.stepbar{display:flex;align-items:center;gap:12px;background:var(--fill);border-radius:11px;padding:7px 12px}
+.stepval{flex:1;text-align:center;font-size:17px;font-weight:600}
+.gstep{display:flex;align-items:center;gap:8px}
+.gstep span{min-width:58px;text-align:center;font-weight:600;color:var(--tx)}
+.stp2{width:28px;height:28px;border:none;border-radius:7px;background:var(--fill);font-size:18px;font-weight:600;color:var(--blue);cursor:pointer;line-height:1}
+.wopt{flex:1;padding:13px 6px;border:none;border-radius:12px;background:var(--fill);font-family:var(--font);font-size:13px;font-weight:600;color:var(--tx2);cursor:pointer;transition:all .15s}
+.wopt.sel{background:var(--blue);color:#fff}
 
 .fld{margin-bottom:14px}
 .fld:last-child{margin-bottom:0}
@@ -180,11 +189,13 @@ canvas{display:block;width:100%}
   <div class="shdr">Check in</div>
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <span style="font-weight:600">Morning weigh-in</span>
-      <input type="date" id="ci-date" style="border:none;background:var(--fill);border-radius:8px;padding:5px 9px;font-family:var(--font);font-size:13px;color:var(--tx);color-scheme:light">
+      <span style="font-weight:600">Daily check-in</span>
+      <input type="date" id="ci-date" onchange="loadForDate()" style="border:none;background:var(--fill);border-radius:8px;padding:5px 9px;font-family:var(--font);font-size:13px;color:var(--tx);color-scheme:light">
     </div>
-    <div class="fld" style="margin:10px 0 4px"><input type="number" id="ci-wt" placeholder="Weight in kg" step="0.1" style="text-align:center;font-size:22px"></div>
-    <div style="font-size:13px;font-weight:600;color:var(--tx3);margin-top:14px;padding-left:2px">HOW'S YOUR ENERGY?</div>
+
+    <div class="fld" style="margin:10px 0 4px"><label>WEIGHT (KG) · TODAY</label><input type="number" id="ci-wt" placeholder="Weight in kg" step="0.1" style="text-align:center;font-size:22px"></div>
+
+    <div style="font-size:13px;font-weight:600;color:var(--tx3);margin-top:16px;padding-left:2px">ENERGY · TODAY</div>
     <div class="e-row" id="e-row">
       <button data-v="1" onclick="selEnergy(1)">1</button>
       <button data-v="2" onclick="selEnergy(2)">2</button>
@@ -193,8 +204,50 @@ canvas{display:block;width:100%}
       <button data-v="5" onclick="selEnergy(5)">5</button>
     </div>
     <div class="e-hint"><span>Exhausted</span><span>Peak</span></div>
-    <button class="btn btp" style="margin-top:16px" onclick="saveCI()">Save</button>
+
+    <div style="font-size:12px;color:var(--tx3);margin:16px 0 4px;padding-left:2px">The three below are for <b>yesterday</b>.</div>
+
+    <div class="fld"><label>SLEEP (HOURS)</label>
+      <div class="stepbar"><button class="stp" onclick="stepSleep(-0.5)">−</button><div class="stepval"><span id="sleep-val">—</span></div><button class="stp" onclick="stepSleep(0.5)">+</button></div>
+    </div>
+
+    <div class="fld"><label>STEPS <span id="steps-hint" class="tsm" style="font-weight:400"></span></label>
+      <div class="stepbar"><button class="stp" onclick="stepSteps(-250)">−</button><div class="stepval"><span id="steps-val">—</span></div><button class="stp" onclick="stepSteps(250)">+</button></div>
+    </div>
+
+    <div class="fld"><label>CALORIES <span id="cals-hint" class="tsm" style="font-weight:400"></span></label>
+      <div class="stepbar"><button class="stp" onclick="stepCals(-100)">−</button><div class="stepval"><span id="cals-val">—</span></div><button class="stp" onclick="stepCals(100)">+</button></div>
+    </div>
+
+    <div id="score-block" style="margin-top:18px;padding-top:14px;border-top:.5px solid var(--sep)">
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
+        <span style="font-weight:600;font-size:15px">Daily score</span>
+        <span id="score-num" style="font-size:26px;font-weight:700;margin-left:4px;font-variant-numeric:tabular-nums">0</span>
+        <span class="tsm">/ 100</span>
+        <span id="score-verdict" class="pill p-neut" style="margin-left:auto">—</span>
+      </div>
+      <div class="pb" style="margin-bottom:10px"><div id="score-bar" style="width:0%;background:var(--green)"></div></div>
+      <div id="score-chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+
+    <button class="btn btp" style="margin-top:18px" onclick="saveCI()">Save</button>
     <div id="saved-msg" class="tc tsm" style="display:none;margin-top:10px;color:var(--green-d);font-weight:600">✓ Saved</div>
+  </div>
+
+  <div class="shdr">Workout</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-weight:600">How did training go?</span>
+      <input type="date" id="wo-date" onchange="loadWorkout()" style="border:none;background:var(--fill);border-radius:8px;padding:5px 9px;font-family:var(--font);font-size:13px;color:var(--tx);color-scheme:light">
+    </div>
+    <div style="display:flex;gap:8px" id="wo-row">
+      <button class="wopt" data-v="below" onclick="selWorkout('below')">↓ Below</button>
+      <button class="wopt" data-v="same" onclick="selWorkout('same')">= Same</button>
+      <button class="wopt" data-v="inc" onclick="selWorkout('inc')">↑ Increased</button>
+    </div>
+    <div class="e-hint"><span>Below plan</span><span>Beat plan</span></div>
+    <button class="btn btp" style="margin-top:14px" onclick="saveWorkout()">Save workout</button>
+    <div id="wo-saved" class="tc tsm" style="display:none;margin-top:10px;color:var(--green-d);font-weight:600">✓ Saved</div>
   </div>
 </div>
 
@@ -240,6 +293,25 @@ canvas{display:block;width:100%}
     <div id="cwl-msg" class="tsm" style="margin-top:8px;line-height:1.5"></div>
   </div>
 
+  <div class="shdr">Daily goal score</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <button id="sc-prev" class="wl-nav" onclick="scNav(-1)">‹</button>
+      <div id="sc-label" style="font-size:13px;font-weight:600">Last 14 days</div>
+      <button id="sc-next" class="wl-nav" onclick="scNav(1)">›</button>
+    </div>
+    <canvas id="csc" style="height:170px"></canvas>
+    <div class="legend">
+      <div><span style="width:11px;height:11px;background:#ff9500;display:inline-block;border-radius:3px"></span>Energy</div>
+      <div><span style="width:11px;height:11px;background:#5856d6;display:inline-block;border-radius:3px"></span>Sleep</div>
+      <div><span style="width:11px;height:11px;background:#30b0c7;display:inline-block;border-radius:3px"></span>Steps</div>
+      <div><span style="width:11px;height:11px;background:#ff2d55;display:inline-block;border-radius:3px"></span>Food</div>
+      <div><span style="width:11px;height:11px;background:#007aff;display:inline-block;border-radius:3px"></span>Workout</div>
+      <div><span style="width:11px;height:11px;background:rgba(60,60,67,.14);display:inline-block;border-radius:3px"></span>missed</div>
+    </div>
+    <div id="csc-msg" class="tsm" style="margin-top:8px;line-height:1.5"></div>
+  </div>
+
   <div class="shdr">Energy · last 14 days</div>
   <div class="card"><canvas id="cwe" style="height:120px"></canvas></div>
 
@@ -274,14 +346,23 @@ canvas{display:block;width:100%}
 <!-- TARGET MODAL -->
 <div class="mo hidden" id="target-modal" onclick="if(event.target===this)closeTarget()">
   <div class="mc" style="max-width:340px">
-    <div style="padding:18px 18px 8px;font-size:18px;font-weight:700;text-align:center">Your plan</div>
+    <div style="padding:18px 18px 8px;font-size:18px;font-weight:700;text-align:center">Plan &amp; goals</div>
     <div style="padding:0 16px">
       <div class="row"><label>Starting weight</label><input type="number" id="m-start" step="0.1" placeholder="kg"></div>
       <div class="row"><label>Start date</label><input type="date" id="m-sdate"></div>
       <div class="row"><label>Target weight</label><input type="number" id="m-tgt" step="0.1" placeholder="kg"></div>
       <div class="row" style="border-bottom:none"><label>Target date</label><input type="date" id="m-date"></div>
     </div>
-    <div id="m-preview" class="tsm tc" style="padding:2px 18px 12px;min-height:16px"></div>
+    <div id="m-preview" class="tsm tc" style="padding:2px 18px 10px;min-height:16px"></div>
+    <div style="padding:0 18px 4px;font-size:12px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px">Daily goals</div>
+    <div style="padding:0 16px">
+      <div class="row"><label>Sleep target</label><div class="gstep"><button class="stp2" onclick="gStep('sleep',-0.5)">−</button><span id="g-sleep">7.0 h</span><button class="stp2" onclick="gStep('sleep',0.5)">+</button></div></div>
+      <div class="row"><label>Steps min</label><div class="gstep"><button class="stp2" onclick="gStep('stepLow',-250)">−</button><span id="g-stepLow">8,000</span><button class="stp2" onclick="gStep('stepLow',250)">+</button></div></div>
+      <div class="row"><label>Steps max</label><div class="gstep"><button class="stp2" onclick="gStep('stepHigh',-250)">−</button><span id="g-stepHigh">10,000</span><button class="stp2" onclick="gStep('stepHigh',250)">+</button></div></div>
+      <div class="row"><label>Calories min</label><div class="gstep"><button class="stp2" onclick="gStep('calLow',-100)">−</button><span id="g-calLow">2,000</span><button class="stp2" onclick="gStep('calLow',100)">+</button></div></div>
+      <div class="row" style="border-bottom:none"><label>Calories max</label><div class="gstep"><button class="stp2" onclick="gStep('calHigh',-100)">−</button><span id="g-calHigh">2,500</span><button class="stp2" onclick="gStep('calHigh',100)">+</button></div></div>
+    </div>
+    <div style="height:12px"></div>
     <div style="display:flex">
       <button class="mc-btn" style="color:var(--tx2)" onclick="closeTarget()">Cancel</button>
       <button class="mc-btn" style="border-left:.5px solid var(--sep)" onclick="applyTargetModal()">Save</button>
@@ -352,25 +433,89 @@ function finishSetup(){
 }
 function loadDemo(){
   const start=addDays(tod(),-28);
-  P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84)};CI=[];
-  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en});}
+  P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84),sleepTarget:7,stepLow:8000,stepHigh:10000,calLow:2000,calHigh:2500};CI=[];
+  const wos=['below','same','inc'];
+  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,workout});}
   save();launchApp();
 }
 
 // CHECK-IN
-let selEnergyV=null;
-function selEnergy(v){selEnergyV=v;document.querySelectorAll('#e-row button').forEach(b=>b.classList.toggle('sel',+b.dataset.v===v));}
+let selEnergyV=null, ciSleep=null, ciSteps=null, ciCals=null, woSel=null;
+function goals(){return {sleep:P.sleepTarget||7,stepLow:P.stepLow||P.stepTarget||8000,stepHigh:P.stepHigh||((P.stepLow||P.stepTarget||8000)+2000),calLow:P.calLow||2000,calHigh:P.calHigh||2500};}
+function selEnergy(v){selEnergyV=v;document.querySelectorAll('#e-row button').forEach(b=>b.classList.toggle('sel',+b.dataset.v===v));updateScore();}
+function stepSleep(d){ciSleep=ciSleep==null?7:Math.max(4,Math.min(10,+(ciSleep+d).toFixed(1)));renderStepVals();updateScore();}
+function stepSteps(d){const g=goals();ciSteps=ciSteps==null?g.stepLow:Math.max(0,ciSteps+d);renderStepVals();updateScore();}
+function stepCals(d){ciCals=ciCals==null?2500:Math.max(0,ciCals+d);renderStepVals();updateScore();}
+function renderStepVals(){
+  document.getElementById('sleep-val').textContent=ciSleep!=null?ciSleep.toFixed(1)+' h':'—';
+  document.getElementById('steps-val').textContent=ciSteps!=null?ciSteps.toLocaleString():'—';
+  document.getElementById('cals-val').textContent=ciCals!=null?ciCals.toLocaleString():'—';
+}
+function updateGoalHints(){const g=goals();document.getElementById('steps-hint').textContent='· '+g.stepLow.toLocaleString()+'–'+g.stepHigh.toLocaleString();document.getElementById('cals-hint').textContent='· '+g.calLow.toLocaleString()+'–'+g.calHigh.toLocaleString();}
+function dailyScore(v){
+  const g=goals(),met={};
+  met.energy=v.energy!=null&&v.energy>=3;
+  met.sleep=v.sleep!=null&&v.sleep>=g.sleep;
+  met.steps=v.steps!=null&&v.steps>=g.stepLow;
+  met.diet=v.cals!=null&&v.cals>=g.calLow&&v.cals<=g.calHigh;
+  met.workout=v.workout==='same'||v.workout==='inc';
+  const pts=(met.energy?20:0)+(met.sleep?20:0)+(met.steps?20:0)+(met.diet?20:0)+(met.workout?20:0);
+  return {pts,met,count:[met.energy,met.sleep,met.steps,met.diet,met.workout].filter(Boolean).length};
+}
+function chip(label,met,extra){return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 9px;border-radius:20px;background:'+(met?'var(--gbg)':'var(--fill)')+';color:'+(met?'var(--green-d)':'var(--tx3)')+'">'+label+' '+(met?'✓':'✗')+(extra?' <span style="font-weight:400;opacity:.85">'+extra+'</span>':'')+'</span>';}
+function updateScore(){
+  const g=goals();
+  const date=document.getElementById('ci-date').value||tod();
+  const rec=CI.find(c=>c.date===date);
+  const workout=rec?rec.workout:null;
+  const sc=dailyScore({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciCals,workout});
+  document.getElementById('score-num').textContent=sc.pts;
+  const bar=document.getElementById('score-bar');bar.style.width=sc.pts+'%';bar.style.background=sc.pts>=100?'var(--green)':sc.pts>=60?'var(--orange)':'var(--red)';
+  const v=document.getElementById('score-verdict');
+  v.className='pill '+(sc.pts>=100?'p-good':sc.pts>=60?'p-info':'p-warn');
+  v.textContent=sc.pts>=100?'Met':sc.pts>=60?'Partial':'Not met';
+  const foodExtra=ciCals!=null?(ciCals.toLocaleString()+(sc.met.diet?'':(ciCals<g.calLow?' under':' over'))):'';
+  const woLbl={below:'↓ below',same:'= same',inc:'↑ more'}[workout]||'';
+  document.getElementById('score-chips').innerHTML=[
+    chip('⚡ Energy',sc.met.energy,selEnergyV?selEnergyV+'/5':''),
+    chip('😴 Sleep',sc.met.sleep,ciSleep!=null?ciSleep+'h':''),
+    chip('👟 Steps',sc.met.steps,ciSteps!=null?ciSteps.toLocaleString():''),
+    chip('🍽 Food',sc.met.diet,foodExtra),
+    chip('🏋 Workout',sc.met.workout,woLbl)
+  ].join('');
+}
+function upsertCI(date,fields){const i=CI.findIndex(c=>c.date===date);if(i>=0)CI[i]={...CI[i],date,...fields};else CI.push({date,...fields});}
 function saveCI(){
   const date=document.getElementById('ci-date').value||tod();
+  const yest=addDays(date,-1);
   const wt=parseFloat(document.getElementById('ci-wt').value);
   if(!wt){alert('Enter your weight.');return;}
-  const idx=CI.findIndex(c=>c.date===date);
-  if(idx>=0)CI[idx]={...CI[idx],date,weight:wt,energy:selEnergyV};else CI.push({date,weight:wt,energy:selEnergyV});
+  upsertCI(date,{weight:wt,energy:selEnergyV}); // today
+  const y={};
+  if(ciSleep!=null)y.sleep=ciSleep;
+  if(ciSteps!=null)y.steps=ciSteps;
+  if(ciCals!=null)y.cals=ciCals;
+  if(Object.keys(y).length)upsertCI(yest,y); // yesterday
   save();
   const m=document.getElementById('saved-msg');m.style.display='block';setTimeout(()=>m.style.display='none',2000);
   renderAll();maybePopup();
 }
-function loadTodayCI(){const e=CI.find(c=>c.date===tod());if(e){if(e.weight)document.getElementById('ci-wt').value=e.weight;if(e.energy)selEnergy(e.energy);}document.getElementById('ci-date').value=tod();}
+function loadForDate(){
+  const date=document.getElementById('ci-date').value||tod();const yest=addDays(date,-1);
+  const td=CI.find(c=>c.date===date),yd=CI.find(c=>c.date===yest);
+  document.getElementById('ci-wt').value=td&&td.weight?td.weight:'';
+  selEnergyV=td&&td.energy?td.energy:null;
+  document.querySelectorAll('#e-row button').forEach(b=>b.classList.toggle('sel',selEnergyV!=null&&+b.dataset.v===selEnergyV));
+  ciSleep=yd&&yd.sleep!=null?yd.sleep:null;
+  ciSteps=yd&&yd.steps!=null?yd.steps:null;
+  ciCals=yd&&yd.cals!=null?yd.cals:null;
+  renderStepVals();updateGoalHints();updateScore();
+}
+function loadTodayCI(){document.getElementById('ci-date').value=tod();loadForDate();}
+// WORKOUT (saved separately)
+function selWorkout(v){woSel=v;document.querySelectorAll('#wo-row button').forEach(b=>b.classList.toggle('sel',b.dataset.v===v));}
+function loadWorkout(){const d=document.getElementById('wo-date').value||tod();const rec=CI.find(c=>c.date===d);woSel=rec&&rec.workout?rec.workout:null;document.querySelectorAll('#wo-row button').forEach(b=>b.classList.toggle('sel',woSel&&b.dataset.v===woSel));}
+function saveWorkout(){const d=document.getElementById('wo-date').value||tod();if(!woSel){alert('Pick how training went.');return;}upsertCI(d,{workout:woSel});save();const m=document.getElementById('wo-saved');m.style.display='block';setTimeout(()=>m.style.display='none',2000);renderAll();updateScore();}
 
 // MATH
 function sw(){return [...CI].filter(c=>c.weight).sort((a,b)=>lp(a.date)-lp(b.date));}
@@ -526,7 +671,7 @@ function renderProgress(){
   document.getElementById('js-pct').textContent=m.pct+'%';
   document.getElementById('js-target').textContent=m.tgt.toFixed(1)+' kg';
   document.getElementById('set-start').textContent=fF(m.sd);
-  renderHistory();drawWeightChart();drawWeeklyLossChart();drawEnergyChart();
+  renderHistory();drawWeightChart();drawWeeklyLossChart();drawScoreChart();drawEnergyChart();
 }
 function toggleRecent(){const el=document.getElementById('history-list'),ch=document.getElementById('recent-chev');const open=el.style.display==='none';el.style.display=open?'block':'none';ch.textContent=open?'▴':'▾';}
 function renderHistory(){
@@ -634,6 +779,52 @@ function drawWeeklyLossChart(){
   else{const met=have.filter(x=>x.loss>=target*0.95).length;msg.innerHTML='Dashed line = your <b>'+target.toFixed(2)+' kg/week</b> target. On this page you hit it <b>'+met+' of '+have.length+'</b> weeks. Green = on/over, orange = under, red = gained.';}
 }
 function roundRect(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+let scPage=0;
+function scWindow(){return 14;}
+function scTotalDays(){return Math.max(1,dbtw(P.startDate,tod())+1);}
+function scPageCount(){return Math.max(1,Math.ceil(scTotalDays()/scWindow()));}
+function scNav(d){scPage=Math.max(0,Math.min(scPageCount()-1,scPage+d));drawScoreChart();}
+function drawScoreChart(){
+  const cv=document.getElementById('csc'),ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=170*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=cv.offsetWidth||340,H=170;ctx.clearRect(0,0,W,H);
+  const win=scWindow(),pages=scPageCount();scPage=Math.max(0,Math.min(pages-1,scPage));
+  const totalDays=scTotalDays(),totalWeeks=Math.max(1,Math.ceil(totalDays/7)),pageStart=scPage*win,pageEnd=Math.min(totalDays,pageStart+win);
+  const wkA=Math.floor(pageStart/7)+1,wkB=Math.floor((pageEnd-1)/7)+1;
+  document.getElementById('sc-label').textContent=wkA===wkB?'Week '+wkA:'Weeks '+wkA+'–'+wkB;
+  const pv=document.getElementById('sc-prev'),nx=document.getElementById('sc-next');
+  pv.style.opacity=scPage<=0?'.25':'1';pv.style.pointerEvents=scPage<=0?'none':'auto';
+  nx.style.opacity=scPage>=pages-1?'.25':'1';nx.style.pointerEvents=scPage>=pages-1?'none':'auto';
+  const KCOL={energy:'#ff9500',sleep:'#5856d6',steps:'#30b0c7',diet:'#ff2d55',workout:'#007aff'},KMISS='rgba(60,60,67,.12)';
+  const order=['energy','sleep','steps','diet','workout'];
+  const pd={l:10,r:10,t:12,b:24},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
+  const step=gW/win,bw=Math.min(20,step*0.6),xC=i=>pd.l+step*i+step/2;
+  let fullDays=0;
+  for(let i=0;i<win;i++){
+    const w=pageStart+i;if(w>=totalDays)break;
+    const date=addDays(P.startDate,w);
+    const rec=CI.find(c=>c.date===date);
+    const sc=dailyScore(rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,workout:rec.workout}:{});
+    if(sc.pts>=100)fullDays++;
+    const segH=gH/5;
+    order.forEach((k,si)=>{
+      const y=pd.t+gH-(si+1)*segH;
+      ctx.fillStyle=sc.met[k]?KCOL[k]:KMISS;
+      roundRect(ctx,xC(i)-bw/2,y+1.2,bw,segH-2.4,2);ctx.fill();
+    });
+  }
+  // week dividers + labels (groups of 7 within the page)
+  ctx.textAlign='center';
+  for(let g=0;g*7<win;g++){
+    const dayStart=g*7;if(pageStart+dayStart>=totalDays)break;
+    if(g>0){const x=pd.l+step*dayStart;ctx.strokeStyle='#1c1c1e';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,pd.t-4);ctx.lineTo(x,pd.t+gH+4);ctx.stroke();}
+    const lastInGroup=Math.min(dayStart+6,win-1,totalDays-1-pageStart);
+    const cx=(xC(dayStart)+xC(lastInGroup))/2;
+    const wkNum=Math.floor((pageStart+dayStart)/7)+1;
+    ctx.fillStyle='#8e8e93';ctx.font='600 10px '+getFont();ctx.fillText('Week '+wkNum,cx,H-8);
+  }
+  document.getElementById('csc-msg').innerHTML='Each bar = one day, split into 5 goal blocks. A full bar = all met. <b>'+fullDays+'</b> fully-met day'+(fullDays===1?'':'s')+' shown.';
+}
 function drawEnergyChart(){
   const cv=document.getElementById('cwe'),ctx=cv.getContext('2d');
   const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=120*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -659,7 +850,24 @@ function commitPlan(sWt,sDate,tWt,tDate){
   save();renderAll();return true;
 }
 // Plan modal (reachable from Today header)
-function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;mPreview();document.getElementById('target-modal').classList.remove('hidden');}
+let gTmp={};
+function renderGTmp(){
+  document.getElementById('g-sleep').textContent=gTmp.sleep.toFixed(1)+' h';
+  document.getElementById('g-stepLow').textContent=gTmp.stepLow.toLocaleString();
+  document.getElementById('g-stepHigh').textContent=gTmp.stepHigh.toLocaleString();
+  document.getElementById('g-calLow').textContent=gTmp.calLow.toLocaleString();
+  document.getElementById('g-calHigh').textContent=gTmp.calHigh.toLocaleString();
+}
+function gStep(key,d){
+  gTmp[key]=+(gTmp[key]+d).toFixed(1);
+  if(key==='sleep')gTmp.sleep=Math.max(4,Math.min(10,gTmp.sleep));
+  if(key==='stepLow')gTmp.stepLow=Math.max(0,Math.min(gTmp.stepHigh,gTmp.stepLow));
+  if(key==='stepHigh')gTmp.stepHigh=Math.max(gTmp.stepLow,Math.min(40000,gTmp.stepHigh));
+  if(key==='calLow')gTmp.calLow=Math.max(0,Math.min(gTmp.calHigh,gTmp.calLow));
+  if(key==='calHigh')gTmp.calHigh=Math.max(gTmp.calLow,Math.min(8000,gTmp.calHigh));
+  renderGTmp();
+}
+function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;gTmp={...goals()};renderGTmp();mPreview();document.getElementById('target-modal').classList.remove('hidden');}
 function closeTarget(){document.getElementById('target-modal').classList.add('hidden');}
 ['m-start','m-sdate','m-tgt','m-date'].forEach(id=>document.getElementById(id).addEventListener('input',mPreview));
 function planLine(sWt,sDate,tWt,tDate){
@@ -672,7 +880,10 @@ function mPreview(){
   const [t,c]=planLine(parseFloat(document.getElementById('m-start').value),document.getElementById('m-sdate').value,parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value);
   const pv=document.getElementById('m-preview');pv.textContent=t;pv.style.color=c;
 }
-function applyTargetModal(){if(commitPlan(parseFloat(document.getElementById('m-start').value),document.getElementById('m-sdate').value,parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value))closeTarget();}
+function applyTargetModal(){
+  P.sleepTarget=gTmp.sleep;P.stepLow=gTmp.stepLow;P.stepHigh=gTmp.stepHigh;P.calLow=gTmp.calLow;P.calHigh=gTmp.calHigh;
+  if(commitPlan(parseFloat(document.getElementById('m-start').value),document.getElementById('m-sdate').value,parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value)){updateGoalHints();updateScore();closeTarget();}
+}
 
 // POPUP
 function maybePopup(){
@@ -688,9 +899,9 @@ function maybePopup(){
 
 // NAV / LIFECYCLE
 function renderAll(){renderToday();const ap=document.querySelector('.page.active');if(ap&&ap.id==='page-progress')renderProgress();}
-function goPage(n,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress'){wlPage=Math.floor(Math.max(0,dbtw(P.startDate,tod()))/7/8);renderProgress();}}
+function goPage(n,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress'){wlPage=Math.floor(Math.max(0,dbtw(P.startDate,tod()))/7/8);scPage=scPageCount()-1;renderProgress();}}
 function resetAll(){if(confirm('Reset all data? This cannot be undone.')){['wc1_p','wc1_c','wc1_ts','wc1_pop'].forEach(k=>localStorage.removeItem(k));location.reload();}}
-function launchApp(){document.getElementById('setup').style.display='none';document.getElementById('app').style.display='flex';loadTodayCI();renderAll();setTimeout(maybePopup,400);}
+function launchApp(){document.getElementById('setup').style.display='none';document.getElementById('app').style.display='flex';loadTodayCI();document.getElementById('wo-date').value=tod();loadWorkout();renderAll();setTimeout(maybePopup,400);}
 
 window.addEventListener('load',()=>{
   load();
@@ -698,7 +909,7 @@ window.addEventListener('load',()=>{
   if(P.startWt&&P.targetWt&&P.targetDate)launchApp();
   else{if(P.startWt)document.getElementById('s-cur').value=P.startWt;if(P.targetWt)document.getElementById('s-tgt').value=P.targetWt;document.getElementById('setup').style.display='block';document.getElementById('app').style.display='none';setupPreview();}
 });
-window.addEventListener('resize',()=>{if(document.querySelector('#page-progress.active')){drawWeightChart();drawWeeklyLossChart();drawEnergyChart();}});
+window.addEventListener('resize',()=>{if(document.querySelector('#page-progress.active')){drawWeightChart();drawWeeklyLossChart();drawScoreChart();drawEnergyChart();}});
 </script>
 </body>
 </html>
