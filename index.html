@@ -81,6 +81,10 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fon
 .fld{margin-bottom:14px}
 .fld:last-child{margin-bottom:0}
 .fld label{display:block;font-size:13px;font-weight:600;color:var(--tx3);margin-bottom:6px;padding-left:2px}
+.fld label.main{color:var(--tx);font-weight:700}
+.fld label.sub{color:var(--tx3);font-weight:500;padding-left:12px}
+.row.main label{font-weight:600;color:var(--tx)}
+.row.sub label{font-weight:400;color:var(--tx3);padding-left:12px}
 .fld input{width:100%;background:var(--fill);border:none;border-radius:11px;font-family:var(--font);font-size:17px;font-weight:600;color:var(--tx);padding:13px 14px;outline:none}
 .fld input[type=date]{color-scheme:light;font-weight:500}
 
@@ -216,9 +220,9 @@ canvas{display:block;width:100%}
       <input type="date" id="ci-date" onchange="loadForDate()" style="border:none;background:var(--fill);border-radius:8px;padding:5px 9px;font-family:var(--font);font-size:13px;color:var(--tx);color-scheme:light">
     </div>
 
-    <div class="fld" style="margin:10px 0 4px"><label>WEIGHT (KG) · TODAY</label><input type="number" id="ci-wt" placeholder="Weight in kg" step="0.1" style="text-align:center;font-size:22px"></div>
+    <div class="fld" style="margin:10px 0 4px"><label class="main">WEIGHT (KG) · TODAY</label><input type="number" id="ci-wt" placeholder="Weight in kg" step="0.1" style="text-align:center;font-size:22px"></div>
 
-    <div style="font-size:13px;font-weight:600;color:var(--tx3);margin-top:16px;padding-left:2px">ENERGY · TODAY</div>
+    <div style="font-size:13px;font-weight:700;color:var(--tx);margin-top:16px;padding-left:2px">ENERGY · TODAY</div>
     <div class="e-row" id="e-row">
       <button data-v="1" onclick="selEnergy(1)">1</button>
       <button data-v="2" onclick="selEnergy(2)">2</button>
@@ -230,26 +234,26 @@ canvas{display:block;width:100%}
 
     <div style="font-size:12px;color:var(--tx3);margin:16px 0 4px;padding-left:2px">Sleep, steps &amp; diet below are for <b>yesterday</b>.</div>
 
-    <div class="fld"><label>SLEEP (HOURS)</label>
+    <div class="fld"><label class="main">SLEEP (HOURS)</label>
       <div class="stepbar"><button class="stp" onclick="stepSleep(-0.5)">−</button><div class="stepval"><span id="sleep-val">—</span></div><button class="stp" onclick="stepSleep(0.5)">+</button></div>
     </div>
 
-    <div class="fld"><label>STEPS <span id="steps-hint" class="tsm" style="font-weight:400"></span></label>
+    <div class="fld"><label class="main">STEPS <span id="steps-hint" class="tsm" style="font-weight:400;color:var(--tx3)"></span></label>
       <div class="stepbar"><button class="stp" onclick="stepSteps(-250)">−</button><div class="stepval"><span id="steps-val">—</span></div><button class="stp" onclick="stepSteps(250)">+</button></div>
     </div>
 
-    <div style="font-size:13px;font-weight:600;color:var(--tx3);margin:16px 0 8px;padding-left:2px">DIET</div>
-    <div class="fld"><label>Calories <span id="cals-hint" class="tsm" style="font-weight:400"></span></label>
+    <div style="font-size:13px;font-weight:700;color:var(--tx);margin:16px 0 8px;padding-left:2px">DIET</div>
+    <div class="fld"><label class="sub">Calories <span id="cals-hint" class="tsm" style="font-weight:400"></span></label>
       <div class="stepbar"><button class="stp" onclick="stepDiet('cals',-100)">−</button><div class="stepval"><span id="cals-val">—</span></div><button class="stp" onclick="stepDiet('cals',100)">+</button></div>
     </div>
-    <div class="fld"><label>Fiber (g) <span id="fiber-hint" class="tsm" style="font-weight:400"></span></label>
+    <div class="fld"><label class="sub">Fiber (g) <span id="fiber-hint" class="tsm" style="font-weight:400"></span></label>
       <div class="stepbar"><button class="stp" onclick="stepDiet('fiber',-1)">−</button><div class="stepval"><span id="fiber-val">—</span></div><button class="stp" onclick="stepDiet('fiber',1)">+</button></div>
     </div>
-    <div class="fld"><label>Carbs (g) <span id="carbs-hint" class="tsm" style="font-weight:400"></span></label>
-      <div class="stepbar"><button class="stp" onclick="stepDiet('carbs',-5)">−</button><div class="stepval"><span id="carbs-val">—</span></div><button class="stp" onclick="stepDiet('carbs',5)">+</button></div>
-    </div>
-    <div class="fld"><label>Protein (g) <span id="protein-hint" class="tsm" style="font-weight:400"></span></label>
+    <div class="fld"><label class="sub">Protein (g) <span id="protein-hint" class="tsm" style="font-weight:400"></span></label>
       <div class="stepbar"><button class="stp" onclick="stepDiet('protein',-5)">−</button><div class="stepval"><span id="protein-val">—</span></div><button class="stp" onclick="stepDiet('protein',5)">+</button></div>
+    </div>
+    <div class="fld"><label class="sub">Carbs (g) <span id="carbs-hint" class="tsm" style="font-weight:400"></span></label>
+      <div class="stepbar"><button class="stp" onclick="stepDiet('carbs',-5)">−</button><div class="stepval"><span id="carbs-val">—</span></div><button class="stp" onclick="stepDiet('carbs',5)">+</button></div>
     </div>
 
     <div id="score-block" style="margin-top:18px;padding-top:14px;border-top:.5px solid var(--sep)">
@@ -352,8 +356,8 @@ canvas{display:block;width:100%}
         <div class="legend leg-sub">
           <div><span style="background:#ff375f"></span>Calories</div>
           <div><span style="background:#30d158"></span>Fiber</div>
-          <div><span style="background:#ffd60a"></span>Carbs</div>
           <div><span style="background:#bf5af2"></span>Protein</div>
+          <div><span style="background:#ffd60a"></span>Carbs</div>
         </div>
       </div>
       <div class="legend leg-sub" style="margin-top:8px"><div><span style="background:rgba(60,60,67,.14)"></span>missed</div></div>
@@ -395,7 +399,8 @@ canvas{display:block;width:100%}
 
 <!-- TARGET MODAL -->
 <div class="mo hidden" id="target-modal" onclick="if(event.target===this)closeTarget()">
-  <div class="mc" style="max-width:340px">
+  <div class="mc" style="max-width:340px;max-height:88vh;display:flex;flex-direction:column">
+    <div style="overflow-y:auto;flex:1">
     <div style="padding:18px 18px 8px;font-size:18px;font-weight:700;text-align:center">Plan &amp; goals</div>
     <div style="padding:0 16px">
       <div class="row"><label>Starting weight</label><input type="number" id="m-start" step="0.1" placeholder="kg"></div>
@@ -404,22 +409,27 @@ canvas{display:block;width:100%}
       <div class="row" style="border-bottom:none"><label>Target date</label><input type="date" id="m-date"></div>
     </div>
     <div id="m-preview" class="tsm tc" style="padding:2px 18px 10px;min-height:16px"></div>
-    <div style="padding:0 18px 4px;font-size:12px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px">Daily goals</div>
+    <div style="padding:0 18px 4px;font-size:12px;font-weight:700;color:var(--tx);text-transform:uppercase;letter-spacing:.3px">Goals · 20% each</div>
     <div style="padding:0 16px">
-      <div class="row"><label>Sleep target</label><div class="gstep"><button class="stp2" onclick="gStep('sleep',-0.5)">−</button><span id="g-sleep">7.0 h</span><button class="stp2" onclick="gStep('sleep',0.5)">+</button></div></div>
-      <div class="row"><label>Steps min</label><div class="gstep"><button class="stp2" onclick="gStep('stepLow',-250)">−</button><span id="g-stepLow">8,000</span><button class="stp2" onclick="gStep('stepLow',250)">+</button></div></div>
-      <div class="row"><label>Steps max</label><div class="gstep"><button class="stp2" onclick="gStep('stepHigh',-250)">−</button><span id="g-stepHigh">10,000</span><button class="stp2" onclick="gStep('stepHigh',250)">+</button></div></div>
-      <div class="row"><label>Calories min</label><div class="gstep"><button class="stp2" onclick="gStep('calLow',-100)">−</button><span id="g-calLow">2,000</span><button class="stp2" onclick="gStep('calLow',100)">+</button></div></div>
-      <div class="row"><label>Calories max</label><div class="gstep"><button class="stp2" onclick="gStep('calHigh',-100)">−</button><span id="g-calHigh">2,500</span><button class="stp2" onclick="gStep('calHigh',100)">+</button></div></div>
-      <div class="row"><label>Fiber min (g)</label><div class="gstep"><button class="stp2" onclick="gStep('fiberLow',-1)">−</button><span id="g-fiberLow">25</span><button class="stp2" onclick="gStep('fiberLow',1)">+</button></div></div>
-      <div class="row"><label>Fiber max (g)</label><div class="gstep"><button class="stp2" onclick="gStep('fiberHigh',-1)">−</button><span id="g-fiberHigh">40</span><button class="stp2" onclick="gStep('fiberHigh',1)">+</button></div></div>
-      <div class="row"><label>Carbs min (g)</label><div class="gstep"><button class="stp2" onclick="gStep('carbLow',-5)">−</button><span id="g-carbLow">150</span><button class="stp2" onclick="gStep('carbLow',5)">+</button></div></div>
-      <div class="row"><label>Carbs max (g)</label><div class="gstep"><button class="stp2" onclick="gStep('carbHigh',-5)">−</button><span id="g-carbHigh">250</span><button class="stp2" onclick="gStep('carbHigh',5)">+</button></div></div>
-      <div class="row"><label>Protein min (g)</label><div class="gstep"><button class="stp2" onclick="gStep('proteinLow',-5)">−</button><span id="g-proteinLow">120</span><button class="stp2" onclick="gStep('proteinLow',5)">+</button></div></div>
-      <div class="row" style="border-bottom:none"><label>Protein max (g)</label><div class="gstep"><button class="stp2" onclick="gStep('proteinHigh',-5)">−</button><span id="g-proteinHigh">180</span><button class="stp2" onclick="gStep('proteinHigh',5)">+</button></div></div>
+      <div class="row main"><label>Sleep target</label><div class="gstep"><button class="stp2" onclick="gStep('sleep',-0.5)">−</button><span id="g-sleep">7.0 h</span><button class="stp2" onclick="gStep('sleep',0.5)">+</button></div></div>
+      <div class="row main"><label>Steps min</label><div class="gstep"><button class="stp2" onclick="gStep('stepLow',-250)">−</button><span id="g-stepLow">8,000</span><button class="stp2" onclick="gStep('stepLow',250)">+</button></div></div>
+      <div class="row main" style="border-bottom:none"><label>Steps max</label><div class="gstep"><button class="stp2" onclick="gStep('stepHigh',-250)">−</button><span id="g-stepHigh">10,000</span><button class="stp2" onclick="gStep('stepHigh',250)">+</button></div></div>
+    </div>
+    <div style="border-top:1px solid var(--sep);margin:8px 16px 0"></div>
+    <div style="padding:10px 18px 2px;font-size:12px;font-weight:600;color:var(--tx3)">↳ Diet · the 20% split four ways</div>
+    <div style="padding:0 16px">
+      <div class="row sub"><label>Calories min</label><div class="gstep"><button class="stp2" onclick="gStep('calLow',-100)">−</button><span id="g-calLow">2,000</span><button class="stp2" onclick="gStep('calLow',100)">+</button></div></div>
+      <div class="row sub"><label>Calories max</label><div class="gstep"><button class="stp2" onclick="gStep('calHigh',-100)">−</button><span id="g-calHigh">2,500</span><button class="stp2" onclick="gStep('calHigh',100)">+</button></div></div>
+      <div class="row sub"><label>Fiber min (g)</label><div class="gstep"><button class="stp2" onclick="gStep('fiberLow',-1)">−</button><span id="g-fiberLow">25</span><button class="stp2" onclick="gStep('fiberLow',1)">+</button></div></div>
+      <div class="row sub"><label>Fiber max (g)</label><div class="gstep"><button class="stp2" onclick="gStep('fiberHigh',-1)">−</button><span id="g-fiberHigh">40</span><button class="stp2" onclick="gStep('fiberHigh',1)">+</button></div></div>
+      <div class="row sub"><label>Protein min (g)</label><div class="gstep"><button class="stp2" onclick="gStep('proteinLow',-5)">−</button><span id="g-proteinLow">120</span><button class="stp2" onclick="gStep('proteinLow',5)">+</button></div></div>
+      <div class="row sub"><label>Protein max (g)</label><div class="gstep"><button class="stp2" onclick="gStep('proteinHigh',-5)">−</button><span id="g-proteinHigh">180</span><button class="stp2" onclick="gStep('proteinHigh',5)">+</button></div></div>
+      <div class="row sub"><label>Carbs min (g)</label><div class="gstep"><button class="stp2" onclick="gStep('carbLow',-5)">−</button><span id="g-carbLow">150</span><button class="stp2" onclick="gStep('carbLow',5)">+</button></div></div>
+      <div class="row sub" style="border-bottom:none"><label>Carbs max (g)</label><div class="gstep"><button class="stp2" onclick="gStep('carbHigh',-5)">−</button><span id="g-carbHigh">250</span><button class="stp2" onclick="gStep('carbHigh',5)">+</button></div></div>
     </div>
     <div style="height:12px"></div>
-    <div style="display:flex">
+    </div>
+    <div style="display:flex;border-top:.5px solid var(--sep)">
       <button class="mc-btn" style="color:var(--tx2)" onclick="closeTarget()">Cancel</button>
       <button class="mc-btn" style="border-left:.5px solid var(--sep)" onclick="applyTargetModal()">Save</button>
     </div>
@@ -897,7 +907,7 @@ function renderScoreTable(){
   if(!days.length){wrap.innerHTML='<div class="tsm" style="padding:10px">No days in this week yet.</div>';return;}
   const recOf=di=>CI.find(c=>c.date===addDays(P.startDate,di))||{};
   const mainDef=[['energy','Energy'],['sleep','Sleep'],['steps','Steps'],['workout','Workout']];
-  const dietDef=[['cals','Calories'],['fiber','Fiber'],['carbs','Carbs'],['protein','Protein']];
+  const dietDef=[['cals','Calories'],['fiber','Fiber'],['protein','Protein'],['carbs','Carbs']];
   const catRow=(cat,lbl,cls,rowcls)=>{let r='<tr'+(rowcls?' class="'+rowcls+'"':'')+'><td class="catlbl '+cls+'">'+lbl+'</td>';
     days.forEach(di=>{const rec=recOf(di);const val=rec[cat]==null?null:rec[cat];const s=statusFor(cat,val,g);const vt=cat==='workout'?'':fmtVal(cat,val);r+='<td style="color:'+s.c+'"><b>'+s.i+'</b>'+(vt!==''?' <span style="font-size:9px">'+vt+'</span>':'')+'</td>';});
     return r+'</tr>';};
@@ -927,7 +937,7 @@ function drawScoreChart(){
   const {win,totalDays,pages,pageStart}=scNavState();
   const KCOL=SC_COL,KMISS='rgba(60,60,67,.12)';
   // bottom-to-top: diet (protein..cals) at the bottom, main goals (workout..energy) on top
-  const segs=[['protein',.05],['carbs',.05],['fiber',.05],['cals',.05],['workout',.2],['steps',.2],['sleep',.2],['energy',.2]];
+  const segs=[['carbs',.05],['protein',.05],['fiber',.05],['cals',.05],['workout',.2],['steps',.2],['sleep',.2],['energy',.2]];
   const pd={l:10,r:10,t:30,b:24},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
   const step=gW/win,bw=Math.min(30,step*0.6),xC=i=>pd.l+step*i+step/2;
   let fullDays=0;
