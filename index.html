@@ -494,6 +494,9 @@ function tod(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()
 function addDays(ds,n){const d=new Date(ds+' 00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function lp(s){const p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
 function dbtw(a,b){return Math.round((lp(b)-lp(a))/86400000);}
+// Monday on/before the plan start — anchors all week buckets to Mon→Sun
+function wkBase(){const dow=(lp(P.startDate).getDay()+6)%7;return addDays(P.startDate,-dow);}
+function totalWeeks(){return Math.max(1,Math.ceil((dbtw(wkBase(),P.targetDate)+1)/7));}
 function fS(ds){return new Date(ds+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'});}
 function fF(ds){return new Date(ds+' 00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});}
 
@@ -657,7 +660,7 @@ function metrics(){
 }
 // daily loss needed to hit this week's quota, spread over the days left in the week
 function weekDaily(weeklyTarget){
-  const sd=P.startDate,today=tod();
+  const sd=wkBase(),today=tod();
   const daysElapsed=Math.max(0,dbtw(sd,today));
   const weekIdx=Math.floor(daysElapsed/7);
   const weekStartDate=addDays(sd,weekIdx*7);
@@ -674,7 +677,7 @@ function weekDaily(weeklyTarget){
 // this-week performance vs the steady weekly plan target
 function weekPerf(){
   const m=metrics(),target=m.reqRate;
-  const sd=P.startDate,daysElapsed=Math.max(0,dbtw(sd,tod()));
+  const sd=wkBase(),daysElapsed=Math.max(0,dbtw(sd,tod()));
   const weekIdx=Math.floor(daysElapsed/7);
   const weekStartDate=addDays(sd,weekIdx*7);
   const dayInWeek=Math.max(0,Math.min(6,dbtw(weekStartDate,tod())));
@@ -694,9 +697,9 @@ function energyStats(){
 function energyDeclining(){const e=energyStats();if(!e.n)return false;return e.a3!=null&&(e.a3<=2||(e.prev3!=null&&e.a3<=e.prev3-0.8));}
 function weeklyPts(){
   const s=sw();if(!s.length)return [];
-  const sd=P.startDate;const bins={};
-  s.forEach(c=>{const w=Math.floor(dbtw(sd,c.date)/7);(bins[w]=bins[w]||[]).push(c.weight);});
-  return Object.keys(bins).map(Number).sort((a,b)=>a-b).map(w=>({w,day:w*7+3.5,avg:+avg(bins[w]).toFixed(2),n:bins[w].length}));
+  const B=wkBase();const bins={};
+  s.forEach(c=>{const w=Math.floor(dbtw(B,c.date)/7);(bins[w]=bins[w]||[]).push(c.weight);});
+  return Object.keys(bins).map(Number).sort((a,b)=>a-b).map(w=>({w,day:dbtw(P.startDate,addDays(B,w*7))+3.5,avg:+avg(bins[w]).toFixed(2),n:bins[w].length}));
 }
 // actual weight lost in each week (from weekly averages, vs the prior week / start)
 function weeklyLoss(){
@@ -863,7 +866,7 @@ function notesInRange(d0,d1){return CI.filter(c=>c.note&&c.note.trim()&&c.date>=
 function noteItem(c){return '<div style="padding:12px 16px;border-top:.5px solid var(--sep)"><div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:3px">'+fF(c.date)+'</div><div style="font-size:14px;line-height:1.45;color:var(--tx);white-space:pre-wrap">'+esc(c.note.trim())+'</div></div>';}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function openWeekNotes(w){
-  const d0=addDays(P.startDate,w*7),d1=addDays(P.startDate,w*7+6);
+  const d0=addDays(wkBase(),w*7),d1=addDays(wkBase(),w*7+6);
   const ns=notesInRange(d0,d1);
   document.getElementById('nm-title').textContent='Week '+(w+1)+' notes';
   document.getElementById('nm-sub').textContent=fS(d0)+' – '+fS(d1);
@@ -875,21 +878,21 @@ function renderNotes(){
   const ns=CI.filter(c=>c.note&&c.note.trim()).sort((a,b)=>a.date<b.date?1:-1);
   document.getElementById('notes-list').innerHTML=ns.length?ns.map(noteItem).join(''):'<div class="tsm" style="padding:14px 16px">No notes yet. Add one below your daily score.</div>';
 }
-function wlPageCount(){return Math.max(1,Math.ceil(Math.max(1,Math.ceil(metrics().daysTotal/7))/8));}
+function wlPageCount(){return Math.max(1,Math.ceil(totalWeeks()/8));}
 function wlNav(d){wlPage=Math.max(0,Math.min(wlPageCount()-1,wlPage+d));drawWeeklyLossChart();}
 function drawWeeklyLossChart(){
   const cv=document.getElementById('cwl'),ctx=cv.getContext('2d');
   const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=160*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
   const W=cv.offsetWidth||340,H=160;ctx.clearRect(0,0,W,H);
-  const m=metrics(),target=m.reqRate,totalWeeks=Math.max(1,Math.ceil(m.daysTotal/7)),pages=Math.ceil(totalWeeks/8);
+  const m=metrics(),target=m.reqRate,tw=totalWeeks(),pages=Math.ceil(tw/8);
   wlPage=Math.max(0,Math.min(pages-1,wlPage));
-  const pageStart=wlPage*8,pageEnd=Math.min(totalWeeks,pageStart+8);
+  const pageStart=wlPage*8,pageEnd=Math.min(tw,pageStart+8);
   document.getElementById('wl-label').textContent='Weeks '+(pageStart+1)+'–'+pageEnd;
   const pv=document.getElementById('wl-prev'),nx=document.getElementById('wl-next');
   pv.style.opacity=wlPage<=0?'.25':'1';pv.style.pointerEvents=wlPage<=0?'none':'auto';
   nx.style.opacity=wlPage>=pages-1?'.25':'1';nx.style.pointerEvents=wlPage>=pages-1?'none':'auto';
   const lossMap={};weeklyLoss().forEach(x=>lossMap[x.w]=x.loss);
-  const slots=[];for(let i=0;i<8;i++){const w=pageStart+i;if(w<totalWeeks)slots.push({i,w,loss:(w in lossMap)?lossMap[w]:null});}
+  const slots=[];for(let i=0;i<8;i++){const w=pageStart+i;if(w<tw)slots.push({i,w,loss:(w in lossMap)?lossMap[w]:null});}
   const have=slots.filter(x=>x.loss!=null);
   const msg=document.getElementById('cwl-msg');
   const pd={l:34,r:10,t:18,b:22},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
@@ -914,7 +917,7 @@ function drawWeeklyLossChart(){
 function roundRect(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 let scPage=0, scView='chart';
 function scWindow(){return 7;}
-function scTotalDays(){return Math.max(1,dbtw(P.startDate,tod())+1);}
+function scTotalDays(){return Math.max(1,dbtw(wkBase(),tod())+1);}
 function scPageCount(){return Math.max(1,Math.ceil(scTotalDays()/scWindow()));}
 function scNavState(){
   const win=scWindow(),totalDays=scTotalDays(),pages=scPageCount();scPage=Math.max(0,Math.min(pages-1,scPage));
@@ -951,7 +954,7 @@ function renderScoreTable(){
   const days=[];for(let d=0;d<7;d++){const di=wStart+d;if(di<totalDays)days.push(di);}
   const wrap=document.getElementById('sc-table-wrap');
   if(!days.length){wrap.innerHTML='<div class="tsm" style="padding:10px">No days in this week yet.</div>';return;}
-  const recOf=di=>CI.find(c=>c.date===addDays(P.startDate,di))||{};
+  const recOf=di=>CI.find(c=>c.date===addDays(wkBase(),di))||{};
   const mainDef=[['energy','Energy'],['sleep','Sleep'],['steps','Steps'],['workout','Workout']];
   const dietDef=[['cals','Calories'],['fiber','Fiber'],['protein','Protein'],['carbs','Carbs']];
   const catRow=(cat,lbl,cls,rowcls)=>{let r='<tr'+(rowcls?' class="'+rowcls+'"':'')+'><td class="catlbl '+cls+'">'+lbl+'</td>';
@@ -972,7 +975,7 @@ function renderScoreTable(){
   dietDef.forEach(([cat,lbl],i)=>{body+=catRow(cat,lbl,'sub',i===0?'r-dietstart':'');});
   // Dates (bottom)
   body+='<tr class="r-date"><td class="catlbl"></td>';
-  days.forEach(di=>{const dt=new Date(addDays(P.startDate,di)+' 00:00');body+='<td><div style="font-weight:700">'+dt.getDate()+'</div><div style="font-size:8px;color:var(--tx3)">'+dt.toLocaleDateString('en-AU',{weekday:'short'})+'</div></td>';});
+  days.forEach(di=>{const dt=new Date(addDays(wkBase(),di)+' 00:00');body+='<td><div style="font-weight:700">'+dt.getDate()+'</div><div style="font-size:8px;color:var(--tx3)">'+dt.toLocaleDateString('en-AU',{weekday:'short'})+'</div></td>';});
   body+='</tr>';
   wrap.innerHTML='<table class="sctab2"><tbody>'+body+'</tbody></table>';
 }
@@ -989,7 +992,7 @@ function drawScoreChart(){
   let fullDays=0;
   for(let i=0;i<win;i++){
     const w=pageStart+i;if(w>=totalDays)break;
-    const date=addDays(P.startDate,w);
+    const date=addDays(wkBase(),w);
     const rec=CI.find(c=>c.date===date);
     const sc=dailyScore(rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout}:{});
     if(sc.pts>=100)fullDays++;
@@ -1008,7 +1011,7 @@ function drawScoreChart(){
   }
   // day-of-month labels under each bar
   ctx.textAlign='center';ctx.fillStyle='#8e8e93';ctx.font='9px '+getFont();
-  for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const dt=new Date(addDays(P.startDate,w)+' 00:00');ctx.fillText(dt.getDate(),xC(i),H-8);}
+  for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const dt=new Date(addDays(wkBase(),w)+' 00:00');ctx.fillText(dt.getDate(),xC(i),H-8);}
   document.getElementById('csc-msg').innerHTML='Top number = that day\'s weight, below it the % of goals met. Each bar splits into the 5 goals (diet = cals/fiber/carbs/protein). <b>'+fullDays+'</b> fully-met day'+(fullDays===1?'':'s')+' shown.';
 }
 function drawEnergyChart(){
@@ -1098,7 +1101,7 @@ function maybePopup(){
 
 // NAV / LIFECYCLE
 function renderAll(){renderToday();const ap=document.querySelector('.page.active');if(ap&&ap.id==='page-progress')renderProgress();}
-function goPage(n,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress'){wlPage=Math.floor(Math.max(0,dbtw(P.startDate,tod()))/7/8);scPage=scPageCount()-1;renderProgress();}}
+function goPage(n,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress'){wlPage=Math.floor(Math.max(0,dbtw(wkBase(),tod()))/7/8);scPage=scPageCount()-1;renderProgress();}}
 function resetAll(){if(confirm('Reset all data? This cannot be undone.')){['wc1_p','wc1_c','wc1_ts','wc1_pop'].forEach(k=>localStorage.removeItem(k));location.reload();}}
 function launchApp(){document.getElementById('setup').style.display='none';document.getElementById('app').style.display='flex';loadTodayCI();document.getElementById('wo-date').value=tod();loadWorkout();renderAll();setTimeout(maybePopup,400);}
 
