@@ -118,17 +118,17 @@ canvas{display:block;width:100%}
 .sctab th{font-size:11px;font-weight:600;color:var(--tx3);text-align:right;padding:6px 8px;border-bottom:1px solid var(--sep);position:sticky;top:0;background:var(--surface)}
 .sctab th:first-child,.sctab td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
 .sctab td{text-align:right;padding:7px 8px;border-bottom:.5px solid var(--sep)}
-.sctab2{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;margin-bottom:4px;table-layout:fixed;border:1px solid var(--sep)}
-.sctab2 td{padding:6px 1px;text-align:center;line-height:1.2;border:.5px solid var(--sep)}
+.sctab2{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;margin-bottom:4px;table-layout:auto;border:1px solid var(--sep)}
+.sctab2 td{padding:6px 5px;text-align:center;line-height:1.2;border:.5px solid var(--sep);white-space:nowrap;min-width:30px}
 .sctab2 td+td{border-left:1.5px solid #b8b8b4}
-.sctab2 .catlbl{width:62px;text-align:left;font-size:10px;font-weight:600;color:var(--tx2);white-space:nowrap;padding-right:4px;background:var(--fill)}
+.sctab2 .catlbl{min-width:62px;text-align:left;font-size:10px;font-weight:600;color:var(--tx2);white-space:nowrap;padding-right:6px;background:var(--surface);position:sticky;left:0;z-index:1}
 .sctab2 .r-date td{border-top:1.5px solid #b8b8b4}
 .sctab2 .r-score td{border-bottom:1.5px solid #b8b8b4}
 .sctab2 .r-weight td{border-bottom:1.5px solid #b8b8b4}
 .sctab2 .r-dietstart td{border-top:1.5px solid #b8b8b4}
 .sctab2 .catlbl.main{font-weight:700;color:var(--tx)}
 .sctab2 .catlbl.sub{font-weight:500;color:var(--tx3);padding-left:10px}
-.sctab2 .avgcell{border-left:2px solid #8e8e93;font-weight:700;background:var(--fill);white-space:nowrap}
+.sctab2 .avgcell{border-left:2px solid #8e8e93;font-weight:700;background:var(--fill);white-space:nowrap;min-width:56px}
 .wl-nav{width:32px;height:32px;border:none;border-radius:50%;background:var(--fill);color:var(--blue);font-size:20px;font-weight:600;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .legend>div{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx3)}
 
@@ -369,7 +369,7 @@ canvas{display:block;width:100%}
       <div class="legend leg-sub" style="margin-top:8px"><div><span style="background:rgba(60,60,67,.14)"></span>missed</div></div>
       <div id="csc-msg" class="tsm" style="margin-top:10px;line-height:1.5"></div>
     </div>
-    <div id="sc-table-wrap" style="display:none;overflow-x:auto"></div>
+    <div id="sc-table-wrap" style="display:none;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px"></div>
   </div>
 
   <div class="shdr">Energy · last 14 days</div>
@@ -385,7 +385,13 @@ canvas{display:block;width:100%}
   </div>
 
   <div class="shdr">Notes</div>
-  <div class="list" id="notes-list"><div class="tsm" style="padding:14px 16px">No notes yet. Add one below your daily score.</div></div>
+  <div class="list">
+    <button id="notes-toggle" onclick="toggleNotes()" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border:none;background:none;font-family:var(--font);font-size:16px;font-weight:600;color:var(--tx);cursor:pointer">
+      <span>Notes <span id="notes-count" class="tsm" style="font-weight:400"></span></span>
+      <span id="notes-chev" style="color:var(--tx3)">▾</span>
+    </button>
+    <div id="notes-list" style="display:none;border-top:.5px solid var(--sep)"><div class="tsm" style="padding:14px 16px">No notes yet. Add one below your daily score.</div></div>
+  </div>
 
   <div class="shdr">Settings</div>
   <div class="list">
@@ -892,8 +898,10 @@ function openWeekNotes(w){
 function closeNotes(){document.getElementById('notes-modal').classList.add('hidden');}
 function renderNotes(){
   const ns=CI.filter(c=>c.note&&c.note.trim()).sort((a,b)=>a.date<b.date?1:-1);
+  document.getElementById('notes-count').textContent=ns.length?'· '+ns.length:'';
   document.getElementById('notes-list').innerHTML=ns.length?ns.map(noteItem).join(''):'<div class="tsm" style="padding:14px 16px">No notes yet. Add one below your daily score.</div>';
 }
+function toggleNotes(){const el=document.getElementById('notes-list'),ch=document.getElementById('notes-chev');const open=el.style.display==='none';el.style.display=open?'block':'none';ch.textContent=open?'▴':'▾';}
 function wlPageCount(){return Math.max(1,Math.ceil(totalWeeks()/8));}
 function wlNav(d){wlPage=Math.max(0,Math.min(wlPageCount()-1,wlPage+d));drawWeeklyLossChart();}
 function drawWeeklyLossChart(){
