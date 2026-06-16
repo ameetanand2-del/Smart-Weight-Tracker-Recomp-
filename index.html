@@ -257,6 +257,13 @@ canvas{display:block;width:100%}
       <div class="stepbar"><button class="stp" onclick="stepDiet('carbs',-5)">−</button><div class="stepval"><span id="carbs-val">—</span></div><button class="stp" onclick="stepDiet('carbs',5)">+</button></div>
     </div>
 
+    <div class="fld"><label class="main">EAT OUT YESTERDAY?</label>
+      <div style="display:flex;gap:8px" id="eo-row">
+        <button class="wopt" data-v="in" onclick="selEatOut(false)">🏠 Stayed in</button>
+        <button class="wopt" data-v="out" onclick="selEatOut(true)">🍴 Ate out</button>
+      </div>
+    </div>
+
     <div id="score-block" style="margin-top:18px;padding-top:14px;border-top:.5px solid var(--sep)">
       <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
         <span style="font-weight:600;font-size:15px">Daily score</span>
@@ -343,6 +350,7 @@ canvas{display:block;width:100%}
       <button id="scseg-chart" class="on" onclick="setScView('chart')">Chart</button>
       <button id="scseg-table" onclick="setScView('table')">Table</button>
     </div>
+    <button onclick="openWeights()" style="width:100%;margin-bottom:10px;border:none;background:var(--fill);border-radius:10px;padding:9px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--blue);cursor:pointer">⚖ Set KPI weights</button>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <button id="sc-prev" class="wl-nav" onclick="scNav(-1)">‹</button>
       <div id="sc-label" style="font-size:13px;font-weight:600">Last 14 days</div>
@@ -350,15 +358,15 @@ canvas{display:block;width:100%}
     </div>
     <div id="sc-chart-wrap">
       <canvas id="csc" style="height:188px"></canvas>
-      <div class="leglbl">Goals · 20% each</div>
+      <div class="leglbl">Goals · weighted</div>
       <div class="legend leg-main">
-        <div><span style="background:#ff9500"></span>Energy</div>
         <div><span style="background:#5e5ce6"></span>Sleep</div>
         <div><span style="background:#30b0c7"></span>Steps</div>
         <div><span style="background:#0a84ff"></span>Workout</div>
+        <div><span style="background:#ff9f0a"></span>Eat out</div>
       </div>
       <div class="leg-sub-wrap">
-        <div class="leglbl" style="margin-top:8px">↳ Diet · the 20% split four ways (5% each)</div>
+        <div class="leglbl" style="margin-top:8px">↳ Diet · split four ways</div>
         <div class="legend leg-sub">
           <div><span style="background:#ff375f"></span>Calories</div>
           <div><span style="background:#30d158"></span>Fiber</div>
@@ -442,11 +450,28 @@ canvas{display:block;width:100%}
       <div class="row sub"><label>Carbs min (g)</label><div class="gstep"><button class="stp2" onclick="gStep('carbLow',-5)">−</button><span id="g-carbLow">150</span><button class="stp2" onclick="gStep('carbLow',5)">+</button></div></div>
       <div class="row sub" style="border-bottom:none"><label>Carbs max (g)</label><div class="gstep"><button class="stp2" onclick="gStep('carbHigh',-5)">−</button><span id="g-carbHigh">250</span><button class="stp2" onclick="gStep('carbHigh',5)">+</button></div></div>
     </div>
+    <div style="height:8px"></div>
+    <button onclick="closeTarget();openWeights()" style="width:100%;border:none;background:var(--fill);border-radius:10px;padding:11px;margin:0 0 4px;font-family:var(--font);font-size:14px;font-weight:600;color:var(--blue);cursor:pointer">⚖ Set KPI weights ›</button>
     <div style="height:12px"></div>
     </div>
     <div style="display:flex;border-top:.5px solid var(--sep)">
       <button class="mc-btn" style="color:var(--tx2)" onclick="closeTarget()">Cancel</button>
       <button class="mc-btn" style="border-left:.5px solid var(--sep)" onclick="applyTargetModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEIGHTS MODAL -->
+<div class="mo hidden" id="weights-modal" onclick="if(event.target===this)closeWeights()">
+  <div class="mc" style="max-width:360px;max-height:88vh;display:flex;flex-direction:column;text-align:left">
+    <div style="padding:16px 18px 8px;border-bottom:.5px solid var(--sep)">
+      <div style="font-size:17px;font-weight:700">KPI weights</div>
+      <div class="tsm" style="margin-top:3px;line-height:1.45">Set how much each goal counts toward your daily score. Leave any on <b>Auto</b> and the rest share what's left equally — it always totals 100%.</div>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:6px 16px 12px" id="wt-body"></div>
+    <div style="display:flex;border-top:.5px solid var(--sep)">
+      <button class="mc-btn" style="color:var(--tx2)" onclick="closeWeights()">Cancel</button>
+      <button class="mc-btn" style="border-left:.5px solid var(--sep)" onclick="applyWeights()">Save</button>
     </div>
   </div>
 </div>
@@ -531,12 +556,12 @@ function loadDemo(){
   const start=addDays(tod(),-28);
   P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84),sleepTarget:7,stepLow:8000,stepHigh:10000,calLow:2000,calHigh:2500,fiberLow:25,fiberHigh:40,carbLow:150,carbHigh:250,proteinLow:120,proteinHigh:180};CI=[];
   const wos=['below','same','inc'];
-  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note});}
+  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut});}
   save();launchApp();
 }
 
 // CHECK-IN
-let selEnergyV=null, ciSleep=null, ciSteps=null, ciDiet={cals:null,fiber:null,carbs:null,protein:null}, woSel=null;
+let selEnergyV=null, ciSleep=null, ciSteps=null, ciDiet={cals:null,fiber:null,carbs:null,protein:null}, woSel=null, ciEatOut=false;
 function goals(){return {sleep:P.sleepTarget||7,stepLow:P.stepLow||P.stepTarget||8000,stepHigh:P.stepHigh||((P.stepLow||P.stepTarget||8000)+2000),calLow:P.calLow||2000,calHigh:P.calHigh||2500,fiberLow:P.fiberLow||25,fiberHigh:P.fiberHigh||40,carbLow:P.carbLow||150,carbHigh:P.carbHigh||250,proteinLow:P.proteinLow||120,proteinHigh:P.proteinHigh||180};}
 const DIET_DEF={cals:2500,fiber:25,carbs:200,protein:150};
 function selEnergy(v){selEnergyV=v;document.querySelectorAll('#e-row button').forEach(b=>b.classList.toggle('sel',+b.dataset.v===v));updateScore();}
@@ -559,19 +584,36 @@ function updateGoalHints(){const g=goals();
   document.getElementById('protein-hint').textContent='· '+g.proteinLow+'–'+g.proteinHigh;
 }
 function inR(x,lo,hi){return x!=null&&x>=lo&&x<=hi;}
+const KPIS=['sleep','steps','diet','workout','eatout'];
+const DIETSUB=['cals','fiber','protein','carbs'];
+function resolveW(setObj,keys){
+  const set={},unset=[];let sum=0;
+  keys.forEach(k=>{const v=setObj?setObj[k]:null;if(v!=null&&!isNaN(v)){set[k]=+v;sum+=+v;}else unset.push(k);});
+  const out={};
+  if(unset.length){const rem=Math.max(0,100-sum),each=rem/unset.length;keys.forEach(k=>out[k]=(k in set)?set[k]:each);}
+  else keys.forEach(k=>out[k]=set[k]);
+  let tot=keys.reduce((a,k)=>a+(out[k]||0),0);if(tot<=0){keys.forEach(k=>out[k]=100/keys.length);tot=100;}
+  keys.forEach(k=>out[k]=out[k]/tot*100);
+  return out;
+}
+function mainW(){return resolveW(P.kpiW,KPIS);}
+function dietSubW(){return resolveW(P.dietW,DIETSUB);}
 function dailyScore(v){
-  const g=goals(),met={};
-  met.energy=v.energy!=null&&v.energy>=3;
+  const g=goals(),mw=mainW(),dw=dietSubW(),met={};
+  met.energy=v.energy!=null&&v.energy>=3; // tracked, not scored
   met.sleep=v.sleep!=null&&v.sleep>=g.sleep;
   met.steps=v.steps!=null&&v.steps>=g.stepLow;
+  met.workout=v.workout==='same'||v.workout==='inc';
+  met.eatout=v.eatout!==true; // stayed in / unlogged = met; explicit ate-out = not met
   met.cals=inR(v.cals,g.calLow,g.calHigh);
   met.fiber=inR(v.fiber,g.fiberLow,g.fiberHigh);
-  met.carbs=inR(v.carbs,g.carbLow,g.carbHigh);
   met.protein=inR(v.protein,g.proteinLow,g.proteinHigh);
-  met.workout=v.workout==='same'||v.workout==='inc';
-  const dietPts=(met.cals?5:0)+(met.fiber?5:0)+(met.carbs?5:0)+(met.protein?5:0);
-  const pts=(met.energy?20:0)+(met.sleep?20:0)+(met.steps?20:0)+dietPts+(met.workout?20:0);
-  return {pts,met,dietPts,count:[met.energy,met.sleep,met.steps,dietPts>=20,met.workout].filter(Boolean).length};
+  met.carbs=inR(v.carbs,g.carbLow,g.carbHigh);
+  const dietFrac=(met.cals?dw.cals:0)+(met.fiber?dw.fiber:0)+(met.protein?dw.protein:0)+(met.carbs?dw.carbs:0);
+  const dietPts=mw.diet*dietFrac/100;
+  met.diet=dietFrac>=99.9;
+  const pts=(met.sleep?mw.sleep:0)+(met.steps?mw.steps:0)+(met.workout?mw.workout:0)+(met.eatout?mw.eatout:0)+dietPts;
+  return {pts:Math.round(pts),met,mw,dw,dietPts:Math.round(dietPts)};
 }
 function chip(label,met,extra){return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 9px;border-radius:20px;background:'+(met?'var(--gbg)':'var(--fill)')+';color:'+(met?'var(--green-d)':'var(--tx3)')+'">'+label+' '+(met?'✓':'✗')+(extra?' <span style="font-weight:400;opacity:.85">'+extra+'</span>':'')+'</span>';}
 function updateScore(){
@@ -579,19 +621,20 @@ function updateScore(){
   const date=document.getElementById('ci-date').value||tod();
   const rec=CI.find(c=>c.date===date);
   const workout=rec?rec.workout:null;
-  const sc=dailyScore({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout});
+  const sc=dailyScore({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout,eatout:ciEatOut});
   document.getElementById('score-num').textContent=sc.pts;
   const bar=document.getElementById('score-bar');bar.style.width=sc.pts+'%';bar.style.background=sc.pts>=100?'var(--green)':sc.pts>=60?'var(--orange)':'var(--red)';
   const v=document.getElementById('score-verdict');
   v.className='pill '+(sc.pts>=100?'p-good':sc.pts>=60?'p-info':'p-warn');
   v.textContent=sc.pts>=100?'Met':sc.pts>=60?'Partial':'Not met';
   const woLbl={below:'↓ below',same:'= same',inc:'↑ more'}[workout]||'';
+  const W=sc.mw,rw=k=>Math.round(W[k])+'%';
   document.getElementById('score-chips').innerHTML=[
-    chip('⚡ Energy',sc.met.energy,selEnergyV?selEnergyV+'/5':''),
-    chip('😴 Sleep',sc.met.sleep,ciSleep!=null?ciSleep+'h':''),
-    chip('👟 Steps',sc.met.steps,ciSteps!=null?ciSteps.toLocaleString():''),
-    chip('🍽 Diet',sc.dietPts>=20,sc.dietPts+'/20'),
-    chip('🏋 Workout',sc.met.workout,woLbl)
+    chip('😴 Sleep',sc.met.sleep,rw('sleep')),
+    chip('👟 Steps',sc.met.steps,rw('steps')),
+    chip('🍽 Diet',sc.met.diet,sc.dietPts+'/'+Math.round(W.diet)),
+    chip('🏋 Workout',sc.met.workout,woLbl||rw('workout')),
+    chip('🍴 Eat out',sc.met.eatout,ciEatOut?'ate out':'stayed in')
   ].join('');
   // macro breakdown
   const seg=(lbl,x,lo,hi,unit)=>{if(x==null)return lbl+' —';const ok=x>=lo&&x<=hi;const c=ok?'var(--green-d)':'var(--orange)';const tag=ok?'✓':(x<lo?'low':'high');return lbl+' <span style="color:'+c+';font-weight:600">'+x.toLocaleString()+unit+' '+tag+'</span>';};
@@ -613,6 +656,7 @@ function saveCI(){
   if(ciDiet.fiber!=null)y.fiber=ciDiet.fiber;
   if(ciDiet.carbs!=null)y.carbs=ciDiet.carbs;
   if(ciDiet.protein!=null)y.protein=ciDiet.protein;
+  y.eatOut=ciEatOut===true;
   if(Object.keys(y).length)upsertCI(yest,y); // yesterday
   save();
   const m=document.getElementById('saved-msg');m.style.display='block';setTimeout(()=>m.style.display='none',2000);
@@ -627,9 +671,13 @@ function loadForDate(){
   ciSleep=yd&&yd.sleep!=null?yd.sleep:null;
   ciSteps=yd&&yd.steps!=null?yd.steps:null;
   ciDiet={cals:yd&&yd.cals!=null?yd.cals:null,fiber:yd&&yd.fiber!=null?yd.fiber:null,carbs:yd&&yd.carbs!=null?yd.carbs:null,protein:yd&&yd.protein!=null?yd.protein:null};
+  ciEatOut=yd&&yd.eatOut===true;
+  renderEatOut();
   document.getElementById('ci-note').value=td&&td.note?td.note:'';
   renderStepVals();updateGoalHints();updateScore();
 }
+function selEatOut(v){ciEatOut=v;renderEatOut();updateScore();}
+function renderEatOut(){document.querySelectorAll('#eo-row button').forEach(b=>b.classList.toggle('sel',(b.dataset.v==='out')===(ciEatOut===true)));}
 function loadTodayCI(){document.getElementById('ci-date').value=tod();loadForDate();}
 // WORKOUT (saved separately)
 function selWorkout(v){woSel=v;document.querySelectorAll('#wo-row button').forEach(b=>b.classList.toggle('sel',b.dataset.v===v));}
@@ -902,6 +950,33 @@ function renderNotes(){
   document.getElementById('notes-list').innerHTML=ns.length?ns.map(noteItem).join(''):'<div class="tsm" style="padding:14px 16px">No notes yet. Add one below your daily score.</div>';
 }
 function toggleNotes(){const el=document.getElementById('notes-list'),ch=document.getElementById('notes-chev');const open=el.style.display==='none';el.style.display=open?'block':'none';ch.textContent=open?'▴':'▾';}
+let wTmp={kpiW:{},dietW:{}};
+function wRow(group,key,lbl,sub,eff){
+  const setv=wTmp[group][key],isSet=setv!=null;
+  const disp=isSet?Math.round(setv)+'%':'<span style="color:var(--tx3)">'+Math.round(eff)+'% <span style="font-size:9px">auto</span></span>';
+  return '<div class="row'+(sub?' sub':'')+'" style="align-items:center">'
+    +'<label>'+lbl+'</label>'
+    +'<div class="gstep">'
+    +'<button class="stp2" onclick="wStep(\''+group+'\',\''+key+'\',-5)">−</button>'
+    +'<span style="min-width:60px;text-align:center;font-weight:'+(isSet?'700':'500')+'">'+disp+'</span>'
+    +'<button class="stp2" onclick="wStep(\''+group+'\',\''+key+'\',5)">+</button>'
+    +'<button class="stp2" style="width:auto;padding:0 8px;font-size:11px;'+(isSet?'':'opacity:.35')+'" onclick="wAuto(\''+group+'\',\''+key+'\')">↺</button>'
+    +'</div></div>';
+}
+function renderWtmp(){
+  const eM=resolveW(wTmp.kpiW,KPIS),eD=resolveW(wTmp.dietW,DIETSUB);
+  const L={sleep:'😴 Sleep',steps:'👟 Steps',diet:'🍽 Diet',workout:'🏋 Workout',eatout:'🍴 Eat out'},DL={cals:'Calories',fiber:'Fiber',protein:'Protein',carbs:'Carbs'};
+  let h='<div class="leglbl" style="margin:4px 0 0">Goals</div>';
+  KPIS.forEach(k=>h+=wRow('kpiW',k,L[k],false,eM[k]));
+  h+='<div class="leglbl" style="margin:12px 0 0">↳ Diet · split of the diet weight</div>';
+  DIETSUB.forEach(k=>h+=wRow('dietW',k,DL[k],true,eD[k]));
+  document.getElementById('wt-body').innerHTML=h;
+}
+function wStep(group,key,d){const keys=group==='kpiW'?KPIS:DIETSUB;const eff=resolveW(wTmp[group],keys)[key];let cur=wTmp[group][key];if(cur==null)cur=Math.round(eff/5)*5;wTmp[group][key]=Math.max(0,Math.min(100,cur+d));renderWtmp();}
+function wAuto(group,key){wTmp[group][key]=null;renderWtmp();}
+function openWeights(){wTmp={kpiW:{...(P.kpiW||{})},dietW:{...(P.dietW||{})}};renderWtmp();document.getElementById('weights-modal').classList.remove('hidden');}
+function closeWeights(){document.getElementById('weights-modal').classList.add('hidden');}
+function applyWeights(){P.kpiW=wTmp.kpiW;P.dietW=wTmp.dietW;save();closeWeights();updateScore();renderAll();}
 function wlPageCount(){return Math.max(1,Math.ceil(totalWeeks()/8));}
 function wlNav(d){wlPage=Math.max(0,Math.min(wlPageCount()-1,wlPage+d));drawWeeklyLossChart();}
 function drawWeeklyLossChart(){
@@ -953,7 +1028,7 @@ function scNavState(){
   nx.style.opacity=scPage>=pages-1?'.25':'1';nx.style.pointerEvents=scPage>=pages-1?'none':'auto';
   return {win,totalDays,pages,pageStart,pageEnd};
 }
-const SC_COL={energy:'#ff9500',sleep:'#5e5ce6',steps:'#30b0c7',cals:'#ff375f',fiber:'#30d158',carbs:'#ffd60a',protein:'#bf5af2',workout:'#0a84ff'};
+const SC_COL={sleep:'#5e5ce6',steps:'#30b0c7',workout:'#0a84ff',eatout:'#ff9f0a',cals:'#ff375f',fiber:'#30d158',protein:'#bf5af2',carbs:'#ffd60a'};
 function setScView(v){scView=v;document.getElementById('scseg-chart').classList.toggle('on',v==='chart');document.getElementById('scseg-table').classList.toggle('on',v==='table');document.getElementById('sc-chart-wrap').style.display=v==='chart'?'block':'none';document.getElementById('sc-table-wrap').style.display=v==='table'?'block':'none';renderScore();}
 function renderScore(){if(scView==='chart')drawScoreChart();else renderScoreTable();}
 function scNav(d){scPage=Math.max(0,Math.min(scPageCount()-1,scPage+d));renderScore();}
@@ -969,6 +1044,7 @@ function statusFor(cat,val,g){
     case 'carbs':return rng(g.carbLow,g.carbHigh);
     case 'protein':return rng(g.proteinLow,g.proteinHigh);
     case 'workout':return val==='inc'?{i:'↑',c:'var(--green-d)'}:val==='same'?{i:'=',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
+    case 'eatout':return val===true?{i:'✗',c:'var(--red)'}:{i:'✓',c:'var(--green-d)'};
   }
   return{i:'–',c:'var(--tx3)'};
 }
@@ -979,27 +1055,29 @@ function renderScoreTable(){
   const wrap=document.getElementById('sc-table-wrap');
   if(!days.length){wrap.innerHTML='<div class="tsm" style="padding:10px">No days in this week yet.</div>';return;}
   const recOf=di=>CI.find(c=>c.date===addDays(wkBase(),di))||{};
-  const mainDef=[['energy','Energy'],['sleep','Sleep'],['steps','Steps'],['workout','Workout']];
+  const mainDef=[['sleep','Sleep'],['steps','Steps'],['workout','Workout'],['eatout','Eat out']];
   const dietDef=[['cals','Calories'],['fiber','Fiber'],['protein','Protein'],['carbs','Carbs']];
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
   const vals=(ws,cat)=>{const o=[];for(let d=0;d<7;d++){const di=ws+d;if(di<0)continue;const rec=CI.find(c=>c.date===addDays(wkBase(),di));if(!rec)continue;
-    if(cat==='__score'){if(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null)o.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout}).pts);}
+    if(cat==='__score'){if(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null)o.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}).pts);}
     else if(cat==='workout'){if(rec.workout)o.push(rec.workout==='inc'||rec.workout==='same'?1:0);}
+    else if(cat==='eatout'){if(rec.eatOut!=null)o.push(rec.eatOut===true?1:0);}
     else if(rec[cat]!=null&&rec[cat]!=='')o.push(rec[cat]);}
     return o;};
-  const GOODUP={'__score':true,weight:false,energy:true,sleep:true,steps:true,cals:null,fiber:true,protein:true,carbs:null,workout:true};
+  const GOODUP={'__score':true,weight:false,energy:true,sleep:true,steps:true,cals:null,fiber:true,protein:true,carbs:null,workout:true,eatout:false};
   const fmtAvg=(cat,v)=>{if(cat==='__score')return Math.round(v)+'%';if(cat==='weight')return v.toFixed(1);if(cat==='energy')return v.toFixed(1);if(cat==='sleep')return v.toFixed(1)+'h';if(cat==='steps')return v>=1000?(v/1000).toFixed(1)+'k':Math.round(v);return Math.round(v);};
   const arrow=(cat,t,p)=>{if(t==null||p==null)return'';if(Math.abs(t-p)<1e-9)return'<span style="color:var(--tx3);font-size:9px"> –</span>';const up=t>p,gu=GOODUP[cat];const col=gu==null?'var(--tx3)':((up===gu)?'var(--green-d)':'var(--red)');return '<span style="color:'+col+';font-size:9px"> '+(up?'▲':'▼')+'</span>';};
   const avgCell=cat=>{const tv=vals(wStart,cat),pv=vals(prevStart,cat);
     if(cat==='workout'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'✓':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
+    if(cat==='eatout'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'× out':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
     const ta=mean(tv),pa=mean(pv);return '<td class="avgcell">'+(ta==null?'–':fmtAvg(cat,ta))+arrow(cat,ta,pa)+'</td>';};
   const catRow=(cat,lbl,cls,rowcls)=>{let r='<tr'+(rowcls?' class="'+rowcls+'"':'')+'><td class="catlbl '+cls+'">'+lbl+'</td>';
-    days.forEach(di=>{const rec=recOf(di);const val=rec[cat]==null?null:rec[cat];const s=statusFor(cat,val,g);const vt=cat==='workout'?'':fmtVal(cat,val);r+='<td style="color:'+s.c+'"><b>'+s.i+'</b>'+(vt!==''?' <span style="font-size:9px">'+vt+'</span>':'')+'</td>';});
+    days.forEach(di=>{const rec=recOf(di);const val=cat==='eatout'?(rec.eatOut==null?null:rec.eatOut):(rec[cat]==null?null:rec[cat]);const s=statusFor(cat,val,g);const vt=(cat==='workout'||cat==='eatout')?'':fmtVal(cat,val);r+='<td style="color:'+s.c+'"><b>'+s.i+'</b>'+(vt!==''?' <span style="font-size:9px">'+vt+'</span>':'')+'</td>';});
     return r+avgCell(cat)+'</tr>';};
   let body='';
   // Score (top)
   body+='<tr class="r-score"><td class="catlbl">Score</td>';
-  days.forEach(di=>{const rec=recOf(di);const sc=dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout});const any=rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null;body+='<td style="font-weight:700;color:'+(sc.pts>=100?'var(--green-d)':sc.pts>=60?'var(--orange)':'var(--tx)')+'">'+(any?sc.pts+'%':'–')+'</td>';});
+  days.forEach(di=>{const rec=recOf(di);const sc=dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut});const any=rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null;body+='<td style="font-weight:700;color:'+(sc.pts>=100?'var(--green-d)':sc.pts>=60?'var(--orange)':'var(--tx)')+'">'+(any?sc.pts+'%':'–')+'</td>';});
   body+=avgCell('__score')+'</tr>';
   // Weight (separated)
   body+='<tr class="r-weight"><td class="catlbl">Weight</td>';
@@ -1022,7 +1100,8 @@ function drawScoreChart(){
   const {win,totalDays,pages,pageStart}=scNavState();
   const KCOL=SC_COL,KMISS='rgba(60,60,67,.12)';
   // bottom-to-top: diet (protein..cals) at the bottom, main goals (workout..energy) on top
-  const segs=[['carbs',.05],['protein',.05],['fiber',.05],['cals',.05],['workout',.2],['steps',.2],['sleep',.2],['energy',.2]];
+  const mw=mainW(),dw=dietSubW(),dh=mw.diet/100;
+  const segs=[['carbs',dh*dw.carbs/100],['protein',dh*dw.protein/100],['fiber',dh*dw.fiber/100],['cals',dh*dw.cals/100],['eatout',mw.eatout/100],['workout',mw.workout/100],['steps',mw.steps/100],['sleep',mw.sleep/100]];
   const pd={l:10,r:10,t:30,b:24},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
   const step=gW/win,bw=Math.min(30,step*0.6),xC=i=>pd.l+step*i+step/2;
   let fullDays=0;
@@ -1030,7 +1109,7 @@ function drawScoreChart(){
     const w=pageStart+i;if(w>=totalDays)break;
     const date=addDays(wkBase(),w);
     const rec=CI.find(c=>c.date===date);
-    const sc=dailyScore(rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout}:{});
+    const sc=dailyScore(rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}:{});
     if(sc.pts>=100)fullDays++;
     // stacked blocks
     let yb=pd.t+gH;
@@ -1048,7 +1127,7 @@ function drawScoreChart(){
   // day-of-month labels under each bar
   ctx.textAlign='center';ctx.fillStyle='#8e8e93';ctx.font='9px '+getFont();
   for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const dt=new Date(addDays(wkBase(),w)+' 00:00');ctx.fillText(dt.getDate(),xC(i),H-8);}
-  document.getElementById('csc-msg').innerHTML='Top number = that day\'s weight, below it the % of goals met. Each bar splits into the 5 goals (diet = cals/fiber/carbs/protein). <b>'+fullDays+'</b> fully-met day'+(fullDays===1?'':'s')+' shown.';
+  document.getElementById('csc-msg').innerHTML='Top number = that day\'s weight, below it the % of goals met. Bars are sized by each goal\'s weight (energy isn\'t scored). <b>'+fullDays+'</b> fully-met day'+(fullDays===1?'':'s')+' shown.';
 }
 function drawEnergyChart(){
   const cv=document.getElementById('cwe'),ctx=cv.getContext('2d');
