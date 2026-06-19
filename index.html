@@ -129,6 +129,17 @@ canvas{display:block;width:100%}
 .sctab2 .catlbl.main{font-weight:700;color:var(--tx)}
 .sctab2 .catlbl.sub{font-weight:500;color:var(--tx3);padding-left:10px}
 .sctab2 .avgcell{border-left:2px solid #8e8e93;font-weight:700;background:var(--fill);white-space:nowrap;min-width:56px}
+.rept{width:auto;min-width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.rept th{font-size:9px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.2px;text-align:right;padding:6px 10px;border-bottom:1.5px solid var(--sep);white-space:nowrap}
+.rept th:not(:first-child),.rept td:not(:first-child){min-width:76px}
+.rept th:first-child,.rept td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;min-width:104px;border-right:.5px solid var(--sep)}
+.rept td{padding:8px 10px;border-bottom:.5px solid var(--sep);text-align:right;white-space:nowrap}
+.rept td.kpi{font-weight:600;color:var(--tx)}
+.rept td.todo{font-weight:600}
+.repsec{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 8px}
+.repstat{flex:1;background:var(--fill);border-radius:10px;padding:9px 6px;text-align:center}
+.repstat .v{font-size:17px;font-weight:700;line-height:1.1}
+.repstat .l{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
 .wl-nav{width:32px;height:32px;border:none;border-radius:50%;background:var(--fill);color:var(--blue);font-size:20px;font-weight:600;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .legend>div{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx3)}
 
@@ -413,6 +424,12 @@ canvas{display:block;width:100%}
   <button class="btn btd" onclick="resetAll()">Reset all data</button>
 </div>
 
+<div class="page" id="page-report">
+  <div class="h1">This week's report</div>
+  <div id="rep-sub" class="tsm" style="margin:-6px 0 14px;color:var(--tx3)">What you need to do to succeed this week</div>
+  <div id="rep-body"></div>
+</div>
+
 </div><!-- /content -->
 <nav id="nav">
   <button class="nb active" onclick="goPage('today',this)">
@@ -420,6 +437,9 @@ canvas{display:block;width:100%}
   </button>
   <button class="nb" onclick="goPage('progress',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 16 9 10 13 14 21 6"/><polyline points="16 6 21 6 21 11"/></svg><span>Progress</span>
+  </button>
+  <button class="nb" onclick="goPage('report',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3h7l5 5v13H7z" fill="none"/><polyline points="14 3 14 8 19 8"/><line x1="9.5" y1="13" x2="14.5" y2="13"/><line x1="9.5" y1="16.5" x2="14.5" y2="16.5"/></svg><span>Report</span>
   </button>
 </nav>
 </div><!-- /app -->
@@ -1012,6 +1032,80 @@ function wStep(group,key,d){const keys=group==='kpiW'?KPIS:DIETSUB;const eff=res
 function wAuto(group,key){wTmp[group][key]=null;renderWtmp();}
 function closeSunday(){document.getElementById('sunday-modal').classList.add('hidden');}
 function maybeSundayPrompt(){if(isSunday()&&P.sundayPrompt!==tod()){P.sundayPrompt=tod();save();document.getElementById('sunday-modal').classList.remove('hidden');}}
+function repMetric(vals,target,type,unit,fmt){
+  // type: 'min' (avg>=target), 'max' (avg<=target)
+  const n=vals.length, rem=Math.max(0,7-n), sum=vals.reduce((a,b)=>a+b,0), avg=n?sum/n:null;
+  const need=target*7-sum; // remaining total needed (min) or budget left (max)
+  const reqAvg=rem>0?need/rem:null;
+  return {n,rem,sum,avg,reqAvg,target,type,unit,fmt};
+}
+function weekVals(cat){return weekValsW(cat,curWeekIdx());}
+function weekValsW(cat,w){const o=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&rec[cat]!=null&&rec[cat]!=='')o.push(rec[cat]);}return o;}
+function avgOf(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
+function last4Avg(cat){const w=curWeekIdx();let all=[];for(let i=1;i<=4;i++){const ww=w-i;if(ww<0)break;all=all.concat(weekValsW(cat,ww));}return avgOf(all);}
+function lastWkAvg(cat){const w=curWeekIdx();return w-1>=0?avgOf(weekValsW(cat,w-1)):null;}
+function weekScoresW(w){const a=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))a.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}).pts);}return a;}
+const REPFMT={score:v=>Math.round(v)+'%',steps:v=>Math.round(v).toLocaleString(),sleep:v=>v.toFixed(1)+'h',cals:v=>Math.round(v).toLocaleString(),protein:v=>Math.round(v)+'g',days:v=>v.toFixed(1)};
+const REPUP={score:true,steps:true,sleep:true,protein:true,cals:false};
+function repTrend(cat,t,four){if(t==null||four==null)return'';if(Math.abs(t-four)<1e-9)return'';const up=t>four,good=REPUP[cat]?up:!up;return ' <span style="color:'+(good?'var(--green-d)':'var(--red)')+';font-size:10px">'+(up?'▲':'▼')+'</span>';}
+function repTodo(r,f){if(r.avg==null)return'<span style="color:var(--tx3)">–</span>';
+  if(r.rem<=0){const ok=r.type==='min'?r.avg>=r.target:r.avg<=r.target;return ok?'<span style="color:var(--green-d)">✓ met</span>':'<span style="color:var(--red)">'+(r.type==='min'?'missed':'over')+'</span>';}
+  if(r.type==='min')return r.reqAvg<=0?'<span style="color:var(--green-d)">coast ok</span>':f(r.reqAvg)+'/d';
+  return r.reqAvg<0?'<span style="color:var(--red)">over budget</span>':'≤'+f(r.reqAvg)+'/d';}
+function repRow(name,cat,target,type){
+  const tv=weekVals(cat),thisw=avgOf(tv),four=last4Avg(cat),lw=lastWkAvg(cat);
+  const r=repMetric(tv,target,type),f=REPFMT[cat];
+  return '<tr><td class="kpi">'+name+'</td><td>'+(four==null?'–':f(four))+'</td><td>'+(lw==null?'–':f(lw))+'</td><td>'+(thisw==null?'–':f(thisw)+repTrend(cat,thisw,four))+'</td><td>'+f(target)+'</td><td class="todo">'+repTodo(r,f)+'</td></tr>';
+}
+function renderReport(){
+  const g=goals(),m=metrics(),w=curWeekIdx();
+  const ws=addDays(wkBase(),w*7),we=addDays(ws,6);
+  document.getElementById('rep-sub').textContent='Week '+(w+1)+' · '+fS(ws)+'–'+fS(we)+' · '+weekVals('weight').length+' day(s) logged';
+  let h='<div class="card">';
+  // ── WEIGHT HEADLINE ──
+  const s=sw().filter(c=>c.date<=tod());
+  const inWeek=s.filter(c=>c.date>=ws&&c.date<=we);
+  const baseRec=[...s].reverse().find(c=>c.date<ws);
+  const baseW=baseRec?baseRec.weight:(inWeek.length?inWeek[0].weight:m.start);
+  const latestW=inWeek.length?inWeek[inWeek.length-1].weight:(m.latest||baseW);
+  const lossSoFar=baseW-latestW;
+  const need=(m.needNow!=null?m.needNow:m.reqRate)||0;
+  const remLoss=need-lossSoFar;
+  const onPace=m.pace!=null&&need>0&&m.pace>=need*0.98;
+  h+='<div class="repsec" style="margin-top:2px">Weight goal</div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:10px">'
+    +'<div class="repstat"><div class="v">'+m.remaining.toFixed(1)+'</div><div class="l">kg to go</div></div>'
+    +'<div class="repstat"><div class="v">'+need.toFixed(2)+'</div><div class="l">need / wk now</div></div>'
+    +'<div class="repstat"><div class="v">'+(m.pace!=null?m.pace.toFixed(2):'–')+'</div><div class="l">your pace / wk</div></div></div>';
+  const pt=(t)=>'<div style="display:flex;gap:8px;padding:6px 0;font-size:13px;line-height:1.5;border-top:.5px solid var(--sep)"><span style="color:var(--blue);font-weight:800;flex:none">•</span><span>'+t+'</span></div>';
+  let pts='';
+  pts+=pt('<b>Goal:</b> '+m.tgt+' kg by '+fF(m.td)+'.');
+  pts+=pt('<b>Progress:</b> lost '+m.lost.toFixed(1)+' of '+m.totalToLose.toFixed(1)+' kg ('+m.pct+'%) — '+m.remaining.toFixed(1)+' kg to go.');
+  pts+=pt('<b>Time:</b> '+m.daysElapsed+' days in, ~'+Math.max(0,Math.round(m.daysLeft/7))+' weeks left.');
+  if(need<=0)pts+=pt('<b>Rate:</b> no further loss needed to stay on plan.');
+  else pts+=pt('<b>Updated rate needed:</b> '+need.toFixed(2)+' kg/wk (original plan was '+m.reqRate.toFixed(2)+' kg/wk).');
+  pts+=pt('<b>Your recent pace:</b> '+(m.pace!=null?m.pace.toFixed(2):'–')+' kg/wk — '+(need<=0?'goal essentially reached':(onPace?'<span style="color:var(--green-d)">on track</span>, arriving ~'+fF(m.projDate):'<span style="color:var(--red)">behind</span>'))+'.');
+  if(need>0&&!onPace)pts+=pt('<b>To catch up:</b> raise the loss rate by ~'+Math.max(0,(need-(m.pace||0))).toFixed(2)+' kg/wk — tighten the calorie deficit or add activity.');
+  pts+=pt('<b>This week:</b> down '+lossSoFar.toFixed(2)+' kg so far — '+(remLoss<=0?'<span style="color:var(--green-d)">weekly goal met 🎉</span>':'lose <b>'+remLoss.toFixed(2)+' kg</b> more by Sunday')+'.');
+  h+='<div style="margin-top:2px">'+pts+'</div>';
+  // ── KPI TABLE ──
+  h+='<div class="repsec">Weekly KPIs · where you are &amp; what\'s left <span style="text-transform:none;font-weight:500;color:var(--tx3)">— swipe table →</span></div>';
+  h+='<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px"><table class="rept"><thead><tr><th>KPI</th><th>4-wk avg</th><th>Last wk</th><th>This wk</th><th>Target</th><th>To do</th></tr></thead><tbody>';
+  const tgt=resolveTarget(w);
+  if(tgt!=null){const tv=weekScoresW(w),thisw=avgOf(tv),four=avgOf([1,2,3,4].flatMap(i=>w-i>=0?weekScoresW(w-i):[])),lw=w-1>=0?avgOf(weekScoresW(w-1)):null;const r=repMetric(tv,tgt,'min');h+='<tr><td class="kpi">🎯 Goal score</td><td>'+(four==null?'–':Math.round(four)+'%')+'</td><td>'+(lw==null?'–':Math.round(lw)+'%')+'</td><td>'+(thisw==null?'–':Math.round(thisw)+'%'+repTrend('score',thisw,four))+'</td><td>'+tgt+'%</td><td class="todo">'+repTodo(r,REPFMT.score)+'</td></tr>';}
+  h+=repRow('👟 Steps','steps',g.stepLow,'min');
+  h+=repRow('😴 Sleep','sleep',g.sleep,'min');
+  h+=repRow('🍽 Calories','cals',g.calHigh,'max');
+  h+=repRow('🥩 Protein','protein',g.proteinLow,'min');
+  // workout days/wk
+  {const cnt=ww=>weekValsW('workout',ww).filter(x=>x==='same'||x==='inc').length;const four=avgOf([1,2,3,4].map(i=>w-i).filter(x=>x>=0).map(cnt)),lw=w-1>=0?cnt(w-1):null,tw=cnt(w);h+='<tr><td class="kpi">🏋 Workout</td><td>'+(four==null?'–':four.toFixed(1))+'</td><td>'+(lw==null?'–':lw)+'</td><td>'+tw+'</td><td>days</td><td class="todo tsm" style="color:var(--tx3)">keep going</td></tr>';}
+  // eat-out days/wk (lower better)
+  {const cnt=ww=>weekValsW('eatOut',ww).filter(x=>x===true).length;const four=avgOf([1,2,3,4].map(i=>w-i).filter(x=>x>=0).map(cnt)),lw=w-1>=0?cnt(w-1):null,tw=cnt(w);h+='<tr><td class="kpi">🍴 Ate out</td><td>'+(four==null?'–':four.toFixed(1))+'</td><td>'+(lw==null?'–':lw)+'</td><td>'+tw+'</td><td>fewer</td><td class="todo tsm" style="color:var(--tx3)">limit</td></tr>';}
+  h+='</tbody></table></div>';
+  h+='<div class="tsm" style="margin-top:10px;color:var(--tx3);line-height:1.5">▲▼ compares this week so far with your 4-week average (green = good direction). "To do" = the daily average you need over the remaining days to hit the weekly target.</div>';
+  h+='</div>';
+  document.getElementById('rep-body').innerHTML=h;
+}
 function openWeights(){wTmp={kpiW:{...(P.kpiW||{})},dietW:{...(P.dietW||{})}};renderWtmp();renderTargetCtl();document.getElementById('weights-modal').classList.remove('hidden');}
 function closeWeights(){document.getElementById('weights-modal').classList.add('hidden');}
 function applyWeights(){P.kpiW=wTmp.kpiW;P.dietW=wTmp.dietW;save();closeWeights();updateScore();renderAll();}
@@ -1274,7 +1368,7 @@ function maybePopup(){
 
 // NAV / LIFECYCLE
 function renderAll(){renderToday();const ap=document.querySelector('.page.active');if(ap&&ap.id==='page-progress')renderProgress();}
-function goPage(n,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress'){wlPage=Math.floor(Math.max(0,dbtw(wkBase(),tod()))/7/8);scPage=scPageCount()-1;renderProgress();}}
+function goPage(n,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress'){wlPage=Math.floor(Math.max(0,dbtw(wkBase(),tod()))/7/8);scPage=scPageCount()-1;renderProgress();}if(n==='report')renderReport();}
 function resetAll(){if(confirm('Reset all data? This cannot be undone.')){['wc1_p','wc1_c','wc1_ts','wc1_pop'].forEach(k=>localStorage.removeItem(k));location.reload();}}
 function launchApp(){document.getElementById('setup').style.display='none';document.getElementById('app').style.display='flex';loadTodayCI();document.getElementById('wo-date').value=tod();loadWorkout();renderAll();setTimeout(maybePopup,400);}
 
