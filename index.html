@@ -345,6 +345,10 @@ canvas{display:block;width:100%}
 
   <div class="shdr">Weekly loss vs target</div>
   <div class="card">
+    <div class="seg" style="margin-bottom:10px">
+      <button id="wlseg-weeks" class="on" onclick="setWlMode('weeks')">8 weeks</button>
+      <button id="wlseg-months" onclick="setWlMode('months')">Months</button>
+    </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
       <button id="wl-prev" class="wl-nav" onclick="wlNav(-1)">‹</button>
       <div id="wl-label" style="font-size:13px;font-weight:600">Weeks 1–8</div>
@@ -460,7 +464,9 @@ canvas{display:block;width:100%}
     <div style="padding:0 16px">
       <div class="row main"><label>Sleep target</label><div class="gstep"><button class="stp2" onclick="gStep('sleep',-0.5)">−</button><span id="g-sleep">7.0 h</span><button class="stp2" onclick="gStep('sleep',0.5)">+</button></div></div>
       <div class="row main"><label>Steps min</label><div class="gstep"><button class="stp2" onclick="gStep('stepLow',-250)">−</button><span id="g-stepLow">8,000</span><button class="stp2" onclick="gStep('stepLow',250)">+</button></div></div>
-      <div class="row main" style="border-bottom:none"><label>Steps max</label><div class="gstep"><button class="stp2" onclick="gStep('stepHigh',-250)">−</button><span id="g-stepHigh">10,000</span><button class="stp2" onclick="gStep('stepHigh',250)">+</button></div></div>
+      <div class="row main"><label>Steps max</label><div class="gstep"><button class="stp2" onclick="gStep('stepHigh',-250)">−</button><span id="g-stepHigh">10,000</span><button class="stp2" onclick="gStep('stepHigh',250)">+</button></div></div>
+      <div class="row main"><label>Workouts / week</label><div class="gstep"><button class="stp2" onclick="gStep('woTarget',-1)">−</button><span id="g-woTarget">4</span><button class="stp2" onclick="gStep('woTarget',1)">+</button></div></div>
+      <div class="row main" style="border-bottom:none"><label>Eat-out days / week</label><div class="gstep"><button class="stp2" onclick="gStep('eatAllow',-1)">−</button><span id="g-eatAllow">1</span><button class="stp2" onclick="gStep('eatAllow',1)">+</button></div></div>
     </div>
     <div style="border-top:1px solid var(--sep);margin:8px 16px 0"></div>
     <div style="padding:10px 18px 2px;font-size:12px;font-weight:600;color:var(--tx3)">↳ Diet · the 20% split four ways</div>
@@ -595,7 +601,7 @@ function finishSetup(){
 }
 function loadDemo(){
   const start=addDays(tod(),-28);
-  P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84),sleepTarget:7,stepLow:8000,stepHigh:10000,calLow:2000,calHigh:2500,fiberLow:25,fiberHigh:40,carbLow:150,carbHigh:250,proteinLow:120,proteinHigh:180,targetHist:[{w:0,t:65},{w:2,t:75}]};CI=[];
+  P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84),sleepTarget:7,stepLow:8000,stepHigh:10000,calLow:2000,calHigh:2500,fiberLow:25,fiberHigh:40,carbLow:150,carbHigh:250,proteinLow:120,proteinHigh:180,workoutTarget:5,eatOutAllow:1,targetHist:[{w:0,t:65},{w:2,t:75}]};CI=[];
   const wos=['below','same','inc'];
   for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut});}
   save();launchApp();
@@ -646,7 +652,7 @@ function canEditTarget(){return isSunday()||P.tgtSetWeek!==curWeekIdx();}
 function resolveTarget(w){const h=P.targetHist||[];let t=null,bw=-1;h.forEach(e=>{if(e.w<=w&&e.w>bw){bw=e.w;t=e.t;}});return t;}
 function setWeekTarget(t){const w=editTgtWeek();const h=P.targetHist||[];const i=h.findIndex(e=>e.w===w);if(i>=0)h[i].t=t;else h.push({w,t});P.targetHist=h;if(!isSunday())P.tgtSetWeek=curWeekIdx();save();}
 function stepTarget(d){if(!canEditTarget())return;let cur=resolveTarget(editTgtWeek());if(cur==null)cur=70;cur=Math.max(0,Math.min(100,cur+d));setWeekTarget(cur);renderTargetCtl();renderScore();}
-function weekAvgScore(w){const arr=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))arr.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}).pts);}return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;}
+function weekAvgScore(w){const arr=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))arr.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),w*7+d))).pts);}return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;}
 function renderTargetCtl(){
   const ew=editTgtWeek(),t=resolveTarget(ew),locked=!canEditTarget();
   const el=document.getElementById('wt-tgt');if(el)el.textContent=(t==null?70:t)+'%';
@@ -654,13 +660,29 @@ function renderTargetCtl(){
   const nt=document.getElementById('wt-tgt-note');if(nt)nt.textContent=locked?'🔒 Locked — one change per week, opens again Sunday':'a day ≥ this counts as a win';
   document.querySelectorAll('#wt-tgt-row .stp2').forEach(b=>{b.style.opacity=locked?'.3':'1';b.style.pointerEvents=locked?'none':'auto';});
 }
-function dailyScore(v){
+function woMet(v){return v==='same'||v==='inc';}
+function dayCtx(date){
+  const wt=(P.workoutTarget==null?4:P.workoutTarget), ea=(P.eatOutAllow==null?1:P.eatOutAllow);
+  const wi=Math.floor(dbtw(wkBase(),date)/7), ws=addDays(wkBase(),wi*7), span=dbtw(ws,date);
+  let eat=0,rest=0,eOK=true,wOK=true;
+  for(let d=0;d<=span;d++){const dt=addDays(ws,d);const rec=CI.find(c=>c.date===dt);if(!rec)continue;const ate=rec.eatOut===true,wo=woMet(rec.workout);if(ate)eat++;if(!wo)rest++;if(dt===date){eOK=ate?eat<=ea:true;wOK=wo?true:rest<=(7-wt);}}
+  return {eatoutMet:eOK,workoutMet:wOK};
+}
+function liveCtxFor(date){
+  const wt=(P.workoutTarget==null?4:P.workoutTarget), ea=(P.eatOutAllow==null?1:P.eatOutAllow);
+  const wi=Math.floor(dbtw(wkBase(),date)/7), ws=addDays(wkBase(),wi*7), span=dbtw(ws,date);
+  if(span<0)return{eatoutMet:true,workoutMet:true};
+  let eat=0,rest=0;
+  for(let d=0;d<=span;d++){const dt=addDays(ws,d);const rec=CI.find(c=>c.date===dt);let ate,wo;if(dt===date){ate=ciEatOut===true;wo=woMet(rec?rec.workout:null);}else{if(!rec)continue;ate=rec.eatOut===true;wo=woMet(rec.workout);}if(ate)eat++;if(!wo)rest++;if(dt===date)return{eatoutMet:ate?eat<=ea:true,workoutMet:wo?true:rest<=(7-wt)};}
+  return{eatoutMet:true,workoutMet:true};
+}
+function dailyScore(v,ctx){
   const g=goals(),mw=mainW(),dw=dietSubW(),met={};
   met.energy=v.energy!=null&&v.energy>=3; // tracked, not scored
   met.sleep=v.sleep!=null&&v.sleep>=g.sleep;
   met.steps=v.steps!=null&&v.steps>=g.stepLow;
-  met.workout=v.workout==='same'||v.workout==='inc';
-  met.eatout=v.eatout!==true; // stayed in / unlogged = met; explicit ate-out = not met
+  met.workout=ctx&&ctx.workoutMet!=null?ctx.workoutMet:(v.workout==='same'||v.workout==='inc');
+  met.eatout=ctx&&ctx.eatoutMet!=null?ctx.eatoutMet:(v.eatout!==true);
   met.cals=inR(v.cals,g.calLow,g.calHigh);
   met.fiber=inR(v.fiber,g.fiberLow,g.fiberHigh);
   met.protein=inR(v.protein,g.proteinLow,g.proteinHigh);
@@ -677,7 +699,7 @@ function updateScore(){
   const date=document.getElementById('ci-date').value||tod();
   const rec=CI.find(c=>c.date===date);
   const workout=rec?rec.workout:null;
-  const sc=dailyScore({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout,eatout:ciEatOut});
+  const sc=dailyScore({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout,eatout:ciEatOut},liveCtxFor(date));
   document.getElementById('score-num').textContent=sc.pts;
   const bar=document.getElementById('score-bar');bar.style.width=sc.pts+'%';bar.style.background=sc.pts>=100?'var(--green)':sc.pts>=60?'var(--orange)':'var(--red)';
   const v=document.getElementById('score-verdict');
@@ -980,7 +1002,7 @@ function bindTip(cv){
     clearTimeout(tip._h);tip._h=setTimeout(()=>tip.style.display="none",8000);};
   cv.addEventListener('click',h);cv.addEventListener('touchend',e=>{e.preventDefault();h(e);},{passive:false});
 }
-let wlPage=0, wlGeom=null;
+let wlPage=0, wlGeom=null, wlMode='weeks', wlMonthIdx=null;
 function wlBarClick(e){
   if(!wlGeom)return;
   const cv=document.getElementById('cwl'),r=cv.getBoundingClientRect();
@@ -1044,7 +1066,7 @@ function weekValsW(cat,w){const o=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c
 function avgOf(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
 function last4Avg(cat){const w=curWeekIdx();let all=[];for(let i=1;i<=4;i++){const ww=w-i;if(ww<0)break;all=all.concat(weekValsW(cat,ww));}return avgOf(all);}
 function lastWkAvg(cat){const w=curWeekIdx();return w-1>=0?avgOf(weekValsW(cat,w-1)):null;}
-function weekScoresW(w){const a=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))a.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}).pts);}return a;}
+function weekScoresW(w){const a=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))a.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),w*7+d))).pts);}return a;}
 const REPFMT={score:v=>Math.round(v)+'%',steps:v=>Math.round(v).toLocaleString(),sleep:v=>v.toFixed(1)+'h',cals:v=>Math.round(v).toLocaleString(),protein:v=>Math.round(v)+'g',days:v=>v.toFixed(1)};
 const REPUP={score:true,steps:true,sleep:true,protein:true,cals:false};
 function repTrend(cat,t,four){if(t==null||four==null)return'';if(Math.abs(t-four)<1e-9)return'';const up=t>four,good=REPUP[cat]?up:!up;return ' <span style="color:'+(good?'var(--green-d)':'var(--red)')+';font-size:10px">'+(up?'▲':'▼')+'</span>';}
@@ -1098,9 +1120,9 @@ function renderReport(){
   h+=repRow('🍽 Calories','cals',g.calHigh,'max');
   h+=repRow('🥩 Protein','protein',g.proteinLow,'min');
   // workout days/wk
-  {const cnt=ww=>weekValsW('workout',ww).filter(x=>x==='same'||x==='inc').length;const four=avgOf([1,2,3,4].map(i=>w-i).filter(x=>x>=0).map(cnt)),lw=w-1>=0?cnt(w-1):null,tw=cnt(w);h+='<tr><td class="kpi">🏋 Workout</td><td>'+(four==null?'–':four.toFixed(1))+'</td><td>'+(lw==null?'–':lw)+'</td><td>'+tw+'</td><td>days</td><td class="todo tsm" style="color:var(--tx3)">keep going</td></tr>';}
+  {const cnt=ww=>weekValsW('workout',ww).filter(x=>x==='same'||x==='inc').length;const four=avgOf([1,2,3,4].map(i=>w-i).filter(x=>x>=0).map(cnt)),lw=w-1>=0?cnt(w-1):null,tw=cnt(w);const wtgt=(P.workoutTarget==null?4:P.workoutTarget);const loggedDays=weekVals('workout').length,rem=Math.max(0,7-loggedDays),left=Math.max(0,wtgt-tw);const todo=left===0?'<span style="color:var(--green-d)">✓ '+tw+'/'+wtgt+'</span>':(left>rem?'<span style="color:var(--red)">need '+left+', '+rem+' left</span>':left+' more');h+='<tr><td class="kpi">🏋 Workout</td><td>'+(four==null?'–':four.toFixed(1))+'</td><td>'+(lw==null?'–':lw)+'</td><td>'+tw+repTrend('protein',tw,four)+'</td><td>'+wtgt+'/wk</td><td class="todo">'+todo+'</td></tr>';}
   // eat-out days/wk (lower better)
-  {const cnt=ww=>weekValsW('eatOut',ww).filter(x=>x===true).length;const four=avgOf([1,2,3,4].map(i=>w-i).filter(x=>x>=0).map(cnt)),lw=w-1>=0?cnt(w-1):null,tw=cnt(w);h+='<tr><td class="kpi">🍴 Ate out</td><td>'+(four==null?'–':four.toFixed(1))+'</td><td>'+(lw==null?'–':lw)+'</td><td>'+tw+'</td><td>fewer</td><td class="todo tsm" style="color:var(--tx3)">limit</td></tr>';}
+  {const cnt=ww=>weekValsW('eatOut',ww).filter(x=>x===true).length;const four=avgOf([1,2,3,4].map(i=>w-i).filter(x=>x>=0).map(cnt)),lw=w-1>=0?cnt(w-1):null,tw=cnt(w);const allow=(P.eatOutAllow==null?1:P.eatOutAllow);const leftA=allow-tw;const todo=leftA<0?'<span style="color:var(--red)">over by '+(-leftA)+'</span>':(leftA===0?'<span style="color:var(--orange)">none left</span>':'<span style="color:var(--green-d)">'+leftA+' left</span>');h+='<tr><td class="kpi">🍴 Ate out</td><td>'+(four==null?'–':four.toFixed(1))+'</td><td>'+(lw==null?'–':lw)+'</td><td>'+tw+repTrend('cals',tw,four)+'</td><td>'+allow+'/wk</td><td class="todo">'+todo+'</td></tr>';}
   h+='</tbody></table></div>';
   h+='<div class="tsm" style="margin-top:10px;color:var(--tx3);line-height:1.5">▲▼ compares this week so far with your 4-week average (green = good direction). "To do" = the daily average you need over the remaining days to hit the weekly target.</div>';
   h+='</div>';
@@ -1110,27 +1132,39 @@ function openWeights(){wTmp={kpiW:{...(P.kpiW||{})},dietW:{...(P.dietW||{})}};re
 function closeWeights(){document.getElementById('weights-modal').classList.add('hidden');}
 function applyWeights(){P.kpiW=wTmp.kpiW;P.dietW=wTmp.dietW;save();closeWeights();updateScore();renderAll();}
 function wlPageCount(){return Math.max(1,Math.ceil(totalWeeks()/8));}
-function wlNav(d){wlPage=Math.max(0,Math.min(wlPageCount()-1,wlPage+d));drawWeeklyLossChart();}
+function mondayMonth(w){return addDays(wkBase(),w*7).slice(0,7);}
+function monthListWL(){const tw=totalWeeks(),last=Math.max(0,Math.min(tw-1,curWeekIdx())),out=[],seen={};for(let w=0;w<=last;w++){const ym=mondayMonth(w);if(!seen[ym]){seen[ym]=1;out.push(ym);}}return out.length?out:[mondayMonth(0)];}
+function monthLabel(ym){return lp(ym+'-01').toLocaleString('default',{month:'long',year:'numeric'});}
+function setWlMode(mode){wlMode=mode;document.getElementById('wlseg-weeks').classList.toggle('on',mode==='weeks');document.getElementById('wlseg-months').classList.toggle('on',mode==='months');if(mode==='months')wlMonthIdx=monthListWL().length-1;drawWeeklyLossChart();}
+function wlNav(d){if(wlMode==='months'){const ml=monthListWL();wlMonthIdx=Math.max(0,Math.min(ml.length-1,(wlMonthIdx==null?ml.length-1:wlMonthIdx)+d));}else{wlPage=Math.max(0,Math.min(wlPageCount()-1,wlPage+d));}drawWeeklyLossChart();}
 function drawWeeklyLossChart(){
   const cv=document.getElementById('cwl'),ctx=cv.getContext('2d');
   const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=160*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
   const W=cv.offsetWidth||340,H=160;ctx.clearRect(0,0,W,H);
-  const m=metrics(),target=m.reqRate,tw=totalWeeks(),pages=Math.ceil(tw/8);
-  wlPage=Math.max(0,Math.min(pages-1,wlPage));
-  const pageStart=wlPage*8,pageEnd=Math.min(tw,pageStart+8);
-  document.getElementById('wl-label').textContent='Weeks '+(pageStart+1)+'–'+pageEnd;
+  const m=metrics(),target=m.reqRate,tw=totalWeeks();
+  let weeks=[],cols,labelTxt,atStart,atEnd;
+  if(wlMode==='months'){
+    const ml=monthListWL();wlMonthIdx=Math.max(0,Math.min(ml.length-1,wlMonthIdx==null?ml.length-1:wlMonthIdx));
+    const ym=ml[wlMonthIdx];for(let w=0;w<tw;w++)if(mondayMonth(w)===ym)weeks.push(w);
+    cols=Math.max(weeks.length,1);labelTxt=monthLabel(ym);atStart=wlMonthIdx<=0;atEnd=wlMonthIdx>=ml.length-1;
+  }else{
+    const pages=Math.max(1,Math.ceil(tw/8));wlPage=Math.max(0,Math.min(pages-1,wlPage));
+    const ps=wlPage*8,pe=Math.min(tw,ps+8);for(let w=ps;w<pe;w++)weeks.push(w);
+    cols=8;labelTxt='Weeks '+(ps+1)+'–'+pe;atStart=wlPage<=0;atEnd=wlPage>=pages-1;
+  }
+  document.getElementById('wl-label').textContent=labelTxt;
   const pv=document.getElementById('wl-prev'),nx=document.getElementById('wl-next');
-  pv.style.opacity=wlPage<=0?'.25':'1';pv.style.pointerEvents=wlPage<=0?'none':'auto';
-  nx.style.opacity=wlPage>=pages-1?'.25':'1';nx.style.pointerEvents=wlPage>=pages-1?'none':'auto';
+  pv.style.opacity=atStart?'.25':'1';pv.style.pointerEvents=atStart?'none':'auto';
+  nx.style.opacity=atEnd?'.25':'1';nx.style.pointerEvents=atEnd?'none':'auto';
   const lossMap={};weeklyLoss().forEach(x=>lossMap[x.w]=x.loss);
-  const slots=[];for(let i=0;i<8;i++){const w=pageStart+i;if(w<tw)slots.push({i,w,loss:(w in lossMap)?lossMap[w]:null});}
+  const slots=weeks.map((w,i)=>({i,w,loss:(w in lossMap)?lossMap[w]:null}));
   const have=slots.filter(x=>x.loss!=null);
   const msg=document.getElementById('cwl-msg');
   const pd={l:34,r:10,t:30,b:22},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
   const losses=have.map(x=>x.loss);
   let mx=Math.max(target,...(losses.length?losses:[target]))*1.2,mn=Math.min(0,...(losses.length?losses:[0]));if(mn<0)mn*=1.2;if(mx-mn<.1)mx=mn+.1;
   const yS=v=>pd.t+gH-((v-mn)/(mx-mn))*gH;
-  const step=gW/8,bw=Math.min(30,step*0.6),xC=i=>pd.l+step*i+step/2;
+  const step=gW/cols,bw=Math.min(30,step*0.6),xC=i=>pd.l+step*i+step/2;
   [mn,(mn+mx)/2,mx].forEach(v=>{const y=yS(v);ctx.strokeStyle='rgba(60,60,67,.07)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,y);ctx.lineTo(W-pd.r,y);ctx.stroke();ctx.fillStyle='#aeaeb2';ctx.font='9px '+getFont();ctx.textAlign='right';ctx.fillText(v.toFixed(1),pd.l-4,y+3);});
   if(mn<0){ctx.strokeStyle='rgba(60,60,67,.25)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pd.l,yS(0));ctx.lineTo(W-pd.r,yS(0));ctx.stroke();}
   // bars + value labels
@@ -1197,7 +1231,7 @@ function renderScoreTable(){
   const dietDef=[['cals','Calories'],['fiber','Fiber'],['protein','Protein'],['carbs','Carbs']];
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
   const vals=(ws,cat)=>{const o=[];for(let d=0;d<7;d++){const di=ws+d;if(di<0)continue;const rec=CI.find(c=>c.date===addDays(wkBase(),di));if(!rec)continue;
-    if(cat==='__score'){if(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null)o.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}).pts);}
+    if(cat==='__score'){if(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null)o.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),di))).pts);}
     else if(cat==='workout'){if(rec.workout)o.push(rec.workout==='inc'||rec.workout==='same'?1:0);}
     else if(cat==='eatout'){if(rec.eatOut!=null)o.push(rec.eatOut===true?1:0);}
     else if(rec[cat]!=null&&rec[cat]!=='')o.push(rec[cat]);}
@@ -1210,13 +1244,17 @@ function renderScoreTable(){
     if(cat==='eatout'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'× out':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
     const ta=mean(tv),pa=mean(pv);return '<td class="avgcell">'+(ta==null?'–':fmtAvg(cat,ta))+arrow(cat,ta,pa)+'</td>';};
   const catRow=(cat,lbl,cls,rowcls)=>{let r='<tr'+(rowcls?' class="'+rowcls+'"':'')+'><td class="catlbl '+cls+'">'+lbl+'</td>';
-    days.forEach(di=>{const rec=recOf(di);const val=cat==='eatout'?(rec.eatOut==null?null:rec.eatOut):(rec[cat]==null?null:rec[cat]);const s=statusFor(cat,val,g);const vt=(cat==='workout'||cat==='eatout')?'':fmtVal(cat,val);r+='<td style="color:'+s.c+'"><b>'+s.i+'</b>'+(vt!==''?' <span style="font-size:9px">'+vt+'</span>':'')+'</td>';});
+    days.forEach(di=>{const rec=recOf(di);const date=addDays(wkBase(),di);let s,vt='';
+      if(cat==='eatout'){if(rec.eatOut==null)s={i:'–',c:'var(--tx3)'};else if(rec.eatOut===true)s=dayCtx(date).eatoutMet?{i:'◐',c:'var(--orange)'}:{i:'✗',c:'var(--red)'};else s={i:'✓',c:'var(--green-d)'};}
+      else if(cat==='workout'){if(rec.workout==null||rec.workout==='')s={i:'–',c:'var(--tx3)'};else if(woMet(rec.workout))s={i:rec.workout==='inc'?'↑':'=',c:'var(--green-d)'};else s=dayCtx(date).workoutMet?{i:'◐',c:'var(--orange)'}:{i:'✗',c:'var(--red)'};}
+      else{const val=rec[cat]==null?null:rec[cat];s=statusFor(cat,val,g);vt=fmtVal(cat,val);}
+      r+='<td style="color:'+s.c+'"><b>'+s.i+'</b>'+(vt!==''?' <span style="font-size:9px">'+vt+'</span>':'')+'</td>';});
     return r+avgCell(cat)+'</tr>';};
   let body='';
   const tgt=st.tgt;
   // Score (top)
   body+='<tr class="r-score"><td class="catlbl">Score</td>';
-  days.forEach(di=>{const rec=recOf(di);const sc=dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut});const any=rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null;const col=tgt!=null?(any?(sc.pts>=tgt?'var(--green-d)':'var(--red)'):'var(--tx3)'):(sc.pts>=100?'var(--green-d)':sc.pts>=60?'var(--orange)':'var(--tx)');body+='<td style="font-weight:700;color:'+col+'">'+(any?sc.pts+'%':'–')+'</td>';});
+  days.forEach(di=>{const rec=recOf(di);const sc=dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),di)));const any=rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null;const col=tgt!=null?(any?(sc.pts>=tgt?'var(--green-d)':'var(--red)'):'var(--tx3)'):(sc.pts>=100?'var(--green-d)':sc.pts>=60?'var(--orange)':'var(--tx)');body+='<td style="font-weight:700;color:'+col+'">'+(any?sc.pts+'%':'–')+'</td>';});
   // score avg cell with target colour + trend
   {const tv=vals(wStart,'__score'),pv=vals(prevStart,'__score');const ta=mean(tv),pa=mean(pv);const col=(tgt!=null&&ta!=null)?(ta>=tgt?'var(--green-d)':'var(--red)'):'var(--tx)';body+='<td class="avgcell" style="color:'+col+'">'+(ta==null?'–':Math.round(ta)+'%')+arrow('__score',ta,pa)+'</td></tr>';}
   // Weight (separated)
@@ -1256,7 +1294,7 @@ function drawScoreChart(){
     const w=pageStart+i;if(w>=totalDays)break;
     const date=addDays(wkBase(),w);
     const rec=CI.find(c=>c.date===date);
-    const sc=dailyScore(rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}:{});
+    const sc=dailyScore(rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}:{},dayCtx(date));
     const any=rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null);
     if(any)logged++;
     if(sc.pts>=100)fullDays++;
@@ -1273,7 +1311,7 @@ function drawScoreChart(){
   ctx.textAlign='center';ctx.fillStyle='#8e8e93';ctx.font='9px '+getFont();
   for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const dt=new Date(addDays(wkBase(),w)+' 00:00');ctx.fillText(dt.getDate(),xC(i),H-8);}
   // weekly average vs target
-  const wv=[];for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const rec=CI.find(c=>c.date===addDays(wkBase(),w));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))wv.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}).pts);}
+  const wv=[];for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const rec=CI.find(c=>c.date===addDays(wkBase(),w));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))wv.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),w))).pts);}
   const wavg=wv.length?Math.round(wv.reduce((a,b)=>a+b,0)/wv.length):null;
   let msg='';
   if(tgt!=null&&wavg!=null){const ok=wavg>=tgt;msg='Week average <b style="color:'+(ok?'var(--green-d)':'var(--red)')+'">'+wavg+'%</b> vs target <b>'+tgt+'%</b> — '+(ok?'week met ✓':'below target')+'. Met on '+metDays+'/'+logged+' logged days.';}
@@ -1311,6 +1349,8 @@ function renderGTmp(){
   document.getElementById('g-sleep').textContent=gTmp.sleep.toFixed(1)+' h';
   document.getElementById('g-stepLow').textContent=gTmp.stepLow.toLocaleString();
   document.getElementById('g-stepHigh').textContent=gTmp.stepHigh.toLocaleString();
+  document.getElementById('g-woTarget').textContent=gTmp.woTarget;
+  document.getElementById('g-eatAllow').textContent=gTmp.eatAllow;
   document.getElementById('g-calLow').textContent=gTmp.calLow.toLocaleString();
   document.getElementById('g-calHigh').textContent=gTmp.calHigh.toLocaleString();
   document.getElementById('g-fiberLow').textContent=gTmp.fiberLow;
@@ -1325,6 +1365,8 @@ function gStep(key,d){
   if(key==='sleep')gTmp.sleep=Math.max(4,Math.min(10,gTmp.sleep));
   if(key==='stepLow')gTmp.stepLow=Math.max(0,Math.min(gTmp.stepHigh,gTmp.stepLow));
   if(key==='stepHigh')gTmp.stepHigh=Math.max(gTmp.stepLow,Math.min(40000,gTmp.stepHigh));
+  if(key==='woTarget')gTmp.woTarget=Math.max(0,Math.min(7,gTmp.woTarget));
+  if(key==='eatAllow')gTmp.eatAllow=Math.max(0,Math.min(7,gTmp.eatAllow));
   if(key==='calLow')gTmp.calLow=Math.max(0,Math.min(gTmp.calHigh,gTmp.calLow));
   if(key==='calHigh')gTmp.calHigh=Math.max(gTmp.calLow,Math.min(8000,gTmp.calHigh));
   if(key==='fiberLow')gTmp.fiberLow=Math.max(0,Math.min(gTmp.fiberHigh,gTmp.fiberLow));
@@ -1335,7 +1377,7 @@ function gStep(key,d){
   if(key==='proteinHigh')gTmp.proteinHigh=Math.max(gTmp.proteinLow,Math.min(400,gTmp.proteinHigh));
   renderGTmp();
 }
-function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;gTmp={...goals()};renderGTmp();mPreview();document.getElementById('target-modal').classList.remove('hidden');}
+function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;gTmp={...goals(),woTarget:(P.workoutTarget==null?4:P.workoutTarget),eatAllow:(P.eatOutAllow==null?1:P.eatOutAllow)};renderGTmp();mPreview();document.getElementById('target-modal').classList.remove('hidden');}
 function closeTarget(){document.getElementById('target-modal').classList.add('hidden');}
 ['m-start','m-sdate','m-tgt','m-date'].forEach(id=>document.getElementById(id).addEventListener('input',mPreview));
 function planLine(sWt,sDate,tWt,tDate){
@@ -1351,6 +1393,7 @@ function mPreview(){
 function applyTargetModal(){
   P.sleepTarget=gTmp.sleep;P.stepLow=gTmp.stepLow;P.stepHigh=gTmp.stepHigh;P.calLow=gTmp.calLow;P.calHigh=gTmp.calHigh;
   P.fiberLow=gTmp.fiberLow;P.fiberHigh=gTmp.fiberHigh;P.carbLow=gTmp.carbLow;P.carbHigh=gTmp.carbHigh;P.proteinLow=gTmp.proteinLow;P.proteinHigh=gTmp.proteinHigh;
+  P.workoutTarget=gTmp.woTarget;P.eatOutAllow=gTmp.eatAllow;
   if(commitPlan(parseFloat(document.getElementById('m-start').value),document.getElementById('m-sdate').value,parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value)){updateGoalHints();updateScore();closeTarget();}
 }
 
