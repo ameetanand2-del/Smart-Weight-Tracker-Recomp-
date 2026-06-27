@@ -262,6 +262,8 @@ canvas{display:block;width:100%}
     <div class="drow"><span class="dl sub">Creatine <span id="creatine-hint" class="tsm"></span></span><select class="dsel" id="sel-creatine" onchange="setSuppSel('creatine',this.value)"></select></div>
     <div class="drow"><span class="dl sub">Magnesium <span id="magnesium-hint" class="tsm"></span></span><select class="dsel" id="sel-magnesium" onchange="setSuppSel('magnesium',this.value)"></select></div>
     <div class="drow"><span class="dl sub">L-theanine <span id="ltheanine-hint" class="tsm"></span></span><select class="dsel" id="sel-ltheanine" onchange="setSuppSel('ltheanine',this.value)"></select></div>
+    <div class="drow"><span class="dl sub">Vitamin D3 <span id="vitd3-hint" class="tsm"></span></span><select class="dsel" id="sel-vitd3" onchange="setSuppSel('vitd3',this.value)"></select></div>
+    <div class="drow"><span class="dl sub">Vitamin K2 <span id="vitk2-hint" class="tsm"></span></span><select class="dsel" id="sel-vitk2" onchange="setSuppSel('vitk2',this.value)"></select></div>
     <div class="drow"><span class="dl sub">Omega-3</span><select class="dsel" id="sel-omega" onchange="selOmega(this.value)"><option value="">—</option><option value="pills">2 pills</option><option value="sardines">Sardines</option><option value="salmon">Salmon</option><option value="none">None</option></select></div>
     <div class="drow"><span class="dl sub">Caffeine <span id="caff-hint" class="tsm"></span></span><select class="dsel" id="sel-caff" onchange="setCaffSel(this.value)"></select></div>
 
@@ -375,6 +377,8 @@ canvas{display:block;width:100%}
           <div><span style="background:#64d2ff"></span>Magnesium</div>
           <div><span style="background:#ac8e68"></span>Omega-3</div>
           <div><span style="background:#a0e85b"></span>L-theanine</div>
+          <div><span style="background:#ff8c42"></span>Vit D3</div>
+          <div><span style="background:#2dd4bf"></span>Vit K2</div>
           <div><span style="background:#d4a017"></span>Caffeine</div>
         </div>
       </div>
@@ -470,6 +474,8 @@ canvas{display:block;width:100%}
       <div class="row sub"><label>Creatine target (g)</label><div class="gstep"><button class="stp2" onclick="gStep('creatineTarget',-1)">−</button><span id="g-creatineTarget">5</span><button class="stp2" onclick="gStep('creatineTarget',1)">+</button></div></div>
       <div class="row sub"><label>Magnesium target (pills)</label><div class="gstep"><button class="stp2" onclick="gStep('magnesiumTarget',-1)">−</button><span id="g-magnesiumTarget">1</span><button class="stp2" onclick="gStep('magnesiumTarget',1)">+</button></div></div>
       <div class="row sub"><label>L-theanine target (pills)</label><div class="gstep"><button class="stp2" onclick="gStep('ltheanineTarget',-1)">−</button><span id="g-ltheanineTarget">1</span><button class="stp2" onclick="gStep('ltheanineTarget',1)">+</button></div></div>
+      <div class="row sub"><label>Vitamin D3 target (pills)</label><div class="gstep"><button class="stp2" onclick="gStep('vitd3Target',-1)">−</button><span id="g-vitd3Target">1</span><button class="stp2" onclick="gStep('vitd3Target',1)">+</button></div></div>
+      <div class="row sub"><label>Vitamin K2 target (pills)</label><div class="gstep"><button class="stp2" onclick="gStep('vitk2Target',-1)">−</button><span id="g-vitk2Target">1</span><button class="stp2" onclick="gStep('vitk2Target',1)">+</button></div></div>
       <div class="row sub"><label>Caffeine min (mg)</label><div class="gstep"><button class="stp2" onclick="gStep('caffLow',-5)">−</button><span id="g-caffLow">25</span><button class="stp2" onclick="gStep('caffLow',5)">+</button></div></div>
       <div class="row sub" style="border-bottom:none"><label>Caffeine max (mg)</label><div class="gstep"><button class="stp2" onclick="gStep('caffHigh',-5)">−</button><span id="g-caffHigh">50</span><button class="stp2" onclick="gStep('caffHigh',5)">+</button></div></div>
     </div>
@@ -597,20 +603,21 @@ function loadDemo(){
   const start=addDays(tod(),-28);
   P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84),sleepTarget:7,stepLow:8000,stepHigh:10000,calLow:2000,calHigh:2500,fiberLow:25,fiberHigh:40,carbLow:150,carbHigh:250,proteinLow:120,proteinHigh:180,workoutTarget:5,eatOutAllow:1,caffLow:25,caffHigh:50,creatineTarget:5,magnesiumTarget:1,ltheanineTarget:1,targetHist:[{w:0,t:65},{w:2,t:75}]};CI=[];
   const wos=['below','same','inc'];
-  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;const creatine=Math.random()>.2?5:(Math.random()>.5?3:0);const magnesium=Math.random()>.25?(Math.random()>.5?2:1):0;const ltheanine=Math.random()>.5?1:0;const omega3=['pills','sardines','salmon','none'][Math.random()>.35?Math.floor(Math.random()*3):3];const caffeine=Math.round((Math.random()*60)/5)*5;const sore=Math.random()>.5?(1+Math.floor(Math.random()*5)):null;const brk=Math.random()>.8?(Math.random()>.5?'full':'half'):null;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut,creatine,magnesium,ltheanine,omega3,caffeine,sore,brk});}
+  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;const creatine=[0,3,5,5,5,8,10][Math.floor(Math.random()*7)];const magnesium=Math.random()>.25?(Math.random()>.5?2:1):0;const ltheanine=Math.random()>.5?1:0;const vitd3=Math.random()>.3?1:0;const vitk2=Math.random()>.4?1:0;const omega3=['pills','sardines','salmon','none'][Math.random()>.35?Math.floor(Math.random()*3):3];const caffeine=Math.round((Math.random()*60)/5)*5;const sore=Math.random()>.5?(1+Math.floor(Math.random()*5)):null;const brk=Math.random()>.8?(Math.random()>.5?'full':'half'):null;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut,creatine,magnesium,ltheanine,vitd3,vitk2,omega3,caffeine,sore,brk});}
   save();launchApp();
 }
 
 // CHECK-IN
 let selEnergyV=null, ciSleep=null, ciSteps=null, ciDiet={cals:null,fiber:null,carbs:null,protein:null}, woSel=null, ciEatOut=false;
-let ciSupp={creatine:null,magnesium:null,ltheanine:null}, ciOmega=null, ciCaff=null, ciSore=null, ciBrk=null;
-function goals(){return {sleep:P.sleepTarget||7,stepLow:P.stepLow||P.stepTarget||8000,stepHigh:P.stepHigh||((P.stepLow||P.stepTarget||8000)+2000),calLow:P.calLow||2000,calHigh:P.calHigh||2500,fiberLow:P.fiberLow||25,fiberHigh:P.fiberHigh||40,carbLow:P.carbLow||150,carbHigh:P.carbHigh||250,proteinLow:P.proteinLow||120,proteinHigh:P.proteinHigh||180,caffLow:P.caffLow==null?25:P.caffLow,caffHigh:P.caffHigh==null?50:P.caffHigh,creatineTarget:P.creatineTarget==null?5:P.creatineTarget,magnesiumTarget:P.magnesiumTarget==null?1:P.magnesiumTarget,ltheanineTarget:P.ltheanineTarget==null?1:P.ltheanineTarget};}
+let ciSupp={creatine:null,magnesium:null,ltheanine:null,vitd3:null,vitk2:null}, ciOmega=null, ciCaff=null, ciSore=null, ciBrk=null;
+function goals(){return {sleep:P.sleepTarget||7,stepLow:P.stepLow||P.stepTarget||8000,stepHigh:P.stepHigh||((P.stepLow||P.stepTarget||8000)+2000),calLow:P.calLow||2000,calHigh:P.calHigh||2500,fiberLow:P.fiberLow||25,fiberHigh:P.fiberHigh||40,carbLow:P.carbLow||150,carbHigh:P.carbHigh||250,proteinLow:P.proteinLow||120,proteinHigh:P.proteinHigh||180,caffLow:P.caffLow==null?25:P.caffLow,caffHigh:P.caffHigh==null?50:P.caffHigh,creatineTarget:P.creatineTarget==null?5:P.creatineTarget,magnesiumTarget:P.magnesiumTarget==null?1:P.magnesiumTarget,ltheanineTarget:P.ltheanineTarget==null?1:P.ltheanineTarget,vitd3Target:P.vitd3Target==null?1:P.vitd3Target,vitk2Target:P.vitk2Target==null?1:P.vitk2Target};}
 const DIET_DEF={cals:2500,fiber:25,carbs:200,protein:150};
 function selEnergy(v){selEnergyV=v;document.querySelectorAll('#e-row button').forEach(b=>b.classList.toggle('sel',+b.dataset.v===v));updateScore();}
 function stepSleep(d){ciSleep=ciSleep==null?7:Math.max(4,Math.min(10,+(ciSleep+d).toFixed(1)));renderStepVals();updateScore();}
 function stepSteps(d){const g=goals();ciSteps=ciSteps==null?g.stepLow:Math.max(0,ciSteps+d);renderStepVals();updateScore();}
 function stepDiet(key,d){ciDiet[key]=ciDiet[key]==null?DIET_DEF[key]:Math.max(0,ciDiet[key]+d);renderStepVals();updateScore();}
 function fillSel(id,lo,hi,step,fmt){const el=document.getElementById(id);if(!el)return;let s='<option value="">—</option>';for(let v=lo;v<=hi+1e-9;v=+(v+step).toFixed(2))s+='<option value="'+v+'">'+fmt(v)+'</option>';el.innerHTML=s;}
+function fillSelList(id,list,fmt){const el=document.getElementById(id);if(!el)return;let s='<option value="">—</option>';list.forEach(v=>{s+='<option value="'+v+'">'+fmt(v)+'</option>';});el.innerHTML=s;}
 function fillYesterdaySelects(){
   fillSel('sel-sleep',4,12,0.5,v=>v.toFixed(1)+' h');
   fillSel('sel-steps',0,25000,250,v=>v.toLocaleString());
@@ -618,9 +625,11 @@ function fillYesterdaySelects(){
   fillSel('sel-fiber',0,80,1,v=>v+' g');
   fillSel('sel-protein',0,350,5,v=>v+' g');
   fillSel('sel-carbs',0,600,5,v=>v+' g');
-  fillSel('sel-creatine',0,20,1,v=>v+' g');
+  fillSelList('sel-creatine',[0,3,5,8,10,15,20],v=>v+' g');
   fillSel('sel-magnesium',0,6,1,v=>v+(v===1?' pill':' pills'));
   fillSel('sel-ltheanine',0,6,1,v=>v+(v===1?' pill':' pills'));
+  fillSel('sel-vitd3',0,6,1,v=>v+(v===1?' pill':' pills'));
+  fillSel('sel-vitk2',0,6,1,v=>v+(v===1?' pill':' pills'));
   fillSel('sel-caff',0,300,5,v=>v+' mg');
 }
 function setSleepSel(v){ciSleep=v===''?null:parseFloat(v);updateScore();}
@@ -647,8 +656,8 @@ function updateGoalHints(){const g=goals();
 function inR(x,lo,hi){return x!=null&&x>=lo&&x<=hi;}
 const KPIS=['sleep','steps','diet','workout','eatout','supplements'];
 const DIETSUB=['cals','fiber','protein','carbs'];
-const SUPPSUB=['creatine','magnesium','omega3','ltheanine','caffeine'];
-const SUPP_LBL={creatine:'Creatine',magnesium:'Magnesium',omega3:'Omega-3',ltheanine:'L-theanine',caffeine:'Caffeine'};
+const SUPPSUB=['creatine','magnesium','omega3','ltheanine','vitd3','vitk2','caffeine'];
+const SUPP_LBL={creatine:'Creatine',magnesium:'Magnesium',omega3:'Omega-3',ltheanine:'L-theanine',vitd3:'Vitamin D3',vitk2:'Vitamin K2',caffeine:'Caffeine'};
 function resolveW(setObj,keys){
   const set={},unset=[];let sum=0;
   keys.forEach(k=>{const v=setObj?setObj[k]:null;if(v!=null&&!isNaN(v)){set[k]=+v;sum+=+v;}else unset.push(k);});
@@ -662,7 +671,7 @@ function resolveW(setObj,keys){
 function mainW(){return resolveW(P.kpiW,KPIS);}
 function dietSubW(){return resolveW(P.dietW,DIETSUB);}
 function suppSubW(){return resolveW(P.suppW,SUPPSUB);}
-function suppMet(v,k,g){if(k==='omega3')return v.omega3!=null&&v.omega3!=='none';if(k==='caffeine')return inR(v.caffeine,g.caffLow,g.caffHigh);if(k==='creatine')return v.creatine!=null&&v.creatine>=g.creatineTarget;if(k==='magnesium')return v.magnesium!=null&&v.magnesium>=g.magnesiumTarget;if(k==='ltheanine')return v.ltheanine!=null&&v.ltheanine>=g.ltheanineTarget;return v[k]===true;}
+function suppMet(v,k,g){if(k==='omega3')return v.omega3!=null&&v.omega3!=='none';if(k==='caffeine')return inR(v.caffeine,g.caffLow,g.caffHigh);if(k==='creatine')return v.creatine!=null&&v.creatine>=g.creatineTarget;if(k==='magnesium')return v.magnesium!=null&&v.magnesium>=g.magnesiumTarget;if(k==='ltheanine')return v.ltheanine!=null&&v.ltheanine>=g.ltheanineTarget;if(k==='vitd3')return v.vitd3!=null&&v.vitd3>=g.vitd3Target;if(k==='vitk2')return v.vitk2!=null&&v.vitk2>=g.vitk2Target;return v[k]===true;}
 function curWeekIdx(){return Math.max(0,Math.floor(dbtw(wkBase(),tod())/7));}
 function isSunday(){return lp(tod()).getDay()===0;}
 function editTgtWeek(){return isSunday()?curWeekIdx()+1:curWeekIdx();}
@@ -694,7 +703,7 @@ function liveCtxFor(date){
   for(let d=0;d<=span;d++){const dt=addDays(ws,d);const rec=CI.find(c=>c.date===dt);let ate,wo;if(dt===date){ate=ciEatOut===true;wo=woMet(woSel);}else{if(!rec)continue;ate=rec.eatOut===true;wo=woMet(rec.workout);}if(ate)eat++;if(!wo)rest++;if(dt===date)return{eatoutMet:ate?eat<=ea:true,workoutMet:wo?true:rest<=(7-wt)};}
   return{eatoutMet:true,workoutMet:true};
 }
-function svals(rec){return rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut,creatine:rec.creatine,magnesium:rec.magnesium,ltheanine:rec.ltheanine,omega3:rec.omega3,caffeine:rec.caffeine}:{};}
+function svals(rec){return rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut,creatine:rec.creatine,magnesium:rec.magnesium,ltheanine:rec.ltheanine,vitd3:rec.vitd3,vitk2:rec.vitk2,omega3:rec.omega3,caffeine:rec.caffeine}:{};}
 function dailyScore(v,ctx){
   const g=goals(),mw=mainW(),dw=dietSubW(),sw=suppSubW(),met={};
   met.energy=v.energy!=null&&v.energy>=3; // tracked, not scored
@@ -749,7 +758,7 @@ function saveCI(){
   const wt=parseFloat(document.getElementById('ci-wt').value);
   if(!wt){alert('Enter your weight.');return;}
   const note=document.getElementById('ci-note').value.trim();
-  upsertCI(date,{weight:wt,energy:selEnergyV,note,workout:woSel,creatine:ciSupp.creatine,magnesium:ciSupp.magnesium,ltheanine:ciSupp.ltheanine,omega3:ciOmega,caffeine:ciCaff,sore:ciSore}); // today
+  upsertCI(date,{weight:wt,energy:selEnergyV,note,workout:woSel,creatine:ciSupp.creatine,magnesium:ciSupp.magnesium,ltheanine:ciSupp.ltheanine,vitd3:ciSupp.vitd3,vitk2:ciSupp.vitk2,omega3:ciOmega,caffeine:ciCaff,sore:ciSore}); // today
   const y={};
   if(ciSleep!=null)y.sleep=ciSleep;
   if(ciSteps!=null)y.steps=ciSteps;
@@ -775,7 +784,7 @@ function loadForDate(){
   ciDiet={cals:yd&&yd.cals!=null?yd.cals:null,fiber:yd&&yd.fiber!=null?yd.fiber:null,carbs:yd&&yd.carbs!=null?yd.carbs:null,protein:yd&&yd.protein!=null?yd.protein:null};
   ciEatOut=yd&&yd.eatOut===true;
   renderEatOut();
-  ciSupp={creatine:td&&td.creatine!=null?td.creatine:null,magnesium:td&&td.magnesium!=null?td.magnesium:null,ltheanine:td&&td.ltheanine!=null?td.ltheanine:null};
+  ciSupp={creatine:td&&td.creatine!=null?td.creatine:null,magnesium:td&&td.magnesium!=null?td.magnesium:null,ltheanine:td&&td.ltheanine!=null?td.ltheanine:null,vitd3:td&&td.vitd3!=null?td.vitd3:null,vitk2:td&&td.vitk2!=null?td.vitk2:null};
   ciOmega=td&&td.omega3!=null?td.omega3:null;
   ciCaff=td&&td.caffeine!=null?td.caffeine:null;
   ciSore=td&&td.sore!=null?td.sore:null;
@@ -799,11 +808,11 @@ function renderBreak(){const e=document.getElementById('sel-brk');if(e)e.value=c
 function renderSupp(){
   const g=goals();
   const sv=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val==null?'':String(val);};
-  sv('sel-creatine',ciSupp.creatine);sv('sel-magnesium',ciSupp.magnesium);sv('sel-ltheanine',ciSupp.ltheanine);sv('sel-caff',ciCaff);
+  sv('sel-creatine',ciSupp.creatine);sv('sel-magnesium',ciSupp.magnesium);sv('sel-ltheanine',ciSupp.ltheanine);sv('sel-vitd3',ciSupp.vitd3);sv('sel-vitk2',ciSupp.vitk2);sv('sel-caff',ciCaff);
   const om=document.getElementById('sel-omega');if(om)om.value=ciOmega==null?'':ciOmega;
   const so=document.getElementById('sel-sore');if(so)so.value=ciSore==null?'':String(ciSore);
   const sh=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
-  sh('creatine-hint','≥'+g.creatineTarget+'g');sh('magnesium-hint','≥'+g.magnesiumTarget);sh('ltheanine-hint','≥'+g.ltheanineTarget);sh('caff-hint',g.caffLow+'–'+g.caffHigh+'mg');
+  sh('creatine-hint','≥'+g.creatineTarget+'g');sh('magnesium-hint','≥'+g.magnesiumTarget);sh('ltheanine-hint','≥'+g.ltheanineTarget);sh('vitd3-hint','≥'+g.vitd3Target);sh('vitk2-hint','≥'+g.vitk2Target);sh('caff-hint',g.caffLow+'–'+g.caffHigh+'mg');
 }
 function loadTodayCI(){document.getElementById('ci-date').value=tod();loadForDate();}
 // WORKOUT (saved separately)
@@ -1249,7 +1258,7 @@ function scNavState(){
   if(tl)tl.innerHTML=tgt==null?'<span style="color:var(--tx3)">No target set for this week</span>':'🎯 Target this week: <span style="color:var(--blue)">'+tgt+'%</span> of goals/day';
   return {win,totalDays,pages,pageStart,pageEnd,viewedWeek,tgt};
 }
-const SC_COL={sleep:'#5e5ce6',steps:'#30b0c7',workout:'#0a84ff',eatout:'#ff9f0a',cals:'#ff375f',fiber:'#30d158',protein:'#bf5af2',carbs:'#ffd60a',creatine:'#ff6482',magnesium:'#64d2ff',omega3:'#ac8e68',ltheanine:'#a0e85b',caffeine:'#d4a017'};
+const SC_COL={sleep:'#5e5ce6',steps:'#30b0c7',workout:'#0a84ff',eatout:'#ff9f0a',cals:'#ff375f',fiber:'#30d158',protein:'#bf5af2',carbs:'#ffd60a',creatine:'#ff6482',magnesium:'#64d2ff',omega3:'#ac8e68',ltheanine:'#a0e85b',vitd3:'#ff8c42',vitk2:'#2dd4bf',caffeine:'#d4a017'};
 function setScView(v){scView=v;document.getElementById('scseg-chart').classList.toggle('on',v==='chart');document.getElementById('scseg-table').classList.toggle('on',v==='table');document.getElementById('sc-chart-wrap').style.display=v==='chart'?'block':'none';document.getElementById('sc-table-wrap').style.display=v==='table'?'block':'none';renderScore();}
 function renderScore(){if(scView==='chart')drawScoreChart();else renderScoreTable();}
 function scNav(d){scPage=Math.max(0,Math.min(scPageCount()-1,scPage+d));renderScore();}
@@ -1269,6 +1278,8 @@ function statusFor(cat,val,g){
     case 'creatine':return val>=g.creatineTarget?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
     case 'magnesium':return val>=g.magnesiumTarget?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
     case 'ltheanine':return val>=g.ltheanineTarget?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
+    case 'vitd3':return val>=g.vitd3Target?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
+    case 'vitk2':return val>=g.vitk2Target?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
     case 'omega3':return (val!=null&&val!=='none')?{i:'✓',c:'var(--green-d)'}:{i:'✗',c:'var(--red)'};
     case 'caffeine':return rng(g.caffLow,g.caffHigh);
     case 'sore':return val==null?{i:'–',c:'var(--tx3)'}:{i:String(val),c:val>=4?'var(--red)':val===3?'var(--orange)':'var(--green-d)'};
@@ -1276,7 +1287,7 @@ function statusFor(cat,val,g){
   }
   return{i:'–',c:'var(--tx3)'};
 }
-function fmtVal(cat,val){if(val==null||val===''||val===true||val===false)return'';if(cat==='sleep')return val+'h';if(cat==='steps')return val>=1000?(val/1000).toFixed(1)+'k':val;if(cat==='caffeine')return val+'mg';if(cat==='creatine')return val+'g';if(cat==='magnesium'||cat==='ltheanine')return val+'';if(cat==='omega3')return ({pills:'pills',sardines:'sard.',salmon:'salmon',none:'—'}[val]||'');if(cat==='brk')return ({half:'½',full:'full'}[val]||'');if(cat==='sore')return '';return val+'';}
+function fmtVal(cat,val){if(val==null||val===''||val===true||val===false)return'';if(cat==='sleep')return val+'h';if(cat==='steps')return val>=1000?(val/1000).toFixed(1)+'k':val;if(cat==='caffeine')return val+'mg';if(cat==='creatine')return val+'g';if(cat==='magnesium'||cat==='ltheanine'||cat==='vitd3'||cat==='vitk2')return val+'';if(cat==='omega3')return ({pills:'pills',sardines:'sard.',salmon:'salmon',none:'—'}[val]||'');if(cat==='brk')return ({half:'½',full:'full'}[val]||'');if(cat==='sore')return '';return val+'';}
 function renderScoreTable(){
   const st=scNavState(),g=goals(),totalDays=st.totalDays,wStart=st.pageStart,prevStart=wStart-7;
   const days=[];for(let d=0;d<7;d++){const di=wStart+d;if(di<totalDays)days.push(di);}
@@ -1295,8 +1306,8 @@ function renderScoreTable(){
     else if(cat==='brk'){if(rec.brk!=null)o.push(rec.brk==='full'?1:rec.brk==='half'?0.5:0);}
     else if(rec[cat]!=null&&rec[cat]!=='')o.push(rec[cat]);}
     return o;};
-  const GOODUP={'__score':true,weight:false,energy:true,sleep:true,steps:true,cals:null,fiber:true,protein:true,carbs:null,workout:true,eatout:false,creatine:true,magnesium:true,omega3:true,ltheanine:true,caffeine:null,sore:false,brk:null};
-  const fmtAvg=(cat,v)=>{if(cat==='__score')return Math.round(v)+'%';if(cat==='weight')return v.toFixed(1);if(cat==='energy')return v.toFixed(1);if(cat==='sleep')return v.toFixed(1)+'h';if(cat==='steps')return v>=1000?(v/1000).toFixed(1)+'k':Math.round(v);if(cat==='creatine')return v.toFixed(1)+'g';if(cat==='magnesium'||cat==='ltheanine')return v.toFixed(1);if(cat==='caffeine')return Math.round(v)+'mg';if(cat==='sore')return v.toFixed(1);return Math.round(v);};
+  const GOODUP={'__score':true,weight:false,energy:true,sleep:true,steps:true,cals:null,fiber:true,protein:true,carbs:null,workout:true,eatout:false,creatine:true,magnesium:true,omega3:true,ltheanine:true,vitd3:true,vitk2:true,caffeine:null,sore:false,brk:null};
+  const fmtAvg=(cat,v)=>{if(cat==='__score')return Math.round(v)+'%';if(cat==='weight')return v.toFixed(1);if(cat==='energy')return v.toFixed(1);if(cat==='sleep')return v.toFixed(1)+'h';if(cat==='steps')return v>=1000?(v/1000).toFixed(1)+'k':Math.round(v);if(cat==='creatine')return v.toFixed(1)+'g';if(cat==='magnesium'||cat==='ltheanine'||cat==='vitd3'||cat==='vitk2')return v.toFixed(1);if(cat==='caffeine')return Math.round(v)+'mg';if(cat==='sore')return v.toFixed(1);return Math.round(v);};
   const arrow=(cat,t,p)=>{if(t==null||p==null)return'';if(Math.abs(t-p)<1e-9)return'<span style="color:var(--tx3);font-size:9px"> –</span>';const up=t>p,gu=GOODUP[cat];const col=gu==null?'var(--tx3)':((up===gu)?'var(--green-d)':'var(--red)');return '<span style="color:'+col+';font-size:9px"> '+(up?'▲':'▼')+'</span>';};
   const avgCell=cat=>{const tv=vals(wStart,cat),pv=vals(prevStart,cat);
     if(cat==='workout'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'✓':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
@@ -1329,7 +1340,7 @@ function renderScoreTable(){
   // diet sub (lighter, separated)
   dietDef.forEach(([cat,lbl],i)=>{body+=catRow(cat,lbl,'sub',i===0?'r-dietstart':'');});
   // supplement subs
-  [['creatine','Creatine'],['magnesium','Magnesium'],['omega3','Omega-3'],['ltheanine','L-thean.'],['caffeine','Caffeine']].forEach(([cat,lbl],i)=>{body+=catRow(cat,lbl,'sub',i===0?'r-dietstart':'');});
+  [['creatine','Creatine'],['magnesium','Magnesium'],['omega3','Omega-3'],['ltheanine','L-thean.'],['vitd3','Vit D3'],['vitk2','Vit K2'],['caffeine','Caffeine']].forEach(([cat,lbl],i)=>{body+=catRow(cat,lbl,'sub',i===0?'r-dietstart':'');});
   // Dates (bottom) — Avg column labelled here
   body+='<tr class="r-date"><td class="catlbl"></td>';
   days.forEach(di=>{const dt=new Date(addDays(wkBase(),di)+' 00:00');body+='<td><div style="font-weight:700">'+dt.getDate()+'</div><div style="font-size:8px;color:var(--tx3)">'+dt.toLocaleDateString('en-AU',{weekday:'short'})+'</div></td>';});
@@ -1341,7 +1352,7 @@ function renderScoreLeft(){
   const groups=[
     [['sleep','Sleep',mw.sleep],['steps','Steps',mw.steps],['workout','Workout',mw.workout],['eatout','Eat out',mw.eatout]],
     [['cals','Calories',dh*dw.cals/100],['fiber','Fiber',dh*dw.fiber/100],['protein','Protein',dh*dw.protein/100],['carbs','Carbs',dh*dw.carbs/100]],
-    [['creatine','Creatine',sh*sw.creatine/100],['magnesium','Magnesium',sh*sw.magnesium/100],['omega3','Omega-3',sh*sw.omega3/100],['ltheanine','L-thean.',sh*sw.ltheanine/100],['caffeine','Caffeine',sh*sw.caffeine/100]]
+    [['creatine','Creatine',sh*sw.creatine/100],['magnesium','Magnesium',sh*sw.magnesium/100],['omega3','Omega-3',sh*sw.omega3/100],['ltheanine','L-thean.',sh*sw.ltheanine/100],['vitd3','Vit D3',sh*sw.vitd3/100],['vitk2','Vit K2',sh*sw.vitk2/100],['caffeine','Caffeine',sh*sw.caffeine/100]]
   ];
   const band=([k,lbl,w])=>'<div style="flex-grow:'+Math.max(w,0.001)+';flex-basis:0;min-height:0;display:flex;align-items:center;overflow:hidden"><span style="font-size:9px;color:var(--tx2);line-height:1;font-weight:600">'+lbl+'</span></div>';
   const sep='<div style="height:8px;flex:none;display:flex;align-items:center"><div style="height:2px;width:100%;background:var(--sep);border-radius:2px"></div></div>';
@@ -1358,8 +1369,8 @@ function drawScoreChart(){
   const ns=scNavState(),win=ns.win,totalDays=ns.totalDays,pageStart=ns.pageStart,tgt=ns.tgt;
   const KCOL=SC_COL,KMISS='rgba(60,60,67,.12)';
   const mw=mainW(),dw=dietSubW(),sw=suppSubW(),dh=mw.diet/100,sh=mw.supplements/100;
-  const segs=[['caffeine',sh*sw.caffeine/100],['ltheanine',sh*sw.ltheanine/100],['omega3',sh*sw.omega3/100],['magnesium',sh*sw.magnesium/100],['creatine',sh*sw.creatine/100],['carbs',dh*dw.carbs/100],['protein',dh*dw.protein/100],['fiber',dh*dw.fiber/100],['cals',dh*dw.cals/100],['eatout',mw.eatout/100],['workout',mw.workout/100],['steps',mw.steps/100],['sleep',mw.sleep/100]];
-  const SEG_GRP={caffeine:'s',ltheanine:'s',omega3:'s',magnesium:'s',creatine:'s',carbs:'d',protein:'d',fiber:'d',cals:'d',eatout:'m',workout:'m',steps:'m',sleep:'m'};
+  const segs=[['caffeine',sh*sw.caffeine/100],['vitk2',sh*sw.vitk2/100],['vitd3',sh*sw.vitd3/100],['ltheanine',sh*sw.ltheanine/100],['omega3',sh*sw.omega3/100],['magnesium',sh*sw.magnesium/100],['creatine',sh*sw.creatine/100],['carbs',dh*dw.carbs/100],['protein',dh*dw.protein/100],['fiber',dh*dw.fiber/100],['cals',dh*dw.cals/100],['eatout',mw.eatout/100],['workout',mw.workout/100],['steps',mw.steps/100],['sleep',mw.sleep/100]];
+  const SEG_GRP={caffeine:'s',vitk2:'s',vitd3:'s',ltheanine:'s',omega3:'s',magnesium:'s',creatine:'s',carbs:'d',protein:'d',fiber:'d',cals:'d',eatout:'m',workout:'m',steps:'m',sleep:'m'};
   const GAP=8;
   const pd={l:6,r:8,t:30,b:24},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b,gHseg=gH-GAP*2;
   const step=gW/win,bw=Math.min(30,step*0.6),xC=i=>pd.l+step*i+step/2;
@@ -1432,6 +1443,8 @@ function renderGTmp(){
   document.getElementById('g-creatineTarget').textContent=gTmp.creatineTarget;
   document.getElementById('g-magnesiumTarget').textContent=gTmp.magnesiumTarget;
   document.getElementById('g-ltheanineTarget').textContent=gTmp.ltheanineTarget;
+  document.getElementById('g-vitd3Target').textContent=gTmp.vitd3Target;
+  document.getElementById('g-vitk2Target').textContent=gTmp.vitk2Target;
   document.getElementById('g-calLow').textContent=gTmp.calLow.toLocaleString();
   document.getElementById('g-calHigh').textContent=gTmp.calHigh.toLocaleString();
   document.getElementById('g-fiberLow').textContent=gTmp.fiberLow;
@@ -1453,6 +1466,8 @@ function gStep(key,d){
   if(key==='creatineTarget')gTmp.creatineTarget=Math.max(0,Math.min(50,gTmp.creatineTarget));
   if(key==='magnesiumTarget')gTmp.magnesiumTarget=Math.max(0,Math.min(10,gTmp.magnesiumTarget));
   if(key==='ltheanineTarget')gTmp.ltheanineTarget=Math.max(0,Math.min(10,gTmp.ltheanineTarget));
+  if(key==='vitd3Target')gTmp.vitd3Target=Math.max(0,Math.min(10,gTmp.vitd3Target));
+  if(key==='vitk2Target')gTmp.vitk2Target=Math.max(0,Math.min(10,gTmp.vitk2Target));
   if(key==='calLow')gTmp.calLow=Math.max(0,Math.min(gTmp.calHigh,gTmp.calLow));
   if(key==='calHigh')gTmp.calHigh=Math.max(gTmp.calLow,Math.min(8000,gTmp.calHigh));
   if(key==='fiberLow')gTmp.fiberLow=Math.max(0,Math.min(gTmp.fiberHigh,gTmp.fiberLow));
@@ -1463,7 +1478,7 @@ function gStep(key,d){
   if(key==='proteinHigh')gTmp.proteinHigh=Math.max(gTmp.proteinLow,Math.min(400,gTmp.proteinHigh));
   renderGTmp();
 }
-function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;gTmp={...goals(),woTarget:(P.workoutTarget==null?4:P.workoutTarget),eatAllow:(P.eatOutAllow==null?1:P.eatOutAllow),caffLow:(P.caffLow==null?25:P.caffLow),caffHigh:(P.caffHigh==null?50:P.caffHigh),creatineTarget:(P.creatineTarget==null?5:P.creatineTarget),magnesiumTarget:(P.magnesiumTarget==null?1:P.magnesiumTarget),ltheanineTarget:(P.ltheanineTarget==null?1:P.ltheanineTarget)};renderGTmp();mPreview();document.getElementById('target-modal').classList.remove('hidden');}
+function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;gTmp={...goals(),woTarget:(P.workoutTarget==null?4:P.workoutTarget),eatAllow:(P.eatOutAllow==null?1:P.eatOutAllow),caffLow:(P.caffLow==null?25:P.caffLow),caffHigh:(P.caffHigh==null?50:P.caffHigh),creatineTarget:(P.creatineTarget==null?5:P.creatineTarget),magnesiumTarget:(P.magnesiumTarget==null?1:P.magnesiumTarget),ltheanineTarget:(P.ltheanineTarget==null?1:P.ltheanineTarget),vitd3Target:(P.vitd3Target==null?1:P.vitd3Target),vitk2Target:(P.vitk2Target==null?1:P.vitk2Target)};renderGTmp();mPreview();document.getElementById('target-modal').classList.remove('hidden');}
 function closeTarget(){document.getElementById('target-modal').classList.add('hidden');}
 ['m-start','m-sdate','m-tgt','m-date'].forEach(id=>document.getElementById(id).addEventListener('input',mPreview));
 function planLine(sWt,sDate,tWt,tDate){
@@ -1479,7 +1494,7 @@ function mPreview(){
 function applyTargetModal(){
   P.sleepTarget=gTmp.sleep;P.stepLow=gTmp.stepLow;P.stepHigh=gTmp.stepHigh;P.calLow=gTmp.calLow;P.calHigh=gTmp.calHigh;
   P.fiberLow=gTmp.fiberLow;P.fiberHigh=gTmp.fiberHigh;P.carbLow=gTmp.carbLow;P.carbHigh=gTmp.carbHigh;P.proteinLow=gTmp.proteinLow;P.proteinHigh=gTmp.proteinHigh;
-  P.workoutTarget=gTmp.woTarget;P.eatOutAllow=gTmp.eatAllow;P.caffLow=gTmp.caffLow;P.caffHigh=gTmp.caffHigh;P.creatineTarget=gTmp.creatineTarget;P.magnesiumTarget=gTmp.magnesiumTarget;P.ltheanineTarget=gTmp.ltheanineTarget;
+  P.workoutTarget=gTmp.woTarget;P.eatOutAllow=gTmp.eatAllow;P.caffLow=gTmp.caffLow;P.caffHigh=gTmp.caffHigh;P.creatineTarget=gTmp.creatineTarget;P.magnesiumTarget=gTmp.magnesiumTarget;P.ltheanineTarget=gTmp.ltheanineTarget;P.vitd3Target=gTmp.vitd3Target;P.vitk2Target=gTmp.vitk2Target;
   if(commitPlan(parseFloat(document.getElementById('m-start').value),document.getElementById('m-sdate').value,parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value)){updateGoalHints();updateScore();closeTarget();}
 }
 
