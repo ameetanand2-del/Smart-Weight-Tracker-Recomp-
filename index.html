@@ -255,6 +255,7 @@ canvas{display:block;width:100%}
 
     <div class="drow"><span class="dl">Weight (kg)</span><input type="number" id="ci-wt" placeholder="—" step="0.1" class="dsel" style="background-image:none;text-align:right;padding-right:12px"></div>
     <div class="drow"><span class="dl">Energy</span><select class="dsel" id="sel-energy" onchange="setEnergySel(this.value)"><option value="">—</option><option value="1">1 · Exhausted</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 · Peak</option></select></div>
+    <div class="drow"><span class="dl">Soreness <span class="tsm" style="color:var(--tx3)">· not scored</span></span><select class="dsel" id="sel-sore" style="flex:1" onchange="setSoreSel(this.value)"><option value="">— None</option><option value="1">1 (sore, energy fine)</option><option value="2">2 (energy + focus dipping)</option><option value="3">3 (tired, focus harder)</option><option value="4">4 (very tired, low energy)</option><option value="5">5 (exhausted, can't train)</option></select></div>
     <div class="drow"><span class="dl">Workout <span class="tsm" style="color:var(--tx3)">· vs plan</span></span><select class="dsel" id="sel-wo" onchange="selWorkout(this.value)"><option value="">—</option><option value="below">↓ Below</option><option value="same">= Same</option><option value="inc">↑ Increased</option></select></div>
 
     <div style="font-size:12px;font-weight:700;color:var(--tx3);margin:14px 0 2px;padding-left:2px">↳ SUPPLEMENTS</div>
@@ -263,8 +264,6 @@ canvas{display:block;width:100%}
     <div class="drow"><span class="dl sub">L-theanine <span id="ltheanine-hint" class="tsm"></span></span><select class="dsel" id="sel-ltheanine" onchange="setSuppSel('ltheanine',this.value)"></select></div>
     <div class="drow"><span class="dl sub">Omega-3</span><select class="dsel" id="sel-omega" onchange="selOmega(this.value)"><option value="">—</option><option value="pills">2 pills</option><option value="sardines">Sardines</option><option value="salmon">Salmon</option><option value="none">None</option></select></div>
     <div class="drow"><span class="dl sub">Caffeine <span id="caff-hint" class="tsm"></span></span><select class="dsel" id="sel-caff" onchange="setCaffSel(this.value)"></select></div>
-
-    <div class="drow"><span class="dl">Soreness <span class="tsm" style="color:var(--tx3)">· not scored</span></span><select class="dsel" id="sel-sore" onchange="setSoreSel(this.value)"><option value="">—</option><option value="no">💪 Not sore</option><option value="yes">🤕 Sore</option></select></div>
 
     <div id="score-block" style="margin-top:18px;padding-top:14px;border-top:.5px solid var(--sep)">
       <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
@@ -598,7 +597,7 @@ function loadDemo(){
   const start=addDays(tod(),-28);
   P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84),sleepTarget:7,stepLow:8000,stepHigh:10000,calLow:2000,calHigh:2500,fiberLow:25,fiberHigh:40,carbLow:150,carbHigh:250,proteinLow:120,proteinHigh:180,workoutTarget:5,eatOutAllow:1,caffLow:25,caffHigh:50,creatineTarget:5,magnesiumTarget:1,ltheanineTarget:1,targetHist:[{w:0,t:65},{w:2,t:75}]};CI=[];
   const wos=['below','same','inc'];
-  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;const creatine=Math.random()>.2?5:(Math.random()>.5?3:0);const magnesium=Math.random()>.25?(Math.random()>.5?2:1):0;const ltheanine=Math.random()>.5?1:0;const omega3=['pills','sardines','salmon','none'][Math.random()>.35?Math.floor(Math.random()*3):3];const caffeine=Math.round((Math.random()*60)/5)*5;const sore=Math.random()>.6;const brk=Math.random()>.8?(Math.random()>.5?'full':'half'):null;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut,creatine,magnesium,ltheanine,omega3,caffeine,sore,brk});}
+  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;const creatine=Math.random()>.2?5:(Math.random()>.5?3:0);const magnesium=Math.random()>.25?(Math.random()>.5?2:1):0;const ltheanine=Math.random()>.5?1:0;const omega3=['pills','sardines','salmon','none'][Math.random()>.35?Math.floor(Math.random()*3):3];const caffeine=Math.round((Math.random()*60)/5)*5;const sore=Math.random()>.5?(1+Math.floor(Math.random()*5)):null;const brk=Math.random()>.8?(Math.random()>.5?'full':'half'):null;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut,creatine,magnesium,ltheanine,omega3,caffeine,sore,brk});}
   save();launchApp();
 }
 
@@ -631,7 +630,7 @@ function setBrkSel(v){ciBrk=v===''?null:v;}
 function setEnergySel(v){selEnergyV=v===''?null:parseInt(v);renderEnergy();updateScore();}
 function setSuppSel(k,v){ciSupp[k]=v===''?null:parseInt(v);renderSupp();updateScore();}
 function setCaffSel(v){ciCaff=v===''?null:parseInt(v);renderSupp();updateScore();}
-function setSoreSel(v){ciSore=v===''?null:(v==='yes');renderSupp();}
+function setSoreSel(v){ciSore=v===''?null:parseInt(v);renderSupp();}
 function renderEnergy(){const e=document.getElementById('sel-energy');if(e)e.value=selEnergyV==null?'':String(selEnergyV);}
 function renderWorkoutSel(){const e=document.getElementById('sel-wo');if(e)e.value=woSel==null?'':woSel;}
 function renderStepVals(){
@@ -802,7 +801,7 @@ function renderSupp(){
   const sv=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val==null?'':String(val);};
   sv('sel-creatine',ciSupp.creatine);sv('sel-magnesium',ciSupp.magnesium);sv('sel-ltheanine',ciSupp.ltheanine);sv('sel-caff',ciCaff);
   const om=document.getElementById('sel-omega');if(om)om.value=ciOmega==null?'':ciOmega;
-  const so=document.getElementById('sel-sore');if(so)so.value=ciSore==null?'':(ciSore?'yes':'no');
+  const so=document.getElementById('sel-sore');if(so)so.value=ciSore==null?'':String(ciSore);
   const sh=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
   sh('creatine-hint','≥'+g.creatineTarget+'g');sh('magnesium-hint','≥'+g.magnesiumTarget);sh('ltheanine-hint','≥'+g.ltheanineTarget);sh('caff-hint',g.caffLow+'–'+g.caffHigh+'mg');
 }
@@ -1272,12 +1271,12 @@ function statusFor(cat,val,g){
     case 'ltheanine':return val>=g.ltheanineTarget?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
     case 'omega3':return (val!=null&&val!=='none')?{i:'✓',c:'var(--green-d)'}:{i:'✗',c:'var(--red)'};
     case 'caffeine':return rng(g.caffLow,g.caffHigh);
-    case 'sore':return val===true?{i:'🤕',c:'var(--orange)'}:{i:'💪',c:'var(--green-d)'};
+    case 'sore':return val==null?{i:'–',c:'var(--tx3)'}:{i:String(val),c:val>=4?'var(--red)':val===3?'var(--orange)':'var(--green-d)'};
     case 'brk':return val==='full'?{i:'●',c:'var(--blue)'}:val==='half'?{i:'◐',c:'var(--orange)'}:{i:'–',c:'var(--tx3)'};
   }
   return{i:'–',c:'var(--tx3)'};
 }
-function fmtVal(cat,val){if(val==null||val===''||val===true||val===false)return'';if(cat==='sleep')return val+'h';if(cat==='steps')return val>=1000?(val/1000).toFixed(1)+'k':val;if(cat==='caffeine')return val+'mg';if(cat==='creatine')return val+'g';if(cat==='magnesium'||cat==='ltheanine')return val+'';if(cat==='omega3')return ({pills:'pills',sardines:'sard.',salmon:'salmon',none:'—'}[val]||'');if(cat==='brk')return ({half:'½',full:'full'}[val]||'');return val+'';}
+function fmtVal(cat,val){if(val==null||val===''||val===true||val===false)return'';if(cat==='sleep')return val+'h';if(cat==='steps')return val>=1000?(val/1000).toFixed(1)+'k':val;if(cat==='caffeine')return val+'mg';if(cat==='creatine')return val+'g';if(cat==='magnesium'||cat==='ltheanine')return val+'';if(cat==='omega3')return ({pills:'pills',sardines:'sard.',salmon:'salmon',none:'—'}[val]||'');if(cat==='brk')return ({half:'½',full:'full'}[val]||'');if(cat==='sore')return '';return val+'';}
 function renderScoreTable(){
   const st=scNavState(),g=goals(),totalDays=st.totalDays,wStart=st.pageStart,prevStart=wStart-7;
   const days=[];for(let d=0;d<7;d++){const di=wStart+d;if(di<totalDays)days.push(di);}
@@ -1292,18 +1291,17 @@ function renderScoreTable(){
     else if(cat==='workout'){if(rec.workout)o.push(rec.workout==='inc'||rec.workout==='same'?1:0);}
     else if(cat==='eatout'){if(rec.eatOut!=null)o.push(rec.eatOut===true?1:0);}
     else if(cat==='omega3'){if(rec.omega3!=null)o.push((rec.omega3!=='none')?1:0);}
-    else if(cat==='sore'){if(rec.sore!=null)o.push(rec.sore===true?1:0);}
+    else if(cat==='sore'){if(rec.sore!=null)o.push(rec.sore);}
     else if(cat==='brk'){if(rec.brk!=null)o.push(rec.brk==='full'?1:rec.brk==='half'?0.5:0);}
     else if(rec[cat]!=null&&rec[cat]!=='')o.push(rec[cat]);}
     return o;};
   const GOODUP={'__score':true,weight:false,energy:true,sleep:true,steps:true,cals:null,fiber:true,protein:true,carbs:null,workout:true,eatout:false,creatine:true,magnesium:true,omega3:true,ltheanine:true,caffeine:null,sore:false,brk:null};
-  const fmtAvg=(cat,v)=>{if(cat==='__score')return Math.round(v)+'%';if(cat==='weight')return v.toFixed(1);if(cat==='energy')return v.toFixed(1);if(cat==='sleep')return v.toFixed(1)+'h';if(cat==='steps')return v>=1000?(v/1000).toFixed(1)+'k':Math.round(v);if(cat==='creatine')return v.toFixed(1)+'g';if(cat==='magnesium'||cat==='ltheanine')return v.toFixed(1);if(cat==='caffeine')return Math.round(v)+'mg';return Math.round(v);};
+  const fmtAvg=(cat,v)=>{if(cat==='__score')return Math.round(v)+'%';if(cat==='weight')return v.toFixed(1);if(cat==='energy')return v.toFixed(1);if(cat==='sleep')return v.toFixed(1)+'h';if(cat==='steps')return v>=1000?(v/1000).toFixed(1)+'k':Math.round(v);if(cat==='creatine')return v.toFixed(1)+'g';if(cat==='magnesium'||cat==='ltheanine')return v.toFixed(1);if(cat==='caffeine')return Math.round(v)+'mg';if(cat==='sore')return v.toFixed(1);return Math.round(v);};
   const arrow=(cat,t,p)=>{if(t==null||p==null)return'';if(Math.abs(t-p)<1e-9)return'<span style="color:var(--tx3);font-size:9px"> –</span>';const up=t>p,gu=GOODUP[cat];const col=gu==null?'var(--tx3)':((up===gu)?'var(--green-d)':'var(--red)');return '<span style="color:'+col+';font-size:9px"> '+(up?'▲':'▼')+'</span>';};
   const avgCell=cat=>{const tv=vals(wStart,cat),pv=vals(prevStart,cat);
     if(cat==='workout'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'✓':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
     if(cat==='eatout'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'× out':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
     if(cat==='omega3'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'/'+tv.length:'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
-    if(cat==='sore'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'🤕':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
     if(cat==='brk'){const tN=tv.reduce((a,b)=>a+b,0),pN=pv.length?pv.reduce((a,b)=>a+b,0):null;return '<td class="avgcell">'+(tv.length?tN+'d':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
     const ta=mean(tv),pa=mean(pv);return '<td class="avgcell">'+(ta==null?'–':fmtAvg(cat,ta))+arrow(cat,ta,pa)+'</td>';};
   const catRow=(cat,lbl,cls,rowcls)=>{let r='<tr'+(rowcls?' class="'+rowcls+'"':'')+'><td class="catlbl '+cls+'">'+lbl+'</td>';
