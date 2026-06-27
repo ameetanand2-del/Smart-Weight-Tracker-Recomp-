@@ -140,6 +140,11 @@ canvas{display:block;width:100%}
 .repstat{flex:1;background:var(--fill);border-radius:10px;padding:9px 6px;text-align:center}
 .repstat .v{font-size:17px;font-weight:700;line-height:1.1}
 .repstat .l{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px;margin-top:3px}
+.drow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 2px;border-bottom:.5px solid var(--sep)}
+.drow .dl{font-size:14px;font-weight:600;color:var(--tx)}
+.drow .dl.sub{font-weight:500;color:var(--tx2);padding-left:12px}
+.drow .dl .tsm{font-weight:400}
+.dsel{appearance:none;-webkit-appearance:none;border:none;background:var(--fill);border-radius:9px;padding:8px 30px 8px 12px;font-family:var(--font);font-size:14px;font-weight:600;color:var(--tx);text-align:left;min-width:104px;cursor:pointer;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%238e8e93" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>');background-repeat:no-repeat;background-position:right 11px center}
 .wl-nav{width:32px;height:32px;border:none;border-radius:50%;background:var(--fill);color:var(--blue);font-size:20px;font-weight:600;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .legend>div{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx3)}
 
@@ -232,48 +237,34 @@ canvas{display:block;width:100%}
       <input type="date" id="ci-date" onchange="loadForDate()" style="border:none;background:var(--fill);border-radius:8px;padding:5px 9px;font-family:var(--font);font-size:13px;color:var(--tx);color-scheme:light">
     </div>
 
-    <div class="fld" style="margin:10px 0 4px"><label class="main">WEIGHT (KG) · TODAY</label><input type="number" id="ci-wt" placeholder="Weight in kg" step="0.1" style="text-align:center;font-size:22px"></div>
+    <div style="margin:12px 0 6px;padding:8px 12px;background:var(--fill);border-radius:9px;font-size:13px;font-weight:700">🌙 Yesterday's check-in</div>
 
-    <div style="font-size:13px;font-weight:700;color:var(--tx);margin-top:16px;padding-left:2px">ENERGY · TODAY</div>
-    <div class="e-row" id="e-row">
-      <button data-v="1" onclick="selEnergy(1)">1</button>
-      <button data-v="2" onclick="selEnergy(2)">2</button>
-      <button data-v="3" onclick="selEnergy(3)">3</button>
-      <button data-v="4" onclick="selEnergy(4)">4</button>
-      <button data-v="5" onclick="selEnergy(5)">5</button>
-    </div>
-    <div class="e-hint"><span>Exhausted</span><span>Peak</span></div>
+    <div class="drow"><span class="dl">Sleep</span><select class="dsel" id="sel-sleep" onchange="setSleepSel(this.value)"></select></div>
+    <div class="drow"><span class="dl">Break <span class="tsm" style="color:var(--tx3)">· not scored</span></span><select class="dsel" id="sel-brk" onchange="setBrkSel(this.value)"><option value="">None</option><option value="half">◐ Half day</option><option value="full">● Full day</option></select></div>
+    <div class="drow"><span class="dl">Steps <span id="steps-hint" class="tsm" style="color:var(--tx3)"></span></span><select class="dsel" id="sel-steps" onchange="setStepsSel(this.value)"></select></div>
 
-    <div style="font-size:12px;color:var(--tx3);margin:16px 0 4px;padding-left:2px">Sleep, steps &amp; diet below are for <b>yesterday</b>.</div>
+    <div style="font-size:12px;font-weight:700;color:var(--tx3);margin:12px 0 2px;padding-left:2px">↳ DIET</div>
+    <div class="drow"><span class="dl sub">Calories <span id="cals-hint" class="tsm"></span></span><select class="dsel" id="sel-cals" onchange="setDietSel('cals',this.value)"></select></div>
+    <div class="drow"><span class="dl sub">Fiber (g) <span id="fiber-hint" class="tsm"></span></span><select class="dsel" id="sel-fiber" onchange="setDietSel('fiber',this.value)"></select></div>
+    <div class="drow"><span class="dl sub">Protein (g) <span id="protein-hint" class="tsm"></span></span><select class="dsel" id="sel-protein" onchange="setDietSel('protein',this.value)"></select></div>
+    <div class="drow"><span class="dl sub">Carbs (g) <span id="carbs-hint" class="tsm"></span></span><select class="dsel" id="sel-carbs" onchange="setDietSel('carbs',this.value)"></select></div>
 
-    <div class="fld"><label class="main">SLEEP (HOURS)</label>
-      <div class="stepbar"><button class="stp" onclick="stepSleep(-0.5)">−</button><div class="stepval"><span id="sleep-val">—</span></div><button class="stp" onclick="stepSleep(0.5)">+</button></div>
-    </div>
+    <div class="drow"><span class="dl">Eat out</span><select class="dsel" id="sel-eo" onchange="selEatOut(this.value==='out')"><option value="in">🏠 Stayed in</option><option value="out">🍴 Ate out</option></select></div>
 
-    <div class="fld"><label class="main">STEPS <span id="steps-hint" class="tsm" style="font-weight:400;color:var(--tx3)"></span></label>
-      <div class="stepbar"><button class="stp" onclick="stepSteps(-250)">−</button><div class="stepval"><span id="steps-val">—</span></div><button class="stp" onclick="stepSteps(250)">+</button></div>
-    </div>
+    <div style="margin:20px 0 10px;padding:8px 12px;background:var(--fill);border-radius:9px;font-size:13px;font-weight:700">☀️ Today's check-in</div>
 
-    <div style="font-size:13px;font-weight:700;color:var(--tx);margin:16px 0 8px;padding-left:2px">DIET</div>
-    <div class="fld"><label class="sub">Calories <span id="cals-hint" class="tsm" style="font-weight:400"></span></label>
-      <div class="stepbar"><button class="stp" onclick="stepDiet('cals',-100)">−</button><div class="stepval"><span id="cals-val">—</span></div><button class="stp" onclick="stepDiet('cals',100)">+</button></div>
-    </div>
-    <div class="fld"><label class="sub">Fiber (g) <span id="fiber-hint" class="tsm" style="font-weight:400"></span></label>
-      <div class="stepbar"><button class="stp" onclick="stepDiet('fiber',-1)">−</button><div class="stepval"><span id="fiber-val">—</span></div><button class="stp" onclick="stepDiet('fiber',1)">+</button></div>
-    </div>
-    <div class="fld"><label class="sub">Protein (g) <span id="protein-hint" class="tsm" style="font-weight:400"></span></label>
-      <div class="stepbar"><button class="stp" onclick="stepDiet('protein',-5)">−</button><div class="stepval"><span id="protein-val">—</span></div><button class="stp" onclick="stepDiet('protein',5)">+</button></div>
-    </div>
-    <div class="fld"><label class="sub">Carbs (g) <span id="carbs-hint" class="tsm" style="font-weight:400"></span></label>
-      <div class="stepbar"><button class="stp" onclick="stepDiet('carbs',-5)">−</button><div class="stepval"><span id="carbs-val">—</span></div><button class="stp" onclick="stepDiet('carbs',5)">+</button></div>
-    </div>
+    <div class="drow"><span class="dl">Weight (kg)</span><input type="number" id="ci-wt" placeholder="—" step="0.1" class="dsel" style="background-image:none;text-align:right;padding-right:12px"></div>
+    <div class="drow"><span class="dl">Energy</span><select class="dsel" id="sel-energy" onchange="setEnergySel(this.value)"><option value="">—</option><option value="1">1 · Exhausted</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 · Peak</option></select></div>
+    <div class="drow"><span class="dl">Workout <span class="tsm" style="color:var(--tx3)">· vs plan</span></span><select class="dsel" id="sel-wo" onchange="selWorkout(this.value)"><option value="">—</option><option value="below">↓ Below</option><option value="same">= Same</option><option value="inc">↑ Increased</option></select></div>
 
-    <div class="fld"><label class="main">EAT OUT YESTERDAY?</label>
-      <div style="display:flex;gap:8px" id="eo-row">
-        <button class="wopt" data-v="in" onclick="selEatOut(false)">🏠 Stayed in</button>
-        <button class="wopt" data-v="out" onclick="selEatOut(true)">🍴 Ate out</button>
-      </div>
-    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--tx3);margin:14px 0 2px;padding-left:2px">↳ SUPPLEMENTS</div>
+    <div class="drow"><span class="dl sub">Creatine <span id="creatine-hint" class="tsm"></span></span><select class="dsel" id="sel-creatine" onchange="setSuppSel('creatine',this.value)"></select></div>
+    <div class="drow"><span class="dl sub">Magnesium <span id="magnesium-hint" class="tsm"></span></span><select class="dsel" id="sel-magnesium" onchange="setSuppSel('magnesium',this.value)"></select></div>
+    <div class="drow"><span class="dl sub">L-theanine <span id="ltheanine-hint" class="tsm"></span></span><select class="dsel" id="sel-ltheanine" onchange="setSuppSel('ltheanine',this.value)"></select></div>
+    <div class="drow"><span class="dl sub">Omega-3</span><select class="dsel" id="sel-omega" onchange="selOmega(this.value)"><option value="">—</option><option value="pills">2 pills</option><option value="sardines">Sardines</option><option value="salmon">Salmon</option><option value="none">None</option></select></div>
+    <div class="drow"><span class="dl sub">Caffeine <span id="caff-hint" class="tsm"></span></span><select class="dsel" id="sel-caff" onchange="setCaffSel(this.value)"></select></div>
+
+    <div class="drow"><span class="dl">Soreness <span class="tsm" style="color:var(--tx3)">· not scored</span></span><select class="dsel" id="sel-sore" onchange="setSoreSel(this.value)"><option value="">—</option><option value="no">💪 Not sore</option><option value="yes">🤕 Sore</option></select></div>
 
     <div id="score-block" style="margin-top:18px;padding-top:14px;border-top:.5px solid var(--sep)">
       <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
@@ -293,22 +284,6 @@ canvas{display:block;width:100%}
 
     <button class="btn btp" style="margin-top:18px" onclick="saveCI()">Save</button>
     <div id="saved-msg" class="tc tsm" style="display:none;margin-top:10px;color:var(--green-d);font-weight:600">✓ Saved</div>
-  </div>
-
-  <div class="shdr">Workout</div>
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <span style="font-weight:600">How did training go?</span>
-      <input type="date" id="wo-date" onchange="loadWorkout()" style="border:none;background:var(--fill);border-radius:8px;padding:5px 9px;font-family:var(--font);font-size:13px;color:var(--tx);color-scheme:light">
-    </div>
-    <div style="display:flex;gap:8px" id="wo-row">
-      <button class="wopt" data-v="below" onclick="selWorkout('below')">↓ Below</button>
-      <button class="wopt" data-v="same" onclick="selWorkout('same')">= Same</button>
-      <button class="wopt" data-v="inc" onclick="selWorkout('inc')">↑ Increased</button>
-    </div>
-    <div class="e-hint"><span>Below plan</span><span>Beat plan</span></div>
-    <button class="btn btp" style="margin-top:14px" onclick="saveWorkout()">Save workout</button>
-    <div id="wo-saved" class="tc tsm" style="display:none;margin-top:10px;color:var(--green-d);font-weight:600">✓ Saved</div>
   </div>
 </div>
 
@@ -375,7 +350,7 @@ canvas{display:block;width:100%}
     <div id="sc-chart-wrap">
       <div style="display:flex;gap:6px;align-items:stretch">
         <div id="sc-left" style="width:70px;flex:none;display:flex;flex-direction:column"></div>
-        <canvas id="csc" style="height:200px;flex:1;min-width:0"></canvas>
+        <canvas id="csc" style="height:300px;flex:1;min-width:0"></canvas>
       </div>
       <div class="leglbl">Goals · weighted</div>
       <div class="legend leg-main">
@@ -392,6 +367,16 @@ canvas{display:block;width:100%}
           <div><span style="background:#bf5af2"></span>Protein</div>
           <div><span style="background:#ffd60a"></span>Carbs</div>
           <div><span style="background:rgba(60,60,67,.14)"></span>not met</div>
+        </div>
+      </div>
+      <div class="leg-sub-wrap">
+        <div class="leglbl" style="margin-top:8px">↳ Supplements · split five ways</div>
+        <div class="legend leg-sub">
+          <div><span style="background:#ff6482"></span>Creatine</div>
+          <div><span style="background:#64d2ff"></span>Magnesium</div>
+          <div><span style="background:#ac8e68"></span>Omega-3</div>
+          <div><span style="background:#a0e85b"></span>L-theanine</div>
+          <div><span style="background:#d4a017"></span>Caffeine</div>
         </div>
       </div>
       <div id="csc-msg" class="tsm" style="margin-top:10px;line-height:1.5"></div>
@@ -480,6 +465,15 @@ canvas{display:block;width:100%}
       <div class="row sub"><label>Carbs min (g)</label><div class="gstep"><button class="stp2" onclick="gStep('carbLow',-5)">−</button><span id="g-carbLow">150</span><button class="stp2" onclick="gStep('carbLow',5)">+</button></div></div>
       <div class="row sub" style="border-bottom:none"><label>Carbs max (g)</label><div class="gstep"><button class="stp2" onclick="gStep('carbHigh',-5)">−</button><span id="g-carbHigh">250</span><button class="stp2" onclick="gStep('carbHigh',5)">+</button></div></div>
     </div>
+    <div style="border-top:1px solid var(--sep);margin:8px 16px 0"></div>
+    <div style="padding:10px 18px 2px;font-size:12px;font-weight:600;color:var(--tx3)">↳ Supplements · daily targets</div>
+    <div style="padding:0 16px">
+      <div class="row sub"><label>Creatine target (g)</label><div class="gstep"><button class="stp2" onclick="gStep('creatineTarget',-1)">−</button><span id="g-creatineTarget">5</span><button class="stp2" onclick="gStep('creatineTarget',1)">+</button></div></div>
+      <div class="row sub"><label>Magnesium target (pills)</label><div class="gstep"><button class="stp2" onclick="gStep('magnesiumTarget',-1)">−</button><span id="g-magnesiumTarget">1</span><button class="stp2" onclick="gStep('magnesiumTarget',1)">+</button></div></div>
+      <div class="row sub"><label>L-theanine target (pills)</label><div class="gstep"><button class="stp2" onclick="gStep('ltheanineTarget',-1)">−</button><span id="g-ltheanineTarget">1</span><button class="stp2" onclick="gStep('ltheanineTarget',1)">+</button></div></div>
+      <div class="row sub"><label>Caffeine min (mg)</label><div class="gstep"><button class="stp2" onclick="gStep('caffLow',-5)">−</button><span id="g-caffLow">25</span><button class="stp2" onclick="gStep('caffLow',5)">+</button></div></div>
+      <div class="row sub" style="border-bottom:none"><label>Caffeine max (mg)</label><div class="gstep"><button class="stp2" onclick="gStep('caffHigh',-5)">−</button><span id="g-caffHigh">50</span><button class="stp2" onclick="gStep('caffHigh',5)">+</button></div></div>
+    </div>
     <div style="height:8px"></div>
     <button onclick="closeTarget();openWeights()" style="width:100%;border:none;background:var(--fill);border-radius:10px;padding:11px;margin:0 0 4px;font-family:var(--font);font-size:14px;font-weight:600;color:var(--blue);cursor:pointer">⚖ Set KPI weights ›</button>
     <div style="height:12px"></div>
@@ -560,6 +554,7 @@ function save(){
 function load(){
   try{P=JSON.parse(localStorage.getItem('wc1_p'))||{};}catch(e){P={};}
   try{CI=JSON.parse(localStorage.getItem('wc1_c'))||[];}catch(e){CI=[];}
+  if(P.caffLow===50&&P.caffHigh===200){P.caffLow=25;P.caffHigh=50;}
   if(!P.startWt){
     try{
       const oP=JSON.parse(localStorage.getItem('rc4_p')),oC=JSON.parse(localStorage.getItem('rc4_c')),oT=JSON.parse(localStorage.getItem('rc4_target'));
@@ -601,27 +596,47 @@ function finishSetup(){
 }
 function loadDemo(){
   const start=addDays(tod(),-28);
-  P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84),sleepTarget:7,stepLow:8000,stepHigh:10000,calLow:2000,calHigh:2500,fiberLow:25,fiberHigh:40,carbLow:150,carbHigh:250,proteinLow:120,proteinHigh:180,workoutTarget:5,eatOutAllow:1,targetHist:[{w:0,t:65},{w:2,t:75}]};CI=[];
+  P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84),sleepTarget:7,stepLow:8000,stepHigh:10000,calLow:2000,calHigh:2500,fiberLow:25,fiberHigh:40,carbLow:150,carbHigh:250,proteinLow:120,proteinHigh:180,workoutTarget:5,eatOutAllow:1,caffLow:25,caffHigh:50,creatineTarget:5,magnesiumTarget:1,ltheanineTarget:1,targetHist:[{w:0,t:65},{w:2,t:75}]};CI=[];
   const wos=['below','same','inc'];
-  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut});}
+  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;const creatine=Math.random()>.2?5:(Math.random()>.5?3:0);const magnesium=Math.random()>.25?(Math.random()>.5?2:1):0;const ltheanine=Math.random()>.5?1:0;const omega3=['pills','sardines','salmon','none'][Math.random()>.35?Math.floor(Math.random()*3):3];const caffeine=Math.round((Math.random()*60)/5)*5;const sore=Math.random()>.6;const brk=Math.random()>.8?(Math.random()>.5?'full':'half'):null;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut,creatine,magnesium,ltheanine,omega3,caffeine,sore,brk});}
   save();launchApp();
 }
 
 // CHECK-IN
 let selEnergyV=null, ciSleep=null, ciSteps=null, ciDiet={cals:null,fiber:null,carbs:null,protein:null}, woSel=null, ciEatOut=false;
-function goals(){return {sleep:P.sleepTarget||7,stepLow:P.stepLow||P.stepTarget||8000,stepHigh:P.stepHigh||((P.stepLow||P.stepTarget||8000)+2000),calLow:P.calLow||2000,calHigh:P.calHigh||2500,fiberLow:P.fiberLow||25,fiberHigh:P.fiberHigh||40,carbLow:P.carbLow||150,carbHigh:P.carbHigh||250,proteinLow:P.proteinLow||120,proteinHigh:P.proteinHigh||180};}
+let ciSupp={creatine:null,magnesium:null,ltheanine:null}, ciOmega=null, ciCaff=null, ciSore=null, ciBrk=null;
+function goals(){return {sleep:P.sleepTarget||7,stepLow:P.stepLow||P.stepTarget||8000,stepHigh:P.stepHigh||((P.stepLow||P.stepTarget||8000)+2000),calLow:P.calLow||2000,calHigh:P.calHigh||2500,fiberLow:P.fiberLow||25,fiberHigh:P.fiberHigh||40,carbLow:P.carbLow||150,carbHigh:P.carbHigh||250,proteinLow:P.proteinLow||120,proteinHigh:P.proteinHigh||180,caffLow:P.caffLow==null?25:P.caffLow,caffHigh:P.caffHigh==null?50:P.caffHigh,creatineTarget:P.creatineTarget==null?5:P.creatineTarget,magnesiumTarget:P.magnesiumTarget==null?1:P.magnesiumTarget,ltheanineTarget:P.ltheanineTarget==null?1:P.ltheanineTarget};}
 const DIET_DEF={cals:2500,fiber:25,carbs:200,protein:150};
 function selEnergy(v){selEnergyV=v;document.querySelectorAll('#e-row button').forEach(b=>b.classList.toggle('sel',+b.dataset.v===v));updateScore();}
 function stepSleep(d){ciSleep=ciSleep==null?7:Math.max(4,Math.min(10,+(ciSleep+d).toFixed(1)));renderStepVals();updateScore();}
 function stepSteps(d){const g=goals();ciSteps=ciSteps==null?g.stepLow:Math.max(0,ciSteps+d);renderStepVals();updateScore();}
 function stepDiet(key,d){ciDiet[key]=ciDiet[key]==null?DIET_DEF[key]:Math.max(0,ciDiet[key]+d);renderStepVals();updateScore();}
+function fillSel(id,lo,hi,step,fmt){const el=document.getElementById(id);if(!el)return;let s='<option value="">—</option>';for(let v=lo;v<=hi+1e-9;v=+(v+step).toFixed(2))s+='<option value="'+v+'">'+fmt(v)+'</option>';el.innerHTML=s;}
+function fillYesterdaySelects(){
+  fillSel('sel-sleep',4,12,0.5,v=>v.toFixed(1)+' h');
+  fillSel('sel-steps',0,25000,250,v=>v.toLocaleString());
+  fillSel('sel-cals',0,5000,100,v=>v.toLocaleString());
+  fillSel('sel-fiber',0,80,1,v=>v+' g');
+  fillSel('sel-protein',0,350,5,v=>v+' g');
+  fillSel('sel-carbs',0,600,5,v=>v+' g');
+  fillSel('sel-creatine',0,20,1,v=>v+' g');
+  fillSel('sel-magnesium',0,6,1,v=>v+(v===1?' pill':' pills'));
+  fillSel('sel-ltheanine',0,6,1,v=>v+(v===1?' pill':' pills'));
+  fillSel('sel-caff',0,300,5,v=>v+' mg');
+}
+function setSleepSel(v){ciSleep=v===''?null:parseFloat(v);updateScore();}
+function setStepsSel(v){ciSteps=v===''?null:parseInt(v);updateScore();}
+function setDietSel(k,v){ciDiet[k]=v===''?null:parseInt(v);updateScore();}
+function setBrkSel(v){ciBrk=v===''?null:v;}
+function setEnergySel(v){selEnergyV=v===''?null:parseInt(v);renderEnergy();updateScore();}
+function setSuppSel(k,v){ciSupp[k]=v===''?null:parseInt(v);renderSupp();updateScore();}
+function setCaffSel(v){ciCaff=v===''?null:parseInt(v);renderSupp();updateScore();}
+function setSoreSel(v){ciSore=v===''?null:(v==='yes');renderSupp();}
+function renderEnergy(){const e=document.getElementById('sel-energy');if(e)e.value=selEnergyV==null?'':String(selEnergyV);}
+function renderWorkoutSel(){const e=document.getElementById('sel-wo');if(e)e.value=woSel==null?'':woSel;}
 function renderStepVals(){
-  document.getElementById('sleep-val').textContent=ciSleep!=null?ciSleep.toFixed(1)+' h':'—';
-  document.getElementById('steps-val').textContent=ciSteps!=null?ciSteps.toLocaleString():'—';
-  document.getElementById('cals-val').textContent=ciDiet.cals!=null?ciDiet.cals.toLocaleString():'—';
-  document.getElementById('fiber-val').textContent=ciDiet.fiber!=null?ciDiet.fiber+' g':'—';
-  document.getElementById('carbs-val').textContent=ciDiet.carbs!=null?ciDiet.carbs+' g':'—';
-  document.getElementById('protein-val').textContent=ciDiet.protein!=null?ciDiet.protein+' g':'—';
+  const sv=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val==null?'':String(val);};
+  sv('sel-sleep',ciSleep);sv('sel-steps',ciSteps);sv('sel-cals',ciDiet.cals);sv('sel-fiber',ciDiet.fiber);sv('sel-protein',ciDiet.protein);sv('sel-carbs',ciDiet.carbs);
 }
 function updateGoalHints(){const g=goals();
   document.getElementById('steps-hint').textContent='· '+g.stepLow.toLocaleString()+'–'+g.stepHigh.toLocaleString();
@@ -631,8 +646,10 @@ function updateGoalHints(){const g=goals();
   document.getElementById('protein-hint').textContent='· '+g.proteinLow+'–'+g.proteinHigh;
 }
 function inR(x,lo,hi){return x!=null&&x>=lo&&x<=hi;}
-const KPIS=['sleep','steps','diet','workout','eatout'];
+const KPIS=['sleep','steps','diet','workout','eatout','supplements'];
 const DIETSUB=['cals','fiber','protein','carbs'];
+const SUPPSUB=['creatine','magnesium','omega3','ltheanine','caffeine'];
+const SUPP_LBL={creatine:'Creatine',magnesium:'Magnesium',omega3:'Omega-3',ltheanine:'L-theanine',caffeine:'Caffeine'};
 function resolveW(setObj,keys){
   const set={},unset=[];let sum=0;
   keys.forEach(k=>{const v=setObj?setObj[k]:null;if(v!=null&&!isNaN(v)){set[k]=+v;sum+=+v;}else unset.push(k);});
@@ -645,6 +662,8 @@ function resolveW(setObj,keys){
 }
 function mainW(){return resolveW(P.kpiW,KPIS);}
 function dietSubW(){return resolveW(P.dietW,DIETSUB);}
+function suppSubW(){return resolveW(P.suppW,SUPPSUB);}
+function suppMet(v,k,g){if(k==='omega3')return v.omega3!=null&&v.omega3!=='none';if(k==='caffeine')return inR(v.caffeine,g.caffLow,g.caffHigh);if(k==='creatine')return v.creatine!=null&&v.creatine>=g.creatineTarget;if(k==='magnesium')return v.magnesium!=null&&v.magnesium>=g.magnesiumTarget;if(k==='ltheanine')return v.ltheanine!=null&&v.ltheanine>=g.ltheanineTarget;return v[k]===true;}
 function curWeekIdx(){return Math.max(0,Math.floor(dbtw(wkBase(),tod())/7));}
 function isSunday(){return lp(tod()).getDay()===0;}
 function editTgtWeek(){return isSunday()?curWeekIdx()+1:curWeekIdx();}
@@ -652,7 +671,7 @@ function canEditTarget(){return isSunday()||P.tgtSetWeek!==curWeekIdx();}
 function resolveTarget(w){const h=P.targetHist||[];let t=null,bw=-1;h.forEach(e=>{if(e.w<=w&&e.w>bw){bw=e.w;t=e.t;}});return t;}
 function setWeekTarget(t){const w=editTgtWeek();const h=P.targetHist||[];const i=h.findIndex(e=>e.w===w);if(i>=0)h[i].t=t;else h.push({w,t});P.targetHist=h;if(!isSunday())P.tgtSetWeek=curWeekIdx();save();}
 function stepTarget(d){if(!canEditTarget())return;let cur=resolveTarget(editTgtWeek());if(cur==null)cur=70;cur=Math.max(0,Math.min(100,cur+d));setWeekTarget(cur);renderTargetCtl();renderScore();}
-function weekAvgScore(w){const arr=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))arr.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),w*7+d))).pts);}return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;}
+function weekAvgScore(w){const arr=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))arr.push(dailyScore(svals(rec),dayCtx(addDays(wkBase(),w*7+d))).pts);}return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;}
 function renderTargetCtl(){
   const ew=editTgtWeek(),t=resolveTarget(ew),locked=!canEditTarget();
   const el=document.getElementById('wt-tgt');if(el)el.textContent=(t==null?70:t)+'%';
@@ -673,11 +692,12 @@ function liveCtxFor(date){
   const wi=Math.floor(dbtw(wkBase(),date)/7), ws=addDays(wkBase(),wi*7), span=dbtw(ws,date);
   if(span<0)return{eatoutMet:true,workoutMet:true};
   let eat=0,rest=0;
-  for(let d=0;d<=span;d++){const dt=addDays(ws,d);const rec=CI.find(c=>c.date===dt);let ate,wo;if(dt===date){ate=ciEatOut===true;wo=woMet(rec?rec.workout:null);}else{if(!rec)continue;ate=rec.eatOut===true;wo=woMet(rec.workout);}if(ate)eat++;if(!wo)rest++;if(dt===date)return{eatoutMet:ate?eat<=ea:true,workoutMet:wo?true:rest<=(7-wt)};}
+  for(let d=0;d<=span;d++){const dt=addDays(ws,d);const rec=CI.find(c=>c.date===dt);let ate,wo;if(dt===date){ate=ciEatOut===true;wo=woMet(woSel);}else{if(!rec)continue;ate=rec.eatOut===true;wo=woMet(rec.workout);}if(ate)eat++;if(!wo)rest++;if(dt===date)return{eatoutMet:ate?eat<=ea:true,workoutMet:wo?true:rest<=(7-wt)};}
   return{eatoutMet:true,workoutMet:true};
 }
+function svals(rec){return rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut,creatine:rec.creatine,magnesium:rec.magnesium,ltheanine:rec.ltheanine,omega3:rec.omega3,caffeine:rec.caffeine}:{};}
 function dailyScore(v,ctx){
-  const g=goals(),mw=mainW(),dw=dietSubW(),met={};
+  const g=goals(),mw=mainW(),dw=dietSubW(),sw=suppSubW(),met={};
   met.energy=v.energy!=null&&v.energy>=3; // tracked, not scored
   met.sleep=v.sleep!=null&&v.sleep>=g.sleep;
   met.steps=v.steps!=null&&v.steps>=g.stepLow;
@@ -690,16 +710,19 @@ function dailyScore(v,ctx){
   const dietFrac=(met.cals?dw.cals:0)+(met.fiber?dw.fiber:0)+(met.protein?dw.protein:0)+(met.carbs?dw.carbs:0);
   const dietPts=mw.diet*dietFrac/100;
   met.diet=dietFrac>=99.9;
-  const pts=(met.sleep?mw.sleep:0)+(met.steps?mw.steps:0)+(met.workout?mw.workout:0)+(met.eatout?mw.eatout:0)+dietPts;
-  return {pts:Math.round(pts),met,mw,dw,dietPts:Math.round(dietPts)};
+  let suppFrac=0;SUPPSUB.forEach(k=>{met[k]=suppMet(v,k,g);if(met[k])suppFrac+=sw[k];});
+  const suppPts=mw.supplements*suppFrac/100;
+  met.supplements=suppFrac>=99.9;
+  const pts=(met.sleep?mw.sleep:0)+(met.steps?mw.steps:0)+(met.workout?mw.workout:0)+(met.eatout?mw.eatout:0)+dietPts+suppPts;
+  return {pts:Math.round(pts),met,mw,dw,sw,dietPts:Math.round(dietPts),suppPts:Math.round(suppPts)};
 }
 function chip(label,met,extra){return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 9px;border-radius:20px;background:'+(met?'var(--gbg)':'var(--fill)')+';color:'+(met?'var(--green-d)':'var(--tx3)')+'">'+label+' '+(met?'✓':'✗')+(extra?' <span style="font-weight:400;opacity:.85">'+extra+'</span>':'')+'</span>';}
 function updateScore(){
   const g=goals();
   const date=document.getElementById('ci-date').value||tod();
   const rec=CI.find(c=>c.date===date);
-  const workout=rec?rec.workout:null;
-  const sc=dailyScore({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout,eatout:ciEatOut},liveCtxFor(date));
+  const workout=woSel!=null?woSel:(rec?rec.workout:null);
+  const sc=dailyScore({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout,eatout:ciEatOut,creatine:ciSupp.creatine,magnesium:ciSupp.magnesium,ltheanine:ciSupp.ltheanine,omega3:ciOmega,caffeine:ciCaff},liveCtxFor(date));
   document.getElementById('score-num').textContent=sc.pts;
   const bar=document.getElementById('score-bar');bar.style.width=sc.pts+'%';bar.style.background=sc.pts>=100?'var(--green)':sc.pts>=60?'var(--orange)':'var(--red)';
   const v=document.getElementById('score-verdict');
@@ -712,7 +735,8 @@ function updateScore(){
     chip('👟 Steps',sc.met.steps,rw('steps')),
     chip('🍽 Diet',sc.met.diet,sc.dietPts+'/'+Math.round(W.diet)),
     chip('🏋 Workout',sc.met.workout,woLbl||rw('workout')),
-    chip('🍴 Eat out',sc.met.eatout,ciEatOut?'ate out':'stayed in')
+    chip('🍴 Eat out',sc.met.eatout,ciEatOut?'ate out':'stayed in'),
+    chip('💊 Supps',sc.met.supplements,sc.suppPts+'/'+Math.round(W.supplements))
   ].join('');
   // macro breakdown
   const seg=(lbl,x,lo,hi,unit)=>{if(x==null)return lbl+' —';const ok=x>=lo&&x<=hi;const c=ok?'var(--green-d)':'var(--orange)';const tag=ok?'✓':(x<lo?'low':'high');return lbl+' <span style="color:'+c+';font-weight:600">'+x.toLocaleString()+unit+' '+tag+'</span>';};
@@ -726,7 +750,7 @@ function saveCI(){
   const wt=parseFloat(document.getElementById('ci-wt').value);
   if(!wt){alert('Enter your weight.');return;}
   const note=document.getElementById('ci-note').value.trim();
-  upsertCI(date,{weight:wt,energy:selEnergyV,note}); // today
+  upsertCI(date,{weight:wt,energy:selEnergyV,note,workout:woSel,creatine:ciSupp.creatine,magnesium:ciSupp.magnesium,ltheanine:ciSupp.ltheanine,omega3:ciOmega,caffeine:ciCaff,sore:ciSore}); // today
   const y={};
   if(ciSleep!=null)y.sleep=ciSleep;
   if(ciSteps!=null)y.steps=ciSteps;
@@ -735,6 +759,7 @@ function saveCI(){
   if(ciDiet.carbs!=null)y.carbs=ciDiet.carbs;
   if(ciDiet.protein!=null)y.protein=ciDiet.protein;
   y.eatOut=ciEatOut===true;
+  y.brk=ciBrk;
   if(Object.keys(y).length)upsertCI(yest,y); // yesterday
   save();
   const m=document.getElementById('saved-msg');m.style.display='block';setTimeout(()=>m.style.display='none',2000);
@@ -745,22 +770,45 @@ function loadForDate(){
   const td=CI.find(c=>c.date===date),yd=CI.find(c=>c.date===yest);
   document.getElementById('ci-wt').value=td&&td.weight?td.weight:'';
   selEnergyV=td&&td.energy?td.energy:null;
-  document.querySelectorAll('#e-row button').forEach(b=>b.classList.toggle('sel',selEnergyV!=null&&+b.dataset.v===selEnergyV));
+  renderEnergy();
   ciSleep=yd&&yd.sleep!=null?yd.sleep:null;
   ciSteps=yd&&yd.steps!=null?yd.steps:null;
   ciDiet={cals:yd&&yd.cals!=null?yd.cals:null,fiber:yd&&yd.fiber!=null?yd.fiber:null,carbs:yd&&yd.carbs!=null?yd.carbs:null,protein:yd&&yd.protein!=null?yd.protein:null};
   ciEatOut=yd&&yd.eatOut===true;
   renderEatOut();
+  ciSupp={creatine:td&&td.creatine!=null?td.creatine:null,magnesium:td&&td.magnesium!=null?td.magnesium:null,ltheanine:td&&td.ltheanine!=null?td.ltheanine:null};
+  ciOmega=td&&td.omega3!=null?td.omega3:null;
+  ciCaff=td&&td.caffeine!=null?td.caffeine:null;
+  ciSore=td&&td.sore!=null?td.sore:null;
+  ciBrk=yd&&yd.brk!=null?yd.brk:null;
+  woSel=td&&td.workout?td.workout:null;
+  renderWorkoutSel();
+  renderSupp();renderBreak();
   document.getElementById('ci-note').value=td&&td.note?td.note:'';
   renderStepVals();updateGoalHints();updateScore();
 }
 function selEatOut(v){ciEatOut=v;renderEatOut();updateScore();}
-function renderEatOut(){document.querySelectorAll('#eo-row button').forEach(b=>b.classList.toggle('sel',(b.dataset.v==='out')===(ciEatOut===true)));}
+function renderEatOut(){const e=document.getElementById('sel-eo');if(e)e.value=ciEatOut===true?'out':'in';}
+function toggleSupp(k){ciSupp[k]=!ciSupp[k];renderSupp();updateScore();}
+const SUPP_DEF={creatine:5,magnesium:1,ltheanine:1};
+function stepSupp(k,d){ciSupp[k]=ciSupp[k]==null?SUPP_DEF[k]:Math.max(0,ciSupp[k]+d);renderSupp();updateScore();}
+function selOmega(v){ciOmega=v===''?null:v;renderSupp();updateScore();}
+function stepCaff(d){ciCaff=ciCaff==null?25:Math.max(0,ciCaff+d);renderSupp();updateScore();}
+function selSore(v){ciSore=v;renderSupp();}
+function cycleBreak(){ciBrk=ciBrk==null?'half':ciBrk==='half'?'full':null;renderBreak();}
+function renderBreak(){const e=document.getElementById('sel-brk');if(e)e.value=ciBrk==null?'':ciBrk;}
+function renderSupp(){
+  const g=goals();
+  const sv=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val==null?'':String(val);};
+  sv('sel-creatine',ciSupp.creatine);sv('sel-magnesium',ciSupp.magnesium);sv('sel-ltheanine',ciSupp.ltheanine);sv('sel-caff',ciCaff);
+  const om=document.getElementById('sel-omega');if(om)om.value=ciOmega==null?'':ciOmega;
+  const so=document.getElementById('sel-sore');if(so)so.value=ciSore==null?'':(ciSore?'yes':'no');
+  const sh=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t;};
+  sh('creatine-hint','≥'+g.creatineTarget+'g');sh('magnesium-hint','≥'+g.magnesiumTarget);sh('ltheanine-hint','≥'+g.ltheanineTarget);sh('caff-hint',g.caffLow+'–'+g.caffHigh+'mg');
+}
 function loadTodayCI(){document.getElementById('ci-date').value=tod();loadForDate();}
 // WORKOUT (saved separately)
-function selWorkout(v){woSel=v;document.querySelectorAll('#wo-row button').forEach(b=>b.classList.toggle('sel',b.dataset.v===v));}
-function loadWorkout(){const d=document.getElementById('wo-date').value||tod();const rec=CI.find(c=>c.date===d);woSel=rec&&rec.workout?rec.workout:null;document.querySelectorAll('#wo-row button').forEach(b=>b.classList.toggle('sel',woSel&&b.dataset.v===woSel));}
-function saveWorkout(){const d=document.getElementById('wo-date').value||tod();if(!woSel){alert('Pick how training went.');return;}upsertCI(d,{workout:woSel});save();const m=document.getElementById('wo-saved');m.style.display='block';setTimeout(()=>m.style.display='none',2000);renderAll();updateScore();}
+function selWorkout(v){woSel=v===''?null:v;renderWorkoutSel();updateScore();}
 
 // MATH
 function sw(){return [...CI].filter(c=>c.weight).sort((a,b)=>lp(a.date)-lp(b.date));}
@@ -1042,15 +1090,17 @@ function wRow(group,key,lbl,sub,eff){
     +'</div></div>';
 }
 function renderWtmp(){
-  const eM=resolveW(wTmp.kpiW,KPIS),eD=resolveW(wTmp.dietW,DIETSUB);
-  const L={sleep:'😴 Sleep',steps:'👟 Steps',diet:'🍽 Diet',workout:'🏋 Workout',eatout:'🍴 Eat out'},DL={cals:'Calories',fiber:'Fiber',protein:'Protein',carbs:'Carbs'};
+  const eM=resolveW(wTmp.kpiW,KPIS),eD=resolveW(wTmp.dietW,DIETSUB),eS=resolveW(wTmp.suppW,SUPPSUB);
+  const L={sleep:'😴 Sleep',steps:'👟 Steps',diet:'🍽 Diet',workout:'🏋 Workout',eatout:'🍴 Eat out',supplements:'💊 Supplements'},DL={cals:'Calories',fiber:'Fiber',protein:'Protein',carbs:'Carbs'};
   let h='<div class="leglbl" style="margin:4px 0 0">Goals</div>';
   KPIS.forEach(k=>h+=wRow('kpiW',k,L[k],false,eM[k]));
   h+='<div class="leglbl" style="margin:12px 0 0">↳ Diet · split of the diet weight</div>';
   DIETSUB.forEach(k=>h+=wRow('dietW',k,DL[k],true,eD[k]));
+  h+='<div class="leglbl" style="margin:12px 0 0">↳ Supplements · split of the supplement weight</div>';
+  SUPPSUB.forEach(k=>h+=wRow('suppW',k,SUPP_LBL[k],true,eS[k]));
   document.getElementById('wt-body').innerHTML=h;
 }
-function wStep(group,key,d){const keys=group==='kpiW'?KPIS:DIETSUB;const eff=resolveW(wTmp[group],keys)[key];let cur=wTmp[group][key];if(cur==null)cur=Math.round(eff/5)*5;wTmp[group][key]=Math.max(0,Math.min(100,cur+d));renderWtmp();}
+function wStep(group,key,d){const keys=group==='kpiW'?KPIS:group==='dietW'?DIETSUB:SUPPSUB;const eff=resolveW(wTmp[group],keys)[key];let cur=wTmp[group][key];if(cur==null)cur=Math.round(eff/5)*5;wTmp[group][key]=Math.max(0,Math.min(100,cur+d));renderWtmp();}
 function wAuto(group,key){wTmp[group][key]=null;renderWtmp();}
 function closeSunday(){document.getElementById('sunday-modal').classList.add('hidden');}
 function maybeSundayPrompt(){if(isSunday()&&P.sundayPrompt!==tod()){P.sundayPrompt=tod();save();document.getElementById('sunday-modal').classList.remove('hidden');}}
@@ -1066,7 +1116,7 @@ function weekValsW(cat,w){const o=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c
 function avgOf(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
 function last4Avg(cat){const w=curWeekIdx();let all=[];for(let i=1;i<=4;i++){const ww=w-i;if(ww<0)break;all=all.concat(weekValsW(cat,ww));}return avgOf(all);}
 function lastWkAvg(cat){const w=curWeekIdx();return w-1>=0?avgOf(weekValsW(cat,w-1)):null;}
-function weekScoresW(w){const a=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))a.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),w*7+d))).pts);}return a;}
+function weekScoresW(w){const a=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))a.push(dailyScore(svals(rec),dayCtx(addDays(wkBase(),w*7+d))).pts);}return a;}
 const REPFMT={score:v=>Math.round(v)+'%',steps:v=>Math.round(v).toLocaleString(),sleep:v=>v.toFixed(1)+'h',cals:v=>Math.round(v).toLocaleString(),protein:v=>Math.round(v)+'g',days:v=>v.toFixed(1)};
 const REPUP={score:true,steps:true,sleep:true,protein:true,cals:false};
 function repTrend(cat,t,four){if(t==null||four==null)return'';if(Math.abs(t-four)<1e-9)return'';const up=t>four,good=REPUP[cat]?up:!up;return ' <span style="color:'+(good?'var(--green-d)':'var(--red)')+';font-size:10px">'+(up?'▲':'▼')+'</span>';}
@@ -1128,9 +1178,9 @@ function renderReport(){
   h+='</div>';
   document.getElementById('rep-body').innerHTML=h;
 }
-function openWeights(){wTmp={kpiW:{...(P.kpiW||{})},dietW:{...(P.dietW||{})}};renderWtmp();renderTargetCtl();document.getElementById('weights-modal').classList.remove('hidden');}
+function openWeights(){wTmp={kpiW:{...(P.kpiW||{})},dietW:{...(P.dietW||{})},suppW:{...(P.suppW||{})}};renderWtmp();renderTargetCtl();document.getElementById('weights-modal').classList.remove('hidden');}
 function closeWeights(){document.getElementById('weights-modal').classList.add('hidden');}
-function applyWeights(){P.kpiW=wTmp.kpiW;P.dietW=wTmp.dietW;save();closeWeights();updateScore();renderAll();}
+function applyWeights(){P.kpiW=wTmp.kpiW;P.dietW=wTmp.dietW;P.suppW=wTmp.suppW;save();closeWeights();updateScore();renderAll();}
 function wlPageCount(){return Math.max(1,Math.ceil(totalWeeks()/8));}
 function mondayMonth(w){return addDays(wkBase(),w*7).slice(0,7);}
 function monthListWL(){const tw=totalWeeks(),last=Math.max(0,Math.min(tw-1,curWeekIdx())),out=[],seen={};for(let w=0;w<=last;w++){const ym=mondayMonth(w);if(!seen[ym]){seen[ym]=1;out.push(ym);}}return out.length?out:[mondayMonth(0)];}
@@ -1200,7 +1250,7 @@ function scNavState(){
   if(tl)tl.innerHTML=tgt==null?'<span style="color:var(--tx3)">No target set for this week</span>':'🎯 Target this week: <span style="color:var(--blue)">'+tgt+'%</span> of goals/day';
   return {win,totalDays,pages,pageStart,pageEnd,viewedWeek,tgt};
 }
-const SC_COL={sleep:'#5e5ce6',steps:'#30b0c7',workout:'#0a84ff',eatout:'#ff9f0a',cals:'#ff375f',fiber:'#30d158',protein:'#bf5af2',carbs:'#ffd60a'};
+const SC_COL={sleep:'#5e5ce6',steps:'#30b0c7',workout:'#0a84ff',eatout:'#ff9f0a',cals:'#ff375f',fiber:'#30d158',protein:'#bf5af2',carbs:'#ffd60a',creatine:'#ff6482',magnesium:'#64d2ff',omega3:'#ac8e68',ltheanine:'#a0e85b',caffeine:'#d4a017'};
 function setScView(v){scView=v;document.getElementById('scseg-chart').classList.toggle('on',v==='chart');document.getElementById('scseg-table').classList.toggle('on',v==='table');document.getElementById('sc-chart-wrap').style.display=v==='chart'?'block':'none';document.getElementById('sc-table-wrap').style.display=v==='table'?'block':'none';renderScore();}
 function renderScore(){if(scView==='chart')drawScoreChart();else renderScoreTable();}
 function scNav(d){scPage=Math.max(0,Math.min(scPageCount()-1,scPage+d));renderScore();}
@@ -1217,10 +1267,17 @@ function statusFor(cat,val,g){
     case 'protein':return rng(g.proteinLow,g.proteinHigh);
     case 'workout':return val==='inc'?{i:'↑',c:'var(--green-d)'}:val==='same'?{i:'=',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
     case 'eatout':return val===true?{i:'✗',c:'var(--red)'}:{i:'✓',c:'var(--green-d)'};
+    case 'creatine':return val>=g.creatineTarget?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
+    case 'magnesium':return val>=g.magnesiumTarget?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
+    case 'ltheanine':return val>=g.ltheanineTarget?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
+    case 'omega3':return (val!=null&&val!=='none')?{i:'✓',c:'var(--green-d)'}:{i:'✗',c:'var(--red)'};
+    case 'caffeine':return rng(g.caffLow,g.caffHigh);
+    case 'sore':return val===true?{i:'🤕',c:'var(--orange)'}:{i:'💪',c:'var(--green-d)'};
+    case 'brk':return val==='full'?{i:'●',c:'var(--blue)'}:val==='half'?{i:'◐',c:'var(--orange)'}:{i:'–',c:'var(--tx3)'};
   }
   return{i:'–',c:'var(--tx3)'};
 }
-function fmtVal(cat,val){if(val==null)return'';if(cat==='sleep')return val+'h';if(cat==='steps')return val>=1000?(val/1000).toFixed(1)+'k':val;return val+'';}
+function fmtVal(cat,val){if(val==null||val===''||val===true||val===false)return'';if(cat==='sleep')return val+'h';if(cat==='steps')return val>=1000?(val/1000).toFixed(1)+'k':val;if(cat==='caffeine')return val+'mg';if(cat==='creatine')return val+'g';if(cat==='magnesium'||cat==='ltheanine')return val+'';if(cat==='omega3')return ({pills:'pills',sardines:'sard.',salmon:'salmon',none:'—'}[val]||'');if(cat==='brk')return ({half:'½',full:'full'}[val]||'');return val+'';}
 function renderScoreTable(){
   const st=scNavState(),g=goals(),totalDays=st.totalDays,wStart=st.pageStart,prevStart=wStart-7;
   const days=[];for(let d=0;d<7;d++){const di=wStart+d;if(di<totalDays)days.push(di);}
@@ -1231,17 +1288,23 @@ function renderScoreTable(){
   const dietDef=[['cals','Calories'],['fiber','Fiber'],['protein','Protein'],['carbs','Carbs']];
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
   const vals=(ws,cat)=>{const o=[];for(let d=0;d<7;d++){const di=ws+d;if(di<0)continue;const rec=CI.find(c=>c.date===addDays(wkBase(),di));if(!rec)continue;
-    if(cat==='__score'){if(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null)o.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),di))).pts);}
+    if(cat==='__score'){if(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null)o.push(dailyScore(svals(rec),dayCtx(addDays(wkBase(),di))).pts);}
     else if(cat==='workout'){if(rec.workout)o.push(rec.workout==='inc'||rec.workout==='same'?1:0);}
     else if(cat==='eatout'){if(rec.eatOut!=null)o.push(rec.eatOut===true?1:0);}
+    else if(cat==='omega3'){if(rec.omega3!=null)o.push((rec.omega3!=='none')?1:0);}
+    else if(cat==='sore'){if(rec.sore!=null)o.push(rec.sore===true?1:0);}
+    else if(cat==='brk'){if(rec.brk!=null)o.push(rec.brk==='full'?1:rec.brk==='half'?0.5:0);}
     else if(rec[cat]!=null&&rec[cat]!=='')o.push(rec[cat]);}
     return o;};
-  const GOODUP={'__score':true,weight:false,energy:true,sleep:true,steps:true,cals:null,fiber:true,protein:true,carbs:null,workout:true,eatout:false};
-  const fmtAvg=(cat,v)=>{if(cat==='__score')return Math.round(v)+'%';if(cat==='weight')return v.toFixed(1);if(cat==='energy')return v.toFixed(1);if(cat==='sleep')return v.toFixed(1)+'h';if(cat==='steps')return v>=1000?(v/1000).toFixed(1)+'k':Math.round(v);return Math.round(v);};
+  const GOODUP={'__score':true,weight:false,energy:true,sleep:true,steps:true,cals:null,fiber:true,protein:true,carbs:null,workout:true,eatout:false,creatine:true,magnesium:true,omega3:true,ltheanine:true,caffeine:null,sore:false,brk:null};
+  const fmtAvg=(cat,v)=>{if(cat==='__score')return Math.round(v)+'%';if(cat==='weight')return v.toFixed(1);if(cat==='energy')return v.toFixed(1);if(cat==='sleep')return v.toFixed(1)+'h';if(cat==='steps')return v>=1000?(v/1000).toFixed(1)+'k':Math.round(v);if(cat==='creatine')return v.toFixed(1)+'g';if(cat==='magnesium'||cat==='ltheanine')return v.toFixed(1);if(cat==='caffeine')return Math.round(v)+'mg';return Math.round(v);};
   const arrow=(cat,t,p)=>{if(t==null||p==null)return'';if(Math.abs(t-p)<1e-9)return'<span style="color:var(--tx3);font-size:9px"> –</span>';const up=t>p,gu=GOODUP[cat];const col=gu==null?'var(--tx3)':((up===gu)?'var(--green-d)':'var(--red)');return '<span style="color:'+col+';font-size:9px"> '+(up?'▲':'▼')+'</span>';};
   const avgCell=cat=>{const tv=vals(wStart,cat),pv=vals(prevStart,cat);
     if(cat==='workout'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'✓':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
     if(cat==='eatout'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'× out':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
+    if(cat==='omega3'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'/'+tv.length:'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
+    if(cat==='sore'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'🤕':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
+    if(cat==='brk'){const tN=tv.reduce((a,b)=>a+b,0),pN=pv.length?pv.reduce((a,b)=>a+b,0):null;return '<td class="avgcell">'+(tv.length?tN+'d':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
     const ta=mean(tv),pa=mean(pv);return '<td class="avgcell">'+(ta==null?'–':fmtAvg(cat,ta))+arrow(cat,ta,pa)+'</td>';};
   const catRow=(cat,lbl,cls,rowcls)=>{let r='<tr'+(rowcls?' class="'+rowcls+'"':'')+'><td class="catlbl '+cls+'">'+lbl+'</td>';
     days.forEach(di=>{const rec=recOf(di);const date=addDays(wkBase(),di);let s,vt='';
@@ -1254,17 +1317,21 @@ function renderScoreTable(){
   const tgt=st.tgt;
   // Score (top)
   body+='<tr class="r-score"><td class="catlbl">Score</td>';
-  days.forEach(di=>{const rec=recOf(di);const sc=dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),di)));const any=rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null;const col=tgt!=null?(any?(sc.pts>=tgt?'var(--green-d)':'var(--red)'):'var(--tx3)'):(sc.pts>=100?'var(--green-d)':sc.pts>=60?'var(--orange)':'var(--tx)');body+='<td style="font-weight:700;color:'+col+'">'+(any?sc.pts+'%':'–')+'</td>';});
+  days.forEach(di=>{const rec=recOf(di);const sc=dailyScore(svals(rec),dayCtx(addDays(wkBase(),di)));const any=rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null;const col=tgt!=null?(any?(sc.pts>=tgt?'var(--green-d)':'var(--red)'):'var(--tx3)'):(sc.pts>=100?'var(--green-d)':sc.pts>=60?'var(--orange)':'var(--tx)');body+='<td style="font-weight:700;color:'+col+'">'+(any?sc.pts+'%':'–')+'</td>';});
   // score avg cell with target colour + trend
   {const tv=vals(wStart,'__score'),pv=vals(prevStart,'__score');const ta=mean(tv),pa=mean(pv);const col=(tgt!=null&&ta!=null)?(ta>=tgt?'var(--green-d)':'var(--red)'):'var(--tx)';body+='<td class="avgcell" style="color:'+col+'">'+(ta==null?'–':Math.round(ta)+'%')+arrow('__score',ta,pa)+'</td></tr>';}
+  // tracked state just below score (today's feel)
+  body+=catRow('sore','Soreness','main');
   // Weight (separated)
   body+='<tr class="r-weight"><td class="catlbl">Weight</td>';
   days.forEach(di=>{const rec=recOf(di);body+='<td style="font-weight:600">'+(rec.weight!=null?rec.weight.toFixed(1):'–')+'</td>';});
   body+=avgCell('weight')+'</tr>';
   // main goals (bold)
-  mainDef.forEach(([cat,lbl])=>{body+=catRow(cat,lbl,'main');});
+  mainDef.forEach(([cat,lbl])=>{body+=catRow(cat,lbl,'main');if(cat==='sleep')body+=catRow('brk','Break','main');});
   // diet sub (lighter, separated)
   dietDef.forEach(([cat,lbl],i)=>{body+=catRow(cat,lbl,'sub',i===0?'r-dietstart':'');});
+  // supplement subs
+  [['creatine','Creatine'],['magnesium','Magnesium'],['omega3','Omega-3'],['ltheanine','L-thean.'],['caffeine','Caffeine']].forEach(([cat,lbl],i)=>{body+=catRow(cat,lbl,'sub',i===0?'r-dietstart':'');});
   // Dates (bottom) — Avg column labelled here
   body+='<tr class="r-date"><td class="catlbl"></td>';
   days.forEach(di=>{const dt=new Date(addDays(wkBase(),di)+' 00:00');body+='<td><div style="font-weight:700">'+dt.getDate()+'</div><div style="font-size:8px;color:var(--tx3)">'+dt.toLocaleDateString('en-AU',{weekday:'short'})+'</div></td>';});
@@ -1272,20 +1339,31 @@ function renderScoreTable(){
   wrap.innerHTML='<table class="sctab2"><tbody>'+body+'</tbody></table>';
 }
 function renderScoreLeft(){
-  const mw=mainW(),dw=dietSubW(),dh=mw.diet;
-  const bands=[['sleep','Sleep',mw.sleep],['steps','Steps',mw.steps],['workout','Workout',mw.workout],['eatout','Eat out',mw.eatout],['cals','Calories',dh*dw.cals/100],['fiber','Fiber',dh*dw.fiber/100],['protein','Protein',dh*dw.protein/100],['carbs','Carbs',dh*dw.carbs/100]];
-  document.getElementById('sc-left').innerHTML='<div style="height:30px;flex:none"></div><div style="flex:1;display:flex;flex-direction:column;min-height:0">'+bands.map(([k,lbl,w])=>'<div style="flex-grow:'+Math.max(w,0.001)+';flex-basis:0;min-height:0;display:flex;align-items:center;overflow:hidden"><span style="font-size:9px;color:var(--tx2);line-height:1;font-weight:600">'+lbl+'</span></div>').join('')+'</div><div style="height:24px;flex:none"></div>';
+  const mw=mainW(),dw=dietSubW(),sw=suppSubW(),dh=mw.diet,sh=mw.supplements;
+  const groups=[
+    [['sleep','Sleep',mw.sleep],['steps','Steps',mw.steps],['workout','Workout',mw.workout],['eatout','Eat out',mw.eatout]],
+    [['cals','Calories',dh*dw.cals/100],['fiber','Fiber',dh*dw.fiber/100],['protein','Protein',dh*dw.protein/100],['carbs','Carbs',dh*dw.carbs/100]],
+    [['creatine','Creatine',sh*sw.creatine/100],['magnesium','Magnesium',sh*sw.magnesium/100],['omega3','Omega-3',sh*sw.omega3/100],['ltheanine','L-thean.',sh*sw.ltheanine/100],['caffeine','Caffeine',sh*sw.caffeine/100]]
+  ];
+  const band=([k,lbl,w])=>'<div style="flex-grow:'+Math.max(w,0.001)+';flex-basis:0;min-height:0;display:flex;align-items:center;overflow:hidden"><span style="font-size:9px;color:var(--tx2);line-height:1;font-weight:600">'+lbl+'</span></div>';
+  const sep='<div style="height:8px;flex:none;display:flex;align-items:center"><div style="height:2px;width:100%;background:var(--sep);border-radius:2px"></div></div>';
+  let mid='<div style="flex:1;display:flex;flex-direction:column;min-height:0">';
+  groups.forEach((g,gi)=>{if(gi>0)mid+=sep;mid+=g.map(band).join('');});
+  mid+='</div>';
+  document.getElementById('sc-left').innerHTML='<div style="height:30px;flex:none"></div>'+mid+'<div style="height:24px;flex:none"></div>';
 }
 function drawScoreChart(){
   renderScoreLeft();
   const cv=document.getElementById('csc'),ctx=cv.getContext('2d');
-  const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=200*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
-  const W=cv.offsetWidth||300,H=200;ctx.clearRect(0,0,W,H);
+  const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=300*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=cv.offsetWidth||300,H=300;ctx.clearRect(0,0,W,H);
   const ns=scNavState(),win=ns.win,totalDays=ns.totalDays,pageStart=ns.pageStart,tgt=ns.tgt;
   const KCOL=SC_COL,KMISS='rgba(60,60,67,.12)';
-  const mw=mainW(),dw=dietSubW(),dh=mw.diet/100;
-  const segs=[['carbs',dh*dw.carbs/100],['protein',dh*dw.protein/100],['fiber',dh*dw.fiber/100],['cals',dh*dw.cals/100],['eatout',mw.eatout/100],['workout',mw.workout/100],['steps',mw.steps/100],['sleep',mw.sleep/100]];
-  const pd={l:6,r:8,t:30,b:24},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b;
+  const mw=mainW(),dw=dietSubW(),sw=suppSubW(),dh=mw.diet/100,sh=mw.supplements/100;
+  const segs=[['caffeine',sh*sw.caffeine/100],['ltheanine',sh*sw.ltheanine/100],['omega3',sh*sw.omega3/100],['magnesium',sh*sw.magnesium/100],['creatine',sh*sw.creatine/100],['carbs',dh*dw.carbs/100],['protein',dh*dw.protein/100],['fiber',dh*dw.fiber/100],['cals',dh*dw.cals/100],['eatout',mw.eatout/100],['workout',mw.workout/100],['steps',mw.steps/100],['sleep',mw.sleep/100]];
+  const SEG_GRP={caffeine:'s',ltheanine:'s',omega3:'s',magnesium:'s',creatine:'s',carbs:'d',protein:'d',fiber:'d',cals:'d',eatout:'m',workout:'m',steps:'m',sleep:'m'};
+  const GAP=8;
+  const pd={l:6,r:8,t:30,b:24},gW=W-pd.l-pd.r,gH=H-pd.t-pd.b,gHseg=gH-GAP*2;
   const step=gW/win,bw=Math.min(30,step*0.6),xC=i=>pd.l+step*i+step/2;
   // target reference line (height = target% of full bar)
   if(tgt!=null){const ty=pd.t+gH-(tgt/100)*gH;ctx.strokeStyle='#1c1c1e';ctx.lineWidth=1.3;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(pd.l,ty);ctx.lineTo(W-pd.r,ty);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#1c1c1e';ctx.font='700 9px '+getFont();ctx.textAlign='left';ctx.fillText('target '+tgt+'%',pd.l+1,ty-3);}
@@ -1294,13 +1372,13 @@ function drawScoreChart(){
     const w=pageStart+i;if(w>=totalDays)break;
     const date=addDays(wkBase(),w);
     const rec=CI.find(c=>c.date===date);
-    const sc=dailyScore(rec?{energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut}:{},dayCtx(date));
+    const sc=dailyScore(rec?svals(rec):{},dayCtx(date));
     const any=rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null);
     if(any)logged++;
     if(sc.pts>=100)fullDays++;
     const dayMet=tgt!=null&&any&&sc.pts>=tgt;if(dayMet)metDays++;
     let yb=pd.t+gH;
-    segs.forEach(([k,frac])=>{const h=frac*gH;const y=yb-h;ctx.fillStyle=sc.met[k]?KCOL[k]:KMISS;roundRect(ctx,xC(i)-bw/2,y+0.8,bw,h-1.6,1.5);ctx.fill();
+    segs.forEach(([k,frac],j)=>{if(j>0&&SEG_GRP[k]!==SEG_GRP[segs[j-1][0]])yb-=GAP;const h=frac*gHseg;const y=yb-h;ctx.fillStyle=sc.met[k]?KCOL[k]:KMISS;roundRect(ctx,xC(i)-bw/2,y+0.8,bw,h-1.6,1.5);ctx.fill();
       if(h>=11){const pctTxt=Math.round(frac*100)+'%';ctx.fillStyle=sc.met[k]?'#fff':'#8e8e93';ctx.font='700 8px '+getFont();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(pctTxt,xC(i),y+h/2);ctx.textBaseline='alphabetic';}
       yb=y;});
     ctx.textAlign='center';
@@ -1311,7 +1389,7 @@ function drawScoreChart(){
   ctx.textAlign='center';ctx.fillStyle='#8e8e93';ctx.font='9px '+getFont();
   for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const dt=new Date(addDays(wkBase(),w)+' 00:00');ctx.fillText(dt.getDate(),xC(i),H-8);}
   // weekly average vs target
-  const wv=[];for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const rec=CI.find(c=>c.date===addDays(wkBase(),w));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))wv.push(dailyScore({energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut},dayCtx(addDays(wkBase(),w))).pts);}
+  const wv=[];for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const rec=CI.find(c=>c.date===addDays(wkBase(),w));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))wv.push(dailyScore(svals(rec),dayCtx(addDays(wkBase(),w))).pts);}
   const wavg=wv.length?Math.round(wv.reduce((a,b)=>a+b,0)/wv.length):null;
   let msg='';
   if(tgt!=null&&wavg!=null){const ok=wavg>=tgt;msg='Week average <b style="color:'+(ok?'var(--green-d)':'var(--red)')+'">'+wavg+'%</b> vs target <b>'+tgt+'%</b> — '+(ok?'week met ✓':'below target')+'. Met on '+metDays+'/'+logged+' logged days.';}
@@ -1351,6 +1429,11 @@ function renderGTmp(){
   document.getElementById('g-stepHigh').textContent=gTmp.stepHigh.toLocaleString();
   document.getElementById('g-woTarget').textContent=gTmp.woTarget;
   document.getElementById('g-eatAllow').textContent=gTmp.eatAllow;
+  document.getElementById('g-caffLow').textContent=gTmp.caffLow;
+  document.getElementById('g-caffHigh').textContent=gTmp.caffHigh;
+  document.getElementById('g-creatineTarget').textContent=gTmp.creatineTarget;
+  document.getElementById('g-magnesiumTarget').textContent=gTmp.magnesiumTarget;
+  document.getElementById('g-ltheanineTarget').textContent=gTmp.ltheanineTarget;
   document.getElementById('g-calLow').textContent=gTmp.calLow.toLocaleString();
   document.getElementById('g-calHigh').textContent=gTmp.calHigh.toLocaleString();
   document.getElementById('g-fiberLow').textContent=gTmp.fiberLow;
@@ -1367,6 +1450,11 @@ function gStep(key,d){
   if(key==='stepHigh')gTmp.stepHigh=Math.max(gTmp.stepLow,Math.min(40000,gTmp.stepHigh));
   if(key==='woTarget')gTmp.woTarget=Math.max(0,Math.min(7,gTmp.woTarget));
   if(key==='eatAllow')gTmp.eatAllow=Math.max(0,Math.min(7,gTmp.eatAllow));
+  if(key==='caffLow')gTmp.caffLow=Math.max(0,Math.min(gTmp.caffHigh,gTmp.caffLow));
+  if(key==='caffHigh')gTmp.caffHigh=Math.max(gTmp.caffLow,Math.min(800,gTmp.caffHigh));
+  if(key==='creatineTarget')gTmp.creatineTarget=Math.max(0,Math.min(50,gTmp.creatineTarget));
+  if(key==='magnesiumTarget')gTmp.magnesiumTarget=Math.max(0,Math.min(10,gTmp.magnesiumTarget));
+  if(key==='ltheanineTarget')gTmp.ltheanineTarget=Math.max(0,Math.min(10,gTmp.ltheanineTarget));
   if(key==='calLow')gTmp.calLow=Math.max(0,Math.min(gTmp.calHigh,gTmp.calLow));
   if(key==='calHigh')gTmp.calHigh=Math.max(gTmp.calLow,Math.min(8000,gTmp.calHigh));
   if(key==='fiberLow')gTmp.fiberLow=Math.max(0,Math.min(gTmp.fiberHigh,gTmp.fiberLow));
@@ -1377,7 +1465,7 @@ function gStep(key,d){
   if(key==='proteinHigh')gTmp.proteinHigh=Math.max(gTmp.proteinLow,Math.min(400,gTmp.proteinHigh));
   renderGTmp();
 }
-function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;gTmp={...goals(),woTarget:(P.workoutTarget==null?4:P.workoutTarget),eatAllow:(P.eatOutAllow==null?1:P.eatOutAllow)};renderGTmp();mPreview();document.getElementById('target-modal').classList.remove('hidden');}
+function openTarget(){const m=metrics();document.getElementById('m-start').value=m.start;document.getElementById('m-sdate').value=m.sd;document.getElementById('m-tgt').value=m.tgt;document.getElementById('m-date').value=m.td;gTmp={...goals(),woTarget:(P.workoutTarget==null?4:P.workoutTarget),eatAllow:(P.eatOutAllow==null?1:P.eatOutAllow),caffLow:(P.caffLow==null?25:P.caffLow),caffHigh:(P.caffHigh==null?50:P.caffHigh),creatineTarget:(P.creatineTarget==null?5:P.creatineTarget),magnesiumTarget:(P.magnesiumTarget==null?1:P.magnesiumTarget),ltheanineTarget:(P.ltheanineTarget==null?1:P.ltheanineTarget)};renderGTmp();mPreview();document.getElementById('target-modal').classList.remove('hidden');}
 function closeTarget(){document.getElementById('target-modal').classList.add('hidden');}
 ['m-start','m-sdate','m-tgt','m-date'].forEach(id=>document.getElementById(id).addEventListener('input',mPreview));
 function planLine(sWt,sDate,tWt,tDate){
@@ -1393,7 +1481,7 @@ function mPreview(){
 function applyTargetModal(){
   P.sleepTarget=gTmp.sleep;P.stepLow=gTmp.stepLow;P.stepHigh=gTmp.stepHigh;P.calLow=gTmp.calLow;P.calHigh=gTmp.calHigh;
   P.fiberLow=gTmp.fiberLow;P.fiberHigh=gTmp.fiberHigh;P.carbLow=gTmp.carbLow;P.carbHigh=gTmp.carbHigh;P.proteinLow=gTmp.proteinLow;P.proteinHigh=gTmp.proteinHigh;
-  P.workoutTarget=gTmp.woTarget;P.eatOutAllow=gTmp.eatAllow;
+  P.workoutTarget=gTmp.woTarget;P.eatOutAllow=gTmp.eatAllow;P.caffLow=gTmp.caffLow;P.caffHigh=gTmp.caffHigh;P.creatineTarget=gTmp.creatineTarget;P.magnesiumTarget=gTmp.magnesiumTarget;P.ltheanineTarget=gTmp.ltheanineTarget;
   if(commitPlan(parseFloat(document.getElementById('m-start').value),document.getElementById('m-sdate').value,parseFloat(document.getElementById('m-tgt').value),document.getElementById('m-date').value)){updateGoalHints();updateScore();closeTarget();}
 }
 
@@ -1413,7 +1501,7 @@ function maybePopup(){
 function renderAll(){renderToday();const ap=document.querySelector('.page.active');if(ap&&ap.id==='page-progress')renderProgress();}
 function goPage(n,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress'){wlPage=Math.floor(Math.max(0,dbtw(wkBase(),tod()))/7/8);scPage=scPageCount()-1;renderProgress();}if(n==='report')renderReport();}
 function resetAll(){if(confirm('Reset all data? This cannot be undone.')){['wc1_p','wc1_c','wc1_ts','wc1_pop'].forEach(k=>localStorage.removeItem(k));location.reload();}}
-function launchApp(){document.getElementById('setup').style.display='none';document.getElementById('app').style.display='flex';loadTodayCI();document.getElementById('wo-date').value=tod();loadWorkout();renderAll();setTimeout(maybePopup,400);}
+function launchApp(){document.getElementById('setup').style.display='none';document.getElementById('app').style.display='flex';fillYesterdaySelects();loadTodayCI();renderAll();setTimeout(maybePopup,400);}
 
 window.addEventListener('load',()=>{
   load();
