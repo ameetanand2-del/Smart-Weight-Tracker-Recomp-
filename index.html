@@ -545,6 +545,7 @@ function load(){
   try{CI=JSON.parse(localStorage.getItem('wc1_c'))||[];}catch(e){CI=[];}
   if(P.caffLow===50&&P.caffHigh===200){P.caffLow=25;P.caffHigh=50;}
   if(!P.supps||!P.supps.length)P.supps=JSON.parse(JSON.stringify(DEFAULT_SUPPS));
+  P.supps.forEach(s=>{if(!s.time)s.time='anytime';});
   CI.forEach(c=>{if(c.supps)return;const m={};['creatine','magnesium','ltheanine','vitd3','vitk2','caffeine'].forEach(k=>{if(c[k]!=null)m[k]=c[k];});if(c.omega3!=null)m.omega3=(c.omega3==='none'?0:(typeof c.omega3==='string'?1:c.omega3));if(Object.keys(m).length)c.supps=m;});
   if(!P.startWt){
     try{
@@ -589,7 +590,7 @@ function loadDemo(){
   const start=addDays(tod(),-28);
   P={startWt:84.4,startDate:start,targetWt:75,targetDate:addDays(tod(),84),sleepTarget:7,stepLow:8000,stepHigh:10000,calLow:2000,calHigh:2500,fiberLow:25,fiberHigh:40,carbLow:150,carbHigh:250,proteinLow:120,proteinHigh:180,workoutTarget:5,eatOutAllow:1,supps:JSON.parse(JSON.stringify(DEFAULT_SUPPS)),targetHist:[{w:0,t:65},{w:2,t:75}]};CI=[];
   const wos=['below','same','inc'];
-  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;const supps={creatine:[0,3,5,5,5,8,10][Math.floor(Math.random()*7)],magnesium:Math.random()>.25?(Math.random()>.5?2:1):0,omega3:Math.random()>.35?1:0,ltheanine:Math.random()>.5?1:0,vitd3:Math.random()>.3?1000:0,vitk2:Math.random()>.4?100:0,b12:Math.random()>.4?500:0,bcomplex:Math.random()>.5?1:0,ashwagandha:Math.random()>.5?300:0,zinc:Math.random()>.4?15:0,caffeine:Math.round((Math.random()*60)/5)*5};const sore=Math.random()>.5?(1+Math.floor(Math.random()*5)):null;const brk=Math.random()>.8?(Math.random()>.5?'full':'half'):null;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut,supps,sore,brk});}
+  for(let i=28;i>=0;i--){const de=28-i;const wt=+(84.4-de*0.058+(Math.random()-.5)*.5).toFixed(1);let en=3+Math.round((Math.random()-.4)*2);if(i<5)en-=1;en=Math.max(1,Math.min(5,en));const sleep=+(6+Math.random()*2.5).toFixed(1);const steps=Math.round((5000+Math.random()*7000)/250)*250;const cals=Math.round((1900+Math.random()*900)/100)*100;const fiber=Math.round(18+Math.random()*26);const carbs=Math.round((140+Math.random()*140)/5)*5;const protein=Math.round((110+Math.random()*90)/5)*5;const workout=Math.random()>.35?wos[1+Math.floor(Math.random()*2)]:'below';const notesPool=['Slept badly, work stress.','Big dinner out — over on cals.','Felt strong, hit a PR on squats.','Travel day, low steps.','Good energy all day, clean eating.','Cheat meal but back on track tomorrow.'];const note=Math.random()>.7?notesPool[Math.floor(Math.random()*notesPool.length)]:'';const eatOut=Math.random()>.72;const supps={creatine:[0,3,5,5,5,8,10][Math.floor(Math.random()*7)],magnesium:Math.random()>.25?(Math.random()>.5?2:1):0,omega3:Math.random()>.35?1:0,ltheanine:Math.random()>.5?1:0,vitd3:Math.random()>.3?1000:0,vitk2:Math.random()>.4?100:0,b12:Math.random()>.4?5:0,bcomplex:Math.random()>.5?1:0,ashwagandha:Math.random()>.5?300:0,zinc:Math.random()>.4?15:0,caffeine:Math.round((Math.random()*60)/5)*5};const sore=Math.random()>.5?(1+Math.floor(Math.random()*5)):null;const brk=Math.random()>.8?(Math.random()>.5?'full':'half'):null;if(Math.random()>.15)CI.push({date:addDays(tod(),-i),weight:wt,energy:en,sleep,steps,cals,fiber,carbs,protein,workout,note,eatOut,supps,sore,brk});}
   save();launchApp();
 }
 
@@ -636,19 +637,21 @@ function inR(x,lo,hi){return x!=null&&x>=lo&&x<=hi;}
 const KPIS=['sleep','steps','diet','workout','eatout','supplements'];
 const DIETSUB=['cals','fiber','protein','carbs'];
 const SUPP_UNITS=['mg','mcg','g','IU','pills'];
+const SUPP_TIMES=['morning','evening','night','anytime'];
+const SUPP_TIME_LBL={morning:'🌅 Morning',evening:'🌆 Evening',night:'🌙 Night',anytime:'🕒 Anytime'};
 const SUPP_PALETTE=['#ff6482','#64d2ff','#ac8e68','#a0e85b','#ff8c42','#2dd4bf','#d4a017','#bf5af2','#5ac8fa','#ff375f','#30d158','#ffd60a','#9b8cff','#0a84ff'];
 const DEFAULT_SUPPS=[
- {id:'creatine',name:'Creatine',unit:'g',target:5},
- {id:'magnesium',name:'Magnesium',unit:'pills',target:1},
- {id:'omega3',name:'Omega-3',unit:'pills',target:1},
- {id:'ltheanine',name:'L-theanine',unit:'pills',target:1},
- {id:'vitd3',name:'Vitamin D3',unit:'IU',target:1000},
- {id:'vitk2',name:'Vitamin K2',unit:'mcg',target:100},
- {id:'b12',name:'B12',unit:'mcg',target:500},
- {id:'bcomplex',name:'B-complex',unit:'pills',target:1},
- {id:'ashwagandha',name:'Ashwagandha',unit:'mg',target:300},
- {id:'zinc',name:'Zinc',unit:'mg',target:15},
- {id:'caffeine',name:'Caffeine',unit:'mg',target:25}
+ {id:'creatine',name:'Creatine',unit:'g',target:5,time:'anytime'},
+ {id:'magnesium',name:'Magnesium',unit:'pills',target:1,time:'night'},
+ {id:'omega3',name:'Omega-3',unit:'pills',target:1,time:'morning'},
+ {id:'ltheanine',name:'L-theanine',unit:'pills',target:1,time:'evening'},
+ {id:'vitd3',name:'Vitamin D3',unit:'IU',target:1000,time:'morning'},
+ {id:'vitk2',name:'Vitamin K2',unit:'mcg',target:100,time:'morning'},
+ {id:'b12',name:'B12',unit:'mg',target:5,time:'morning'},
+ {id:'bcomplex',name:'B-complex',unit:'pills',target:1,time:'morning'},
+ {id:'ashwagandha',name:'Ashwagandha',unit:'mg',target:300,time:'evening'},
+ {id:'zinc',name:'Zinc',unit:'mg',target:15,time:'night'},
+ {id:'caffeine',name:'Caffeine',unit:'mg',target:25,time:'morning'}
 ];
 function SUPPS(){if(!P.supps||!P.supps.length)P.supps=JSON.parse(JSON.stringify(DEFAULT_SUPPS));return P.supps;}
 function suppIds(){return SUPPS().filter(s=>!s.hidden).map(s=>s.id);}
@@ -798,8 +801,15 @@ function renderEatOut(){const e=document.getElementById('sel-eo');if(e)e.value=c
 function selOmega(v){}
 function buildSuppRows(){
   const c=document.getElementById('supp-rows');if(!c)return;
-  c.innerHTML=SUPPS().map(s=>'<div class="drow"><span class="dl sub">'+s.name+' <span class="tsm" id="hint-'+s.id+'"></span></span><select class="dsel" id="sel-'+s.id+'" onchange="setSuppVal(\''+s.id+'\',this.value)"></select></div>').join('');
-  SUPPS().forEach(s=>{const r=suppRange(s.unit);const u=s.unit==='pills'?(v=>v+(v===1?' pill':' pills')):(v=>v+' '+s.unit);fillSel('sel-'+s.id,0,r.max,r.step,u);});
+  const act=SUPPS().filter(s=>!s.hidden);
+  let html='';
+  SUPP_TIMES.forEach(t=>{
+    const grp=act.filter(s=>(s.time||'anytime')===t);if(!grp.length)return;
+    html+='<div class="tsm" style="font-weight:700;color:var(--tx3);margin:9px 0 1px;padding-left:2px">'+SUPP_TIME_LBL[t]+'</div>';
+    grp.forEach(s=>{html+='<div class="drow"><span class="dl sub">'+s.name+' <span class="tsm" id="hint-'+s.id+'"></span></span><select class="dsel" id="sel-'+s.id+'" onchange="setSuppVal(\''+s.id+'\',this.value)"></select></div>';});
+  });
+  c.innerHTML=html;
+  act.forEach(s=>{const r=suppRange(s.unit);const u=s.unit==='pills'?(v=>v+(v===1?' pill':' pills')):(v=>v+' '+s.unit);fillSel('sel-'+s.id,0,r.max,r.step,u);});
 }
 function renderSupp(){
   const sv=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val==null?'':String(val);};
@@ -811,16 +821,30 @@ function cycleBreak(){ciBrk=ciBrk==null?'half':ciBrk==='half'?'full':null;render
 function renderBreak(){const e=document.getElementById('sel-brk');if(e)e.value=ciBrk==null?'':ciBrk;}
 function renderSuppManager(){
   const c=document.getElementById('supp-manager');if(!c)return;
+  const uopts=u=>SUPP_UNITS.map(x=>'<option value="'+x+'"'+(x===u?' selected':'')+'>'+x+'</option>').join('');
+  const topts=t=>SUPP_TIMES.map(x=>'<option value="'+x+'"'+(x===(t||'anytime')?' selected':'')+'>'+SUPP_TIME_LBL[x]+'</option>').join('');
   c.innerHTML=SUPPS().map(s=>{const hid=!!s.hidden;
-    return '<div class="drow" style="'+(hid?'opacity:.5':'')+'"><span class="dl sub" style="display:flex;align-items:center;gap:7px;padding-left:0"><button onclick="toggleSuppHidden(\''+s.id+'\')" style="border:none;background:'+(hid?'var(--blue)':'var(--fill)')+';color:'+(hid?'#fff':'var(--tx2)')+';border-radius:6px;padding:0 9px;height:22px;font-size:11px;font-weight:700;cursor:pointer;flex:none">'+(hid?'Show':'Hide')+'</button><span>'+s.name+' <span class="tsm" style="color:var(--tx3)">'+s.unit+'</span></span></span><div class="gstep"><button class="stp2" onclick="stepSuppTarget(\''+s.id+'\',-1)">−</button><span style="min-width:58px;text-align:center;font-size:13px">≥'+s.target+(s.unit==='pills'?'':' '+s.unit)+'</span><button class="stp2" onclick="stepSuppTarget(\''+s.id+'\',1)">+</button></div></div>';
+    return '<div style="padding:9px 0;border-bottom:1px solid var(--sep);'+(hid?'opacity:.5':'')+'">'
+     +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+       +'<span style="font-weight:600;font-size:14px">'+s.name+'</span>'
+       +'<button onclick="toggleSuppHidden(\''+s.id+'\')" style="border:none;background:'+(hid?'var(--blue)':'var(--fill)')+';color:'+(hid?'#fff':'var(--tx2)')+';border-radius:6px;padding:0 11px;height:24px;font-size:11px;font-weight:700;cursor:pointer">'+(hid?'Show':'Hide')+'</button>'
+     +'</div>'
+     +'<div style="display:flex;align-items:center;gap:6px;margin-top:8px">'
+       +'<select class="dsel" style="min-width:64px;flex:none" onchange="setSuppUnit(\''+s.id+'\',this.value)">'+uopts(s.unit)+'</select>'
+       +'<select class="dsel" style="flex:1;min-width:0" onchange="setSuppTime(\''+s.id+'\',this.value)">'+topts(s.time)+'</select>'
+       +'<div class="gstep" style="flex:none"><button class="stp2" onclick="stepSuppTarget(\''+s.id+'\',-1)">−</button><span style="min-width:48px;text-align:center;font-size:12px">≥'+s.target+(s.unit==='pills'?'':s.unit)+'</span><button class="stp2" onclick="stepSuppTarget(\''+s.id+'\',1)">+</button></div>'
+     +'</div>'
+    +'</div>';
   }).join('');
 }
+function setSuppUnit(id,unit){const s=suppDef(id);if(!s)return;s.unit=unit;const r=suppRange(unit);s.target=Math.min(r.max,Math.round(s.target/r.step)*r.step);if(!s.target)s.target=unit==='pills'?1:r.step;save();renderSuppManager();buildSuppRows();renderSupp();}
+function setSuppTime(id,t){const s=suppDef(id);if(!s)return;s.time=t;save();renderSuppManager();buildSuppRows();renderSupp();}
 function stepSuppTarget(id,dir){const s=suppDef(id);if(!s)return;const r=suppRange(s.unit);s.target=Math.max(0,Math.min(r.max,+(s.target+dir*r.step).toFixed(2)));save();renderSuppManager();}
 function addSupp(){
   const nmEl=document.getElementById('new-supp-name'),nm=nmEl.value.trim();if(!nm){alert('Enter a name.');return;}
   const unit=document.getElementById('new-supp-unit').value;
   let base=nm.toLowerCase().replace(/[^a-z0-9]/g,'')||'supp',id=base,n=2;while(suppDef(id)){id=base+n;n++;}
-  const r=suppRange(unit);SUPPS().push({id,name:nm,unit,target:unit==='pills'?1:r.step});
+  const r=suppRange(unit);SUPPS().push({id,name:nm,unit,target:unit==='pills'?1:r.step,time:'anytime'});
   nmEl.value='';save();renderSuppManager();buildSuppRows();renderSupp();
 }
 function toggleSuppHidden(id){const s=suppDef(id);if(!s)return;s.hidden=!s.hidden;save();renderSuppManager();buildSuppRows();renderSupp();}
