@@ -121,7 +121,7 @@ canvas{display:block;width:100%}
 .sctab2{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums;margin-bottom:4px;table-layout:auto;border:1px solid var(--sep)}
 .sctab2 td{padding:6px 5px;text-align:center;line-height:1.2;border:.5px solid var(--sep);white-space:nowrap;min-width:30px}
 .sctab2 td+td{border-left:1.5px solid #b8b8b4}
-.sctab2 .catlbl{min-width:62px;text-align:left;font-size:10px;font-weight:600;color:var(--tx2);white-space:nowrap;padding-right:6px;background:var(--surface);position:sticky;left:0;z-index:1}
+.sctab2 .catlbl{width:78px;min-width:78px;max-width:78px;text-align:left;font-size:10px;font-weight:600;color:var(--tx2);white-space:normal;overflow-wrap:anywhere;word-break:break-word;line-height:1.15;padding-right:6px;background:var(--surface);position:sticky;left:0;z-index:1}
 .sctab2 .r-date td{border-top:1.5px solid #b8b8b4}
 .sctab2 .r-score td{border-bottom:1.5px solid #b8b8b4}
 .sctab2 .r-weight td{border-bottom:1.5px solid #b8b8b4}
@@ -793,9 +793,10 @@ function saveCI(){
   const date=document.getElementById('ci-date').value||tod();
   const yest=addDays(date,-1);
   const wt=parseFloat(document.getElementById('ci-wt').value);
-  if(!wt){alert('Enter your weight.');return;}
   const note=document.getElementById('ci-note').value.trim();
-  upsertCI(date,{weight:wt,energy:selEnergyV,note,workout:woSel,supps:Object.assign({},ciSuppVals),sore:ciSore}); // today
+  const today={energy:selEnergyV,note,workout:woSel,supps:Object.assign({},ciSuppVals),sore:ciSore};
+  if(!isNaN(wt))today.weight=wt; // weight optional
+  upsertCI(date,today); // today
   const y={};
   if(ciSleep!=null)y.sleep=ciSleep;
   if(ciSteps!=null)y.steps=ciSteps;
@@ -1483,7 +1484,7 @@ function renderScoreLeft(){
   document.getElementById('sc-left').innerHTML='<div style="height:30px;flex:none"></div>'+mid+'<div style="height:24px;flex:none"></div>';
   const lg=document.getElementById('supp-legend');if(lg)lg.innerHTML=activeSupps().map(s=>'<div><span style="background:'+suppColor(s.id)+'"></span>'+s.name+'</div>').join('');
 }
-function scoreChartH(){const n=SUPPS().filter(s=>!s.hidden).length;return Math.min(900,Math.max(300,90+(9+n)*30));}
+function scoreChartH(){const n=SUPPS().filter(s=>!s.hidden).length;return Math.min(720,Math.max(280,60+(9+n)*23));}
 function drawScoreChart(){
   renderScoreLeft();
   const cv=document.getElementById('csc'),ctx=cv.getContext('2d');
@@ -1491,7 +1492,7 @@ function drawScoreChart(){
   const dpr=window.devicePixelRatio||1;cv.width=cv.offsetWidth*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
   const W=cv.offsetWidth||300;ctx.clearRect(0,0,W,H);
   const ns=scNavState(),win=ns.win,totalDays=ns.totalDays,pageStart=ns.pageStart,tgt=ns.tgt;
-  const KCOL=SC_COL,KMISS='rgba(60,60,67,.12)';
+  const KCOL=SC_COL,KMISS='rgba(120,120,128,.18)';
   const mw=mainW(),dw=dietSubW(),sw=suppSubW(),dh=mw.diet/100,sh=(mw.supplements||0)/100;
   const suppSegs=activeSupps().map(s=>[s.id,sh*sw[s.id]/100]).reverse();
   const segs=suppSegs.concat([['carbs',dh*dw.carbs/100],['protein',dh*dw.protein/100],['fiber',dh*dw.fiber/100],['cals',dh*dw.cals/100],['break',(mw.break||0)/100],['eatout',mw.eatout/100],['workout',mw.workout/100],['steps',mw.steps/100],['sleep',mw.sleep/100]]);
@@ -1515,8 +1516,8 @@ function drawScoreChart(){
     if(any)logged++;
     if(sc.pts>=100)fullDays++;
     const dayMet=tgt!=null&&any&&sc.pts>=tgt;if(dayMet)metDays++;
-    lay.forEach(([k,y,h,frac])=>{ctx.fillStyle=sc.met[k]?segColor(k):KMISS;roundRect(ctx,xC(i)-bw/2,y+0.8,bw,h-1.6,1.5);ctx.fill();
-      if(h>=11){const pctTxt=Math.round(frac*100)+'%';ctx.fillStyle=sc.met[k]?'#fff':'#8e8e93';ctx.font='700 8px '+getFont();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(pctTxt,xC(i),y+h/2);ctx.textBaseline='alphabetic';}});
+    lay.forEach(([k,y,h,frac])=>{const on=sc.met[k];ctx.fillStyle=on?segColor(k):KMISS;roundRect(ctx,xC(i)-bw/2,y+0.8,bw,h-1.6,1.5);ctx.fill();ctx.strokeStyle=on?'rgba(255,255,255,.35)':'rgba(120,120,128,.4)';ctx.lineWidth=.6;ctx.stroke();
+      if(h>=11){const pctTxt=Math.round(frac*100)+'%';ctx.fillStyle=on?'#fff':'#8e8e93';ctx.font='700 8px '+getFont();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(pctTxt,xC(i),y+h/2);ctx.textBaseline='alphabetic';}});
     ctx.textAlign='center';
     if(rec&&rec.weight!=null){ctx.fillStyle='#1c1c1e';ctx.font='600 8px '+getFont();ctx.fillText(rec.weight.toFixed(1),xC(i),11);}
     const pc=tgt!=null?(any?(sc.pts>=tgt?'#248a3d':'#ff3b30'):'#8e8e93'):(sc.pts>=100?'#248a3d':sc.pts>=60?'#c2410c':'#8e8e93');
