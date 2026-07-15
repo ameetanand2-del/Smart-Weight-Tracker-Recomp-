@@ -707,7 +707,7 @@ function activeKPIS(){return suppIds().length?KPIS:KPIS.filter(k=>k!=='supplemen
 function mainW(){return resolveW(P.kpiW,activeKPIS());}
 function dietSubW(){return resolveW(P.dietW,DIETSUB);}
 function suppSubW(){return resolveW(P.suppW,suppIds());}
-function suppMet(v,id){const s=suppDef(id);if(!s)return false;const val=v[id];return val!=null&&val>=s.target;}
+function suppMet(v,id){const s=suppDef(id);if(!s)return false;const val=v[id];if(id==='caffeine')return (val==null?0:val)<=s.target;return val!=null&&val>=s.target;}
 function curWeekIdx(){return Math.max(0,Math.floor(dbtw(wkBase(),tod())/7));}
 function isSunday(){return lp(tod()).getDay()===0;}
 function editTgtWeek(){return isSunday()?curWeekIdx()+1:curWeekIdx();}
@@ -842,21 +842,24 @@ function buildSuppRows(){
     const grp=act.filter(s=>(s.time||'anytime')===t);if(!grp.length)return;
     html+='<div class="tsm" style="font-weight:700;color:var(--tx3);margin:9px 0 1px;padding-left:2px">'+SUPP_TIME_LBL[t]+'</div>';
     grp.forEach(s=>{
-      if(s.id==='omega3'){html+='<div class="drow"><span class="dl sub">Omega-3 <span class="tsm" id="hint-omega3"></span></span><div style="display:flex;gap:6px;flex:1;justify-content:flex-end;min-width:0"><select class="dsel" id="sel-omega3-src" style="flex:1;min-width:0;max-width:128px" onchange="setOmegaSrc(this.value)"><option value="pills">Pills</option><option value="sardines">Sardines</option><option value="salmon">Salmon</option></select><select class="dsel" id="sel-omega3" style="width:104px;flex:none" onchange="setSuppVal(\'omega3\',this.value)"></select></div></div>';}
-      else{html+='<div class="drow"><span class="dl sub">'+s.name+' <span class="tsm" id="hint-'+s.id+'"></span></span><select class="dsel" id="sel-'+s.id+'" onchange="setSuppVal(\''+s.id+'\',this.value)"></select></div>';}
+      if(s.id==='omega3'){html+='<div class="drow"><span class="dl sub">Omega-3 <span class="tsm" id="hint-omega3"></span></span><div style="display:flex;gap:6px;flex:1;justify-content:flex-end;min-width:0"><select class="dsel" id="sel-omega3-src" style="flex:1;min-width:0;max-width:120px" onchange="setOmegaSrc(this.value)"><option value="pills">Pills</option><option value="sardines">Sardines</option><option value="salmon">Salmon</option></select><input type="number" inputmode="decimal" id="sel-omega3" class="dsel" style="background-image:none;text-align:right;padding-right:10px;width:88px;flex:none" placeholder="qty" oninput="setSuppVal(\'omega3\',this.value)"></div></div>';}
+      else if(s.id==='caffeine'){html+='<div class="drow"><span class="dl sub">Caffeine <span class="tsm" id="hint-caffeine"></span></span><div style="display:flex;gap:5px;flex:1;justify-content:flex-end;align-items:center;min-width:0"><span id="caff-total" onclick="resetCaff()" title="Tap to reset" style="font-size:13px;font-weight:700;min-width:44px;text-align:right;cursor:pointer">0</span><input type="number" id="caff-add" inputmode="decimal" placeholder="+ add" style="width:62px;border:none;background:var(--fill);border-radius:8px;padding:8px;font-family:var(--font);font-size:13px;text-align:right;color:var(--tx)" onkeydown="if(event.key===\'Enter\'){addCaff();event.preventDefault();}"><button onclick="addCaff()" style="border:none;background:var(--blue);color:#fff;border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">Add</button></div></div>';}
+      else{html+='<div class="drow"><span class="dl sub">'+s.name+' <span class="tsm" id="hint-'+s.id+'"></span></span><input type="number" inputmode="decimal" id="sel-'+s.id+'" class="dsel" style="background-image:none;text-align:right;padding-right:12px;width:116px;flex:none" placeholder="'+s.unit+'" oninput="setSuppVal(\''+s.id+'\',this.value)"></div>';}
     });
   });
   c.innerHTML=html;
-  act.forEach(s=>{if(s.id==='omega3')return;const r=suppRange(s.unit);const w={pills:'pill',cups:'cup'}[s.unit];const u=w?(v=>v+' '+(v===1?w:w+'s')):(v=>v+' '+s.unit);fillSel('sel-'+s.id,0,r.max,r.step,u);});
   fillOmegaQty();
 }
-const OMEGA_SRC_LBL={pills:'pill',sardines:'can',salmon:'piece'};
-function fillOmegaQty(){const e=document.getElementById('sel-omega3');if(!e)return;const src=ciSuppVals.omega3src||'pills';const lbl=OMEGA_SRC_LBL[src];const max=src==='pills'?8:6;fillSel('sel-omega3',0,max,1,v=>v+' '+(v===1?lbl:lbl+'s'));const se=document.getElementById('sel-omega3-src');if(se)se.value=src;}
-function setOmegaSrc(src){ciSuppVals.omega3src=src;fillOmegaQty();const e=document.getElementById('sel-omega3');if(e)e.value=ciSuppVals.omega3==null?'':String(ciSuppVals.omega3);updateScore();}
+function addCaff(){const e=document.getElementById('caff-add');if(!e)return;const v=parseFloat(e.value);if(isNaN(v))return;ciSuppVals.caffeine=Math.max(0,(ciSuppVals.caffeine||0)+v);e.value='';renderSupp();updateScore();}
+function resetCaff(){ciSuppVals.caffeine=null;renderSupp();updateScore();}
+const OMEGA_SRC_LBL={pills:'pills',sardines:'cans',salmon:'pieces'};
+function fillOmegaQty(){const se=document.getElementById('sel-omega3-src');if(!se)return;const src=ciSuppVals.omega3src||'pills';se.value=src;const e=document.getElementById('sel-omega3');if(e)e.placeholder=OMEGA_SRC_LBL[src];}
+function setOmegaSrc(src){ciSuppVals.omega3src=src;fillOmegaQty();updateScore();}
 function renderSupp(){
   const sv=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val==null?'':String(val);};
   fillOmegaQty();
-  SUPPS().forEach(s=>{sv('sel-'+s.id,ciSuppVals[s.id]);const h=document.getElementById('hint-'+s.id);if(h)h.textContent='≥'+s.target+(s.id==='omega3'?' serving':(s.unit==='pills'?'':' '+s.unit));});
+  SUPPS().forEach(s=>{sv('sel-'+s.id,ciSuppVals[s.id]);const h=document.getElementById('hint-'+s.id);if(h)h.textContent=(s.id==='caffeine'?'≤':'≥')+s.target+(s.id==='omega3'?' serving':(s.unit==='pills'?'':' '+s.unit));});
+  const ct=document.getElementById('caff-total');if(ct){const cd=suppDef('caffeine');const cv=(ciSuppVals.caffeine!=null?ciSuppVals.caffeine:0);ct.textContent=cv+(cd?' '+cd.unit:'');ct.style.color=cd?(cv<=cd.target?'var(--green-d)':'var(--red)'):'';}
   const so=document.getElementById('sel-sore');if(so)so.value=ciSore==null?'':String(ciSore);
 }
 function selSore(v){ciSore=v;renderSupp();}
@@ -1225,8 +1228,8 @@ function dietSubRow(name,cat,lo,hi,oneSided){const w=curWeekIdx();const four=las
   const tstr=oneSided==='min'?'≥'+lo:oneSided==='max'?'≤'+hi:lo+'–'+hi;
   return repSubRow(name,cat,four,lw,tw,tstr,v=>Math.round(v),met);}
 function suppRepRow(s){const w=curWeekIdx();const four=last4Avg(s.id),lw=lastWkAvg(s.id),tw=avgOf(weekValsW(s.id,w));
-  const u=s.unit==='pills'?'':s.unit,fmt=v=>(Math.round(v*10)/10)+u,met=tw==null?null:tw>=s.target;
-  return repSubRow(s.name,s.id,four,lw,tw,'≥'+s.target+u,fmt,met);}
+  const u=s.unit==='pills'?'':s.unit,fmt=v=>(Math.round(v*10)/10)+u,cap=s.id==='caffeine',met=tw==null?null:(cap?tw<=s.target:tw>=s.target);
+  return repSubRow(s.name,s.id,four,lw,tw,(cap?'≤':'≥')+s.target+u,fmt,met);}
 function kpiLabel(k){const M={sleep:'Sleep',steps:'Steps',workout:'Workout',eatout:'Ate out',break:'Break',cals:'Calories',fiber:'Fiber',protein:'Protein',carbs:'Carbs'};return M[k]||(suppDef(k)?suppDef(k).name:k);}
 function kpiGroup(k){if(['cals','fiber','protein','carbs'].includes(k))return 'Diet';if(isSupp(k))return 'Supplements';return 'Main goals';}
 function metLogged(rec,k){if(k==='sleep')return rec.sleep!=null;if(k==='steps')return rec.steps!=null;if(k==='workout')return rec.workout!=null;if(k==='cals'||k==='fiber'||k==='protein'||k==='carbs')return rec[k]!=null;if(k==='eatout'||k==='break')return true;if(isSupp(k))return true;return false;}
@@ -1392,7 +1395,7 @@ function renderScore(){if(scView==='chart')drawScoreChart();else renderScoreTabl
 function scNav(d){scPage=Math.max(0,Math.min(scPageCount()-1,scPage+d));renderScore();}
 function statusFor(cat,val,g){
   if(val==null||val==='')return{i:'–',c:'var(--tx3)'};
-  const sd=suppDef(cat);if(sd)return val>=sd.target?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
+  const sd=suppDef(cat);if(sd){if(cat==='caffeine')return val<=sd.target?{i:'✓',c:'var(--green-d)'}:{i:'↑',c:'var(--red)'};return val>=sd.target?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};}
   const rng=(lo,hi)=>val<lo?{i:'↓',c:'var(--orange)'}:val>hi?{i:'↑',c:'var(--orange)'}:{i:'✓',c:'var(--green-d)'};
   switch(cat){
     case 'energy':return val>=3?{i:'✓',c:'var(--green-d)'}:{i:'↓',c:'var(--red)'};
