@@ -481,7 +481,7 @@ canvas{display:block;width:100%}
     <div id="m-preview" class="tsm tc" style="padding:2px 18px 10px;min-height:16px"></div>
     <div style="padding:0 18px 4px;font-size:12px;font-weight:700;color:var(--tx);text-transform:uppercase;letter-spacing:.3px">Goals · 20% each</div>
     <div style="padding:0 16px">
-      <div class="row main"><label>Sleep target</label><div class="gstep"><button class="stp2" onclick="gStep('sleep',-0.5)">−</button><span id="g-sleep">7.0 h</span><button class="stp2" onclick="gStep('sleep',0.5)">+</button></div></div>
+      <div class="row main"><label>Sleep target</label><div class="gstep"><button class="stp2" onclick="gStep('sleep',-0.25)">−</button><span id="g-sleep">7h</span><button class="stp2" onclick="gStep('sleep',0.25)">+</button></div></div>
       <div class="row main"><label>Steps min</label><div class="gstep"><button class="stp2" onclick="gStep('stepLow',-250)">−</button><span id="g-stepLow">8,000</span><button class="stp2" onclick="gStep('stepLow',250)">+</button></div></div>
       <div class="row main"><label>Steps max</label><div class="gstep"><button class="stp2" onclick="gStep('stepHigh',-250)">−</button><span id="g-stepHigh">10,000</span><button class="stp2" onclick="gStep('stepHigh',250)">+</button></div></div>
       <div class="row main"><label>Workouts / week</label><div class="gstep"><button class="stp2" onclick="gStep('woTarget',-1)">−</button><span id="g-woTarget">4</span><button class="stp2" onclick="gStep('woTarget',1)">+</button></div></div>
@@ -664,7 +664,7 @@ function stepDiet(key,d){ciDiet[key]=ciDiet[key]==null?DIET_DEF[key]:Math.max(0,
 function fillSel(id,lo,hi,step,fmt){const el=document.getElementById(id);if(!el)return;let s='<option value="">—</option>';for(let v=lo;v<=hi+1e-9;v=+(v+step).toFixed(2))s+='<option value="'+v+'">'+fmt(v)+'</option>';el.innerHTML=s;}
 function fillSelList(id,list,fmt){const el=document.getElementById(id);if(!el)return;let s='<option value="">—</option>';list.forEach(v=>{s+='<option value="'+v+'">'+fmt(v)+'</option>';});el.innerHTML=s;}
 function fillYesterdaySelects(){
-  fillSel('sel-sleep',4,12,0.5,v=>v.toFixed(1)+' h');
+  fillSel('sel-sleep',4,12,0.25,fmtHM);
   fillSel('sel-steps',0,25000,250,v=>v.toLocaleString());
   fillSel('sel-cals',0,5000,100,v=>v.toLocaleString());
   fillSel('sel-fiber',0,80,1,v=>v+' g');
@@ -693,7 +693,7 @@ function renderStepVals(){
   sv('sel-sleep',ciSleep);sv('sel-steps',ciSteps);sv('sel-cals',ciDiet.cals);sv('sel-fiber',ciDiet.fiber);sv('sel-protein',ciDiet.protein);sv('sel-carbs',ciDiet.carbs);
 }
 function updateGoalHints(){const g=goals();
-  document.getElementById('sleep-hint').textContent='· ≥'+g.sleep+'h';
+  document.getElementById('sleep-hint').textContent='· ≥'+fmtHM(g.sleep);
   document.getElementById('steps-hint').textContent='· '+g.stepLow.toLocaleString()+'–'+g.stepHigh.toLocaleString();
   document.getElementById('cals-hint').textContent='· '+g.calLow.toLocaleString()+'–'+g.calHigh.toLocaleString();
   document.getElementById('fiber-hint').textContent='· '+g.fiberLow+'–'+g.fiberHigh;
@@ -820,7 +820,7 @@ function weekTargetFor(date){const t=resolveTarget(Math.max(0,Math.floor(dbtw(wk
 function itemDefs(){
   const g=goals(),mw=mainW(),dw=dietSubW(),sw=suppSubW();
   const L=[
-    {k:'sleep',grp:'sleep',lbl:'Sleep',hint:'≥'+g.sleep+'h',w:mw.sleep,night:true},
+    {k:'sleep',grp:'sleep',lbl:'Sleep',hint:'≥'+fmtHM(g.sleep),w:mw.sleep,night:true},
     {k:'steps',grp:'steps',lbl:'Steps',hint:'≥'+g.stepLow.toLocaleString(),w:mw.steps},
     {k:'cals',grp:'diet',lbl:'Calories',hint:g.calLow.toLocaleString()+'–'+g.calHigh.toLocaleString(),w:mw.diet*dw.cals/100},
     {k:'fiber',grp:'diet',lbl:'Fiber',hint:g.fiberLow+'–'+g.fiberHigh+'g',w:mw.diet*dw.fiber/100},
@@ -848,6 +848,7 @@ function formVals(){
   const wEl=document.getElementById('ci-wt');const wv=wEl?parseFloat(wEl.value):NaN;
   return Object.assign({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout:woSel,eatout:ciEatOut,break:ciBrk,sore:ciSore,weight:isNaN(wv)?null:wv},ciSuppVals);
 }
+function fmtHM(v){if(v==null)return'';const t=Math.round(v*60),h=Math.floor(t/60),m=t%60;return h+'h'+(m?' '+m+'m':'');}
 function fmtW(w){return (w>=1?Math.round(w*10)/10:Math.round(w*100)/100)+'%';}
 // show what each row is worth, right on the row, so the big levers are obvious
 function renderRowPcts(met){
@@ -902,7 +903,7 @@ function updateScore(){
     const withS=Math.round(Math.min(100,raw+sleepW)), without=Math.round(raw);
     sn.style.display='block';
     sn.innerHTML='😴 <b>Sleep isn\'t counted yet</b> — '+(date===tod()?"tonight's sleep gets logged tomorrow morning.":'it was never logged for this day.')
-      +' So this '+Math.round(pts)+'% covers only what is in your control today.<br>Once sleep lands, the day finishes at <b style="color:var(--green-d)">'+withS+'%</b> if you hit '+g.sleep+'h, or <b style="color:var(--orange)">'+without+'%</b> if you don\'t.'
+      +' So this '+Math.round(pts)+'% covers only what is in your control today.<br>Once sleep lands, the day finishes at <b style="color:var(--green-d)">'+withS+'%</b> if you hit '+fmtHM(g.sleep)+', or <b style="color:var(--orange)">'+without+'%</b> if you don\'t.'
       +(ciSleep==null?'<br><span style="color:var(--tx3)">Heads up: last night ('+fS(addDays(date,-1))+') is still blank above — that one counts toward '+fS(addDays(date,-1))+'.</span>':'');
   } else sn.style.display='none';
 
@@ -925,7 +926,7 @@ function updateScore(){
     if(d.k==='sleep'){
       if(sleepOpen)return; // handled by the note above
       if(daySleep==null)toLog.push(dchip('Sleep',(d.hint||'')+' · log it on the next day · +'+fmtW(d.w),false));
-      else if(!sc.met.sleep)under.push(dchip('Sleep','at '+daySleep+'h → '+(d.hint||'')+' · +'+fmtW(d.w),false));
+      else if(!sc.met.sleep)under.push(dchip('Sleep','at '+fmtHM(daySleep)+' → '+(d.hint||'')+' · +'+fmtW(d.w),false));
       return;
     }
     if(!isLogged(v,d.k)){toLog.push(dchip(d.lbl,d.unscored?'':((d.hint||'')+' · +'+fmtW(d.w)),false));return;}
@@ -1406,7 +1407,7 @@ function avgOf(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
 function last4Avg(cat){const w=curWeekIdx();let all=[];for(let i=1;i<=4;i++){const ww=w-i;if(ww<0)break;all=all.concat(weekValsW(cat,ww));}return avgOf(all);}
 function lastWkAvg(cat){const w=curWeekIdx();return w-1>=0?avgOf(weekValsW(cat,w-1)):null;}
 function weekScoresW(w){const a=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))a.push(dayPct(addDays(wkBase(),w*7+d)));}return a;}
-const REPFMT={score:v=>Math.round(v)+'%',steps:v=>Math.round(v).toLocaleString(),sleep:v=>v.toFixed(1)+'h',cals:v=>Math.round(v).toLocaleString(),protein:v=>Math.round(v)+'g',days:v=>v.toFixed(1)};
+const REPFMT={score:v=>Math.round(v)+'%',steps:v=>Math.round(v).toLocaleString(),sleep:v=>fmtHM(v),cals:v=>Math.round(v).toLocaleString(),protein:v=>Math.round(v)+'g',days:v=>v.toFixed(1)};
 const REPUP={score:true,steps:true,sleep:true,protein:true,cals:false};
 function repTrend(cat,t,four){if(t==null||four==null)return'';if(Math.abs(t-four)<1e-9)return'';const up=t>four,good=REPUP[cat]?up:!up;return ' <span style="color:'+(good?'var(--green-d)':'var(--red)')+';font-size:10px">'+(up?'▲':'▼')+'</span>';}
 function repTodo(r,f){if(r.avg==null)return'<span style="color:var(--tx3)">–</span>';
@@ -1612,7 +1613,7 @@ function statusFor(cat,val,g){
   }
   return{i:'–',c:'var(--tx3)'};
 }
-function fmtVal(cat,val){if(val==null||val===''||val===true||val===false)return'';const sd=suppDef(cat);if(sd)return sd.unit==='pills'?(val+''):(val+sd.unit);if(cat==='sleep')return val+'h';if(cat==='steps')return val>=1000?(val/1000).toFixed(1)+'k':val;if(cat==='brk')return ({half:'½',full:'full'}[val]||'');if(cat==='sore')return '';return val+'';}
+function fmtVal(cat,val){if(val==null||val===''||val===true||val===false)return'';const sd=suppDef(cat);if(sd)return sd.unit==='pills'?(val+''):(val+sd.unit);if(cat==='sleep')return fmtHM(val);if(cat==='steps')return val>=1000?(val/1000).toFixed(1)+'k':val;if(cat==='brk')return ({half:'½',full:'full'}[val]||'');if(cat==='sore')return '';return val+'';}
 function renderScoreTable(){
   const st=scNavState(),g=goals(),totalDays=st.totalDays,wStart=st.pageStart,prevStart=wStart-7;
   const days=[];for(let d=0;d<7;d++){const di=wStart+d;if(di<totalDays)days.push(di);}
@@ -1632,7 +1633,7 @@ function renderScoreTable(){
     else if(rec[cat]!=null&&rec[cat]!=='')o.push(rec[cat]);}
     return o;};
   const GOODUP={'__score':true,weight:false,energy:true,sleep:true,steps:true,cals:null,fiber:true,protein:true,carbs:null,workout:true,eatout:false,creatine:true,magnesium:true,omega3:true,ltheanine:true,vitd3:true,vitk2:true,caffeine:null,sore:false,brk:false};
-  const fmtAvg=(cat,v)=>{const sd=suppDef(cat);if(sd)return v.toFixed(1)+(sd.unit==='pills'?'':sd.unit);if(cat==='__score')return Math.round(v)+'%';if(cat==='weight')return v.toFixed(1);if(cat==='energy')return v.toFixed(1);if(cat==='sleep')return v.toFixed(1)+'h';if(cat==='steps')return v>=1000?(v/1000).toFixed(1)+'k':Math.round(v);if(cat==='sore')return v.toFixed(1);return Math.round(v);};
+  const fmtAvg=(cat,v)=>{const sd=suppDef(cat);if(sd)return v.toFixed(1)+(sd.unit==='pills'?'':sd.unit);if(cat==='__score')return Math.round(v)+'%';if(cat==='weight')return v.toFixed(1);if(cat==='energy')return v.toFixed(1);if(cat==='sleep')return fmtHM(v);if(cat==='steps')return v>=1000?(v/1000).toFixed(1)+'k':Math.round(v);if(cat==='sore')return v.toFixed(1);return Math.round(v);};
   const arrow=(cat,t,p)=>{if(t==null||p==null)return'';if(Math.abs(t-p)<1e-9)return'<span style="color:var(--tx3);font-size:9px"> –</span>';const up=t>p,gu=GOODUP[cat];const col=gu==null?'var(--tx3)':((up===gu)?'var(--green-d)':'var(--red)');return '<span style="color:'+col+';font-size:9px"> '+(up?'▲':'▼')+'</span>';};
   const avgCell=cat=>{const tv=vals(wStart,cat),pv=vals(prevStart,cat);
     if(cat==='workout'){const tN=tv.filter(x=>x===1).length,pN=pv.length?pv.filter(x=>x===1).length:null;return '<td class="avgcell">'+(tv.length?tN+'✓':'–')+arrow(cat,tv.length?tN:null,pN)+'</td>';}
@@ -1765,7 +1766,7 @@ function commitPlan(sWt,sDate,tWt,tDate){
 // Plan modal (reachable from Today header)
 let gTmp={};
 function renderGTmp(){
-  document.getElementById('g-sleep').textContent=gTmp.sleep.toFixed(1)+' h';
+  document.getElementById('g-sleep').textContent=fmtHM(gTmp.sleep);
   document.getElementById('g-stepLow').textContent=gTmp.stepLow.toLocaleString();
   document.getElementById('g-stepHigh').textContent=gTmp.stepHigh.toLocaleString();
   document.getElementById('g-woTarget').textContent=gTmp.woTarget;
@@ -1781,7 +1782,7 @@ function renderGTmp(){
   document.getElementById('g-proteinHigh').textContent=gTmp.proteinHigh;
 }
 function gStep(key,d){
-  gTmp[key]=+(gTmp[key]+d).toFixed(1);
+  gTmp[key]=+(gTmp[key]+d).toFixed(key==='sleep'?2:1);
   if(key==='sleep')gTmp.sleep=Math.max(4,Math.min(10,gTmp.sleep));
   if(key==='stepLow')gTmp.stepLow=Math.max(0,Math.min(gTmp.stepHigh,gTmp.stepLow));
   if(key==='stepHigh')gTmp.stepHigh=Math.max(gTmp.stepLow,Math.min(40000,gTmp.stepHigh));
