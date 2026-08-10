@@ -102,6 +102,9 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fon
 .cmph{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:7px}
 .hidebtn{display:block;width:100%;margin-top:14px;border:none;background:var(--fill);color:var(--blue);border-radius:10px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
 .hidebtn:active{opacity:.6}
+.wpct{margin-left:6px;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;white-space:nowrap;background:var(--fill);color:var(--tx3);vertical-align:middle}
+.wpct.on{background:var(--gbg);color:var(--green-d)}
+.grph .wpct{font-size:10px}
 #fab-save{position:fixed;right:16px;bottom:calc(var(--nh) + env(safe-area-inset-bottom) + 16px);width:60px;height:60px;border-radius:50%;border:none;background:var(--blue);color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;gap:1px;font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.2px;cursor:pointer;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.28);transition:transform .15s,background .2s}
 #fab-save.show{display:flex}
 #fab-save:active{transform:scale(.9)}
@@ -268,7 +271,7 @@ canvas{display:block;width:100%}
     <div class="cat" data-key="energy"><div class="drow" data-item="energy"><span class="dl">Energy</span><select class="dsel" id="sel-energy" style="flex:1" onchange="setEnergySel(this.value)"><option value="">—</option><option value="1">1 (exhausted, drained)</option><option value="2">2 (low, sluggish)</option><option value="3">3 (steady, average)</option><option value="4">4 (good, productive)</option><option value="5">5 (unstoppable, peak)</option></select></div></div>
     <div class="cat" data-key="steps"><div class="drow" data-item="steps"><span class="dl">Steps <span id="steps-hint" class="tsm" style="color:var(--tx3)"></span></span><select class="dsel" id="sel-steps" onchange="setStepsSel(this.value)"></select></div></div>
     <div class="cat" data-key="diet">
-    <div class="grph" style="font-size:12px;font-weight:700;color:var(--tx3);margin:12px 0 2px;padding-left:2px">↳ DIET</div>
+    <div class="grph" data-grp="diet" style="font-size:12px;font-weight:700;color:var(--tx3);margin:12px 0 2px;padding-left:2px">↳ DIET</div>
     <div class="drow" data-item="cals"><span class="dl sub">Calories <span id="cals-hint" class="tsm"></span></span><select class="dsel" id="sel-cals" onchange="setDietSel('cals',this.value)"></select></div>
     <div class="drow" data-item="fiber"><span class="dl sub">Fiber (g) <span id="fiber-hint" class="tsm"></span></span><select class="dsel" id="sel-fiber" onchange="setDietSel('fiber',this.value)"></select></div>
     <div class="drow" data-item="protein"><span class="dl sub">Protein (g) <span id="protein-hint" class="tsm"></span></span><select class="dsel" id="sel-protein" onchange="setDietSel('protein',this.value)"></select></div>
@@ -276,10 +279,10 @@ canvas{display:block;width:100%}
     </div>
     <div class="cat" data-key="eatout"><div class="drow" data-item="eatout"><span class="dl">Eat out</span><select class="dsel" id="sel-eo" onchange="selEatOut(this.value)"><option value="">—</option><option value="in">🏠 Stayed in</option><option value="out">🍴 Ate out</option></select></div></div>
     <div class="cat" data-key="break"><div class="drow" data-item="break"><span class="dl">Break <span class="tsm" style="color:var(--tx3)">· skipping it is the win</span></span><select class="dsel" id="sel-brk" onchange="setBrkSel(this.value)"><option value="">—</option><option value="none">Did not do</option><option value="half">◐ Half day</option><option value="full">● Full day</option></select></div></div>
-    <div class="cat" data-key="soreness"><div class="drow" data-item="sore"><span class="dl">Soreness <span class="tsm" style="color:var(--tx3)">· not scored</span></span><select class="dsel" id="sel-sore" style="flex:1" onchange="setSoreSel(this.value)"><option value="">— None</option><option value="0">0 (no soreness today)</option><option value="1">1 (sore, energy fine)</option><option value="2">2 (energy + focus dipping)</option><option value="3">3 (tired, focus harder)</option><option value="4">4 (very tired, low energy)</option><option value="5">5 (exhausted, can't train)</option><option value="rest">💤 Rest day</option></select></div></div>
+    <div class="cat" data-key="soreness"><div class="drow" data-item="sore"><span class="dl">Soreness</span><select class="dsel" id="sel-sore" style="flex:1" onchange="setSoreSel(this.value)"><option value="">— None</option><option value="0">0 (no soreness today)</option><option value="1">1 (sore, energy fine)</option><option value="2">2 (energy + focus dipping)</option><option value="3">3 (tired, focus harder)</option><option value="4">4 (very tired, low energy)</option><option value="5">5 (exhausted, can't train)</option><option value="rest">💤 Rest day</option></select></div></div>
     <div class="cat" data-key="workout"><div class="drow" data-item="workout"><span class="dl">Workout <span class="tsm" style="color:var(--tx3)">· vs plan</span></span><select class="dsel" id="sel-wo" onchange="selWorkout(this.value)"><option value="">—</option><option value="below">↓ Below</option><option value="same">= Same</option><option value="inc">↑ Increased</option><option value="rest">💤 Rest day</option></select></div></div>
     <div class="cat" data-key="supps">
-    <div class="grph" style="font-size:12px;font-weight:700;color:var(--tx3);margin:14px 0 2px;padding-left:2px">↳ SUPPLEMENTS</div>
+    <div class="grph" data-grp="supps" style="font-size:12px;font-weight:700;color:var(--tx3);margin:14px 0 2px;padding-left:2px">↳ SUPPLEMENTS</div>
     <div id="supp-rows"></div>
     </div>
     </div>
@@ -845,6 +848,29 @@ function formVals(){
   const wEl=document.getElementById('ci-wt');const wv=wEl?parseFloat(wEl.value):NaN;
   return Object.assign({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout:woSel,eatout:ciEatOut,break:ciBrk,sore:ciSore,weight:isNaN(wv)?null:wv},ciSuppVals);
 }
+function fmtW(w){return (w>=1?Math.round(w*10)/10:Math.round(w*100)/100)+'%';}
+// show what each row is worth, right on the row, so the big levers are obvious
+function renderRowPcts(met){
+  const defs=itemDefs(),map={},gsum={};
+  defs.forEach(d=>{map[d.k]=d;if(!d.unscored)gsum[d.grp]=(gsum[d.grp]||0)+d.w;});
+  document.querySelectorAll('#page-today [data-item]').forEach(el=>{
+    const d=map[el.getAttribute('data-item')],lbl=el.querySelector('.dl');
+    if(!lbl)return;
+    let b=lbl.querySelector('.wpct');
+    if(!d||d.unscored||!(d.w>0)){if(b)b.remove();return;}
+    if(!b){b=document.createElement('span');b.className='wpct';lbl.appendChild(b);}
+    b.textContent=fmtW(d.w);
+    b.classList.toggle('on',!!(met&&met[d.k]));
+  });
+  document.querySelectorAll('#page-today .grph[data-grp]').forEach(h=>{
+    const g=h.getAttribute('data-grp');
+    let b=h.querySelector('.wpct');
+    if(!gsum[g]){if(b)b.remove();return;}
+    if(!b){b=document.createElement('span');b.className='wpct';h.appendChild(b);}
+    b.textContent=fmtW(gsum[g]);
+    b.classList.toggle('on',!!(met&&met[g==='supps'?'supplements':'diet']));
+  });
+}
 function groupsOf(defs){const o={};defs.forEach(d=>{(o[d.grp]=o[d.grp]||[]).push(d);});return o;}
 function dchip(label,extra,good){return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:20px;background:'+(good?'var(--gbg)':'var(--fill)')+';color:'+(good?'var(--green-d)':'var(--tx2)')+'">'+label+(extra?' <span style="font-weight:400;opacity:.8">'+extra+'</span>':'')+'</span>';}
 function updateScore(){
@@ -891,19 +917,19 @@ function updateScore(){
     const items=byGrp[gk];
     if(items[0].unscored){if(isLogged(v,items[0].k))done.push(dchip(GRP_LBL[gk],'logged',true));return;}
     const metN=items.filter(d=>sc.met[d.k]&&(d.k==='sleep'?daySleep!=null:isLogged(v,d.k))).length;
-    if(metN===items.length)done.push(dchip(GRP_LBL[gk],Math.round(items.reduce((a,d)=>a+d.w,0))+'%',true));
+    if(metN===items.length)done.push(dchip(GRP_LBL[gk],fmtW(items.reduce((a,d)=>a+d.w,0)),true));
     else if(metN>0)done.push(dchip(GRP_LBL[gk],metN+'/'+items.length,false));
   });
   // anything with no value entered = still to log; entered but off-target = under target
   defs.slice().sort((a,b)=>b.w-a.w).forEach(d=>{
     if(d.k==='sleep'){
       if(sleepOpen)return; // handled by the note above
-      if(daySleep==null)toLog.push(dchip('Sleep',(d.hint||'')+' · log it on the next day · +'+Math.round(d.w)+'%',false));
-      else if(!sc.met.sleep)under.push(dchip('Sleep','at '+daySleep+'h → '+(d.hint||'')+' · +'+Math.round(d.w)+'%',false));
+      if(daySleep==null)toLog.push(dchip('Sleep',(d.hint||'')+' · log it on the next day · +'+fmtW(d.w),false));
+      else if(!sc.met.sleep)under.push(dchip('Sleep','at '+daySleep+'h → '+(d.hint||'')+' · +'+fmtW(d.w),false));
       return;
     }
-    if(!isLogged(v,d.k)){toLog.push(dchip(d.lbl,d.unscored?'not scored':((d.hint||'')+' · +'+Math.round(d.w)+'%'),false));return;}
-    if(!d.unscored&&!sc.met[d.k])under.push(dchip(d.lbl,'at '+fmtV(v[d.k])+' → '+(d.hint||'')+' · +'+Math.round(d.w)+'%',false));
+    if(!isLogged(v,d.k)){toLog.push(dchip(d.lbl,d.unscored?'':((d.hint||'')+' · +'+fmtW(d.w)),false));return;}
+    if(!d.unscored&&!sc.met[d.k])under.push(dchip(d.lbl,'at '+fmtV(v[d.k])+' → '+(d.hint||'')+' · +'+fmtW(d.w),false));
   });
   document.getElementById('score-chips').innerHTML=done.length?done.join(''):'<span class="tsm">Nothing completed yet.</span>';
   document.getElementById('score-left').innerHTML=toLog.length?toLog.join(''):'<span class="tsm" style="color:var(--green-d);font-weight:600">Everything logged for this day \u2713</span>';
@@ -912,6 +938,7 @@ function updateScore(){
   const seg=(lbl,x,lo,hi,unit)=>{if(x==null)return lbl+' —';const ok=x>=lo&&x<=hi;const c=ok?'var(--green-d)':'var(--orange)';const tag=ok?'✓':(x<lo?'low':'high');return lbl+' <span style="color:'+c+';font-weight:600">'+x.toLocaleString()+unit+' '+tag+'</span>';};
   const anyDiet=ciDiet.cals!=null||ciDiet.fiber!=null||ciDiet.carbs!=null||ciDiet.protein!=null;
   document.getElementById('diet-detail').innerHTML=anyDiet?[seg('Cals',ciDiet.cals,g.calLow,g.calHigh,''),seg('Fiber',ciDiet.fiber,g.fiberLow,g.fiberHigh,'g'),seg('Carbs',ciDiet.carbs,g.carbLow,g.carbHigh,'g'),seg('Protein',ciDiet.protein,g.proteinLow,g.proteinHigh,'g')].join(' · '):'';
+  renderRowPcts(sc.met);
   applyHideDone();
 }
 // ---------- HIDE COMPLETED ROWS ----------
@@ -1021,6 +1048,7 @@ function buildSuppRows(){
   });
   c.innerHTML=html;
   fillOmegaQty();
+  try{renderRowPcts();}catch(e){}
 }
 function addCaff(){const e=document.getElementById('caff-add');if(!e)return;const v=parseFloat(e.value);if(isNaN(v))return;ciSuppVals.caffeine=Math.max(0,(ciSuppVals.caffeine||0)+v);e.value='';renderSupp();updateScore();}
 function resetCaff(){ciSuppVals.caffeine=null;renderSupp();updateScore();}
@@ -1696,8 +1724,8 @@ function drawScoreChart(){
       if(h>=11){const pctTxt=Math.round(frac*100)+'%';ctx.fillStyle=on?'#fff':'#8e8e93';ctx.font='700 8px '+getFont();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(pctTxt,xC(i),y+h/2);ctx.textBaseline='alphabetic';}});
     ctx.textAlign='center';
     if(rec&&rec.weight!=null){ctx.fillStyle='#1c1c1e';ctx.font='600 8px '+getFont();ctx.fillText(rec.weight.toFixed(1),xC(i),11);}
-    const pc=tgt!=null?(any?(sc.pts>=tgt?'#248a3d':'#ff3b30'):'#8e8e93'):(sc.pts>=100?'#248a3d':sc.pts>=60?'#c2410c':'#8e8e93');
-    ctx.fillStyle=pc;ctx.font='700 9px '+getFont();ctx.fillText(sc.pts+'%',xC(i),23);
+    const pc=tgt!=null?(any?(pct>=tgt?'#248a3d':'#ff3b30'):'#8e8e93'):(pct>=100?'#248a3d':pct>=60?'#c2410c':'#8e8e93');
+    ctx.fillStyle=pc;ctx.font='700 9px '+getFont();ctx.fillText(pct+'%',xC(i),23);
   }
   ctx.textAlign='center';ctx.fillStyle='#8e8e93';ctx.font='9px '+getFont();
   for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const dt=new Date(addDays(wkBase(),w)+' 00:00');ctx.fillText(dt.getDate(),xC(i),H-8);}
