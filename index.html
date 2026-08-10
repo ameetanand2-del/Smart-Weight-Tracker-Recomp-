@@ -96,6 +96,14 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fon
 .btxt{background:none;color:var(--blue);font-size:15px;padding:8px}
 
 .pb{background:var(--fill);border-radius:5px;height:8px;overflow:hidden}
+.pbt{position:relative}
+.tgtmark{position:absolute;top:-4px;width:2px;height:16px;background:var(--tx);border-radius:1px;margin-left:-1px}
+.tgtmark:after{content:"";position:absolute;left:-3px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--tx)}
+.cmph{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:7px}
+.hidebtn{display:block;width:100%;margin-top:14px;border:none;background:var(--fill);color:var(--blue);border-radius:10px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
+.hidebtn:active{opacity:.6}
+.cubar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 2px;padding:11px 13px;border-radius:11px;font-size:13px;line-height:1.45}
+.cubtn{border:none;border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 .pb>div{height:100%;border-radius:5px;background:var(--green);transition:width .6s ease}
 
 .hrow{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:.5px solid var(--sep)}
@@ -239,46 +247,63 @@ canvas{display:block;width:100%}
       <input type="date" id="ci-date" onchange="loadForDate()" style="border:none;background:var(--fill);border-radius:8px;padding:5px 9px;font-family:var(--font);font-size:13px;color:var(--tx);color-scheme:light">
     </div>
 
-    <div style="margin:12px 0 6px;padding:8px 12px;background:var(--fill);border-radius:9px;font-size:13px;font-weight:700">🌙 Yesterday's check-in</div>
+    <div id="catchup-bar"></div>
 
-    <div class="drow"><span class="dl">Sleep</span><select class="dsel" id="sel-sleep" onchange="setSleepSel(this.value)"></select></div>
-    <div class="drow"><span class="dl">Break <span class="tsm" style="color:var(--tx3)">· not scored</span></span><select class="dsel" id="sel-brk" onchange="setBrkSel(this.value)"><option value="">—</option><option value="none">Did not do</option><option value="half">◐ Half day</option><option value="full">● Full day</option></select></div>
-    <div class="drow"><span class="dl">Steps <span id="steps-hint" class="tsm" style="color:var(--tx3)"></span></span><select class="dsel" id="sel-steps" onchange="setStepsSel(this.value)"></select></div>
+    <div style="margin:12px 0 6px;padding:8px 12px;background:var(--fill);border-radius:9px;font-size:13px;font-weight:700">🌙 Sleep <span id="night-lbl" style="font-weight:500;color:var(--tx3)"></span></div>
 
-    <div style="font-size:12px;font-weight:700;color:var(--tx3);margin:12px 0 2px;padding-left:2px">↳ DIET</div>
-    <div class="drow"><span class="dl sub">Calories <span id="cals-hint" class="tsm"></span></span><select class="dsel" id="sel-cals" onchange="setDietSel('cals',this.value)"></select></div>
-    <div class="drow"><span class="dl sub">Fiber (g) <span id="fiber-hint" class="tsm"></span></span><select class="dsel" id="sel-fiber" onchange="setDietSel('fiber',this.value)"></select></div>
-    <div class="drow"><span class="dl sub">Protein (g) <span id="protein-hint" class="tsm"></span></span><select class="dsel" id="sel-protein" onchange="setDietSel('protein',this.value)"></select></div>
-    <div class="drow"><span class="dl sub">Carbs (g) <span id="carbs-hint" class="tsm"></span></span><select class="dsel" id="sel-carbs" onchange="setDietSel('carbs',this.value)"></select></div>
-
-    <div class="drow"><span class="dl">Eat out</span><select class="dsel" id="sel-eo" onchange="selEatOut(this.value==='out')"><option value="in">🏠 Stayed in</option><option value="out">🍴 Ate out</option></select></div>
+    <div class="drow" data-item="sleep"><span class="dl">Slept <span id="sleep-hint" class="tsm" style="color:var(--tx3)"></span></span><select class="dsel" id="sel-sleep" onchange="setSleepSel(this.value)"></select></div>
 
     <div style="margin:20px 0 10px;display:flex;align-items:center;gap:8px">
-      <div style="flex:1;padding:8px 12px;background:var(--fill);border-radius:9px;font-size:13px;font-weight:700">☀️ Today's check-in</div>
+      <div style="flex:1;padding:8px 12px;background:var(--fill);border-radius:9px;font-size:13px;font-weight:700" id="day-hdr">☀️ Today's check-in</div>
       <button onclick="openReorder()" style="border:none;background:var(--fill);color:var(--blue);border-radius:9px;padding:9px 12px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">↕ Reorder</button>
     </div>
 
     <div id="today-cats">
-    <div class="cat" data-key="weight"><div class="drow"><span class="dl">Weight (kg)</span><input type="number" id="ci-wt" placeholder="—" step="0.1" class="dsel" style="background-image:none;text-align:right;padding-right:12px"></div></div>
-    <div class="cat" data-key="energy"><div class="drow"><span class="dl">Energy</span><select class="dsel" id="sel-energy" style="flex:1" onchange="setEnergySel(this.value)"><option value="">—</option><option value="1">1 (exhausted, drained)</option><option value="2">2 (low, sluggish)</option><option value="3">3 (steady, average)</option><option value="4">4 (good, productive)</option><option value="5">5 (unstoppable, peak)</option></select></div></div>
-    <div class="cat" data-key="soreness"><div class="drow"><span class="dl">Soreness <span class="tsm" style="color:var(--tx3)">· not scored</span></span><select class="dsel" id="sel-sore" style="flex:1" onchange="setSoreSel(this.value)"><option value="">— None</option><option value="0">0 (no soreness today)</option><option value="1">1 (sore, energy fine)</option><option value="2">2 (energy + focus dipping)</option><option value="3">3 (tired, focus harder)</option><option value="4">4 (very tired, low energy)</option><option value="5">5 (exhausted, can't train)</option><option value="rest">💤 Rest day</option></select></div></div>
-    <div class="cat" data-key="workout"><div class="drow"><span class="dl">Workout <span class="tsm" style="color:var(--tx3)">· vs plan</span></span><select class="dsel" id="sel-wo" onchange="selWorkout(this.value)"><option value="">—</option><option value="below">↓ Below</option><option value="same">= Same</option><option value="inc">↑ Increased</option><option value="rest">💤 Rest day</option></select></div></div>
+    <div class="cat" data-key="weight"><div class="drow" data-item="weight"><span class="dl">Weight (kg)</span><input type="number" id="ci-wt" placeholder="—" step="0.1" class="dsel" style="background-image:none;text-align:right;padding-right:12px" oninput="updateScore()"></div></div>
+    <div class="cat" data-key="energy"><div class="drow" data-item="energy"><span class="dl">Energy</span><select class="dsel" id="sel-energy" style="flex:1" onchange="setEnergySel(this.value)"><option value="">—</option><option value="1">1 (exhausted, drained)</option><option value="2">2 (low, sluggish)</option><option value="3">3 (steady, average)</option><option value="4">4 (good, productive)</option><option value="5">5 (unstoppable, peak)</option></select></div></div>
+    <div class="cat" data-key="steps"><div class="drow" data-item="steps"><span class="dl">Steps <span id="steps-hint" class="tsm" style="color:var(--tx3)"></span></span><select class="dsel" id="sel-steps" onchange="setStepsSel(this.value)"></select></div></div>
+    <div class="cat" data-key="diet">
+    <div class="grph" style="font-size:12px;font-weight:700;color:var(--tx3);margin:12px 0 2px;padding-left:2px">↳ DIET</div>
+    <div class="drow" data-item="cals"><span class="dl sub">Calories <span id="cals-hint" class="tsm"></span></span><select class="dsel" id="sel-cals" onchange="setDietSel('cals',this.value)"></select></div>
+    <div class="drow" data-item="fiber"><span class="dl sub">Fiber (g) <span id="fiber-hint" class="tsm"></span></span><select class="dsel" id="sel-fiber" onchange="setDietSel('fiber',this.value)"></select></div>
+    <div class="drow" data-item="protein"><span class="dl sub">Protein (g) <span id="protein-hint" class="tsm"></span></span><select class="dsel" id="sel-protein" onchange="setDietSel('protein',this.value)"></select></div>
+    <div class="drow" data-item="carbs"><span class="dl sub">Carbs (g) <span id="carbs-hint" class="tsm"></span></span><select class="dsel" id="sel-carbs" onchange="setDietSel('carbs',this.value)"></select></div>
+    </div>
+    <div class="cat" data-key="eatout"><div class="drow" data-item="eatout"><span class="dl">Eat out</span><select class="dsel" id="sel-eo" onchange="selEatOut(this.value)"><option value="">—</option><option value="in">🏠 Stayed in</option><option value="out">🍴 Ate out</option></select></div></div>
+    <div class="cat" data-key="break"><div class="drow" data-item="break"><span class="dl">Break <span class="tsm" style="color:var(--tx3)">· skipping it is the win</span></span><select class="dsel" id="sel-brk" onchange="setBrkSel(this.value)"><option value="">—</option><option value="none">Did not do</option><option value="half">◐ Half day</option><option value="full">● Full day</option></select></div></div>
+    <div class="cat" data-key="soreness"><div class="drow" data-item="sore"><span class="dl">Soreness <span class="tsm" style="color:var(--tx3)">· not scored</span></span><select class="dsel" id="sel-sore" style="flex:1" onchange="setSoreSel(this.value)"><option value="">— None</option><option value="0">0 (no soreness today)</option><option value="1">1 (sore, energy fine)</option><option value="2">2 (energy + focus dipping)</option><option value="3">3 (tired, focus harder)</option><option value="4">4 (very tired, low energy)</option><option value="5">5 (exhausted, can't train)</option><option value="rest">💤 Rest day</option></select></div></div>
+    <div class="cat" data-key="workout"><div class="drow" data-item="workout"><span class="dl">Workout <span class="tsm" style="color:var(--tx3)">· vs plan</span></span><select class="dsel" id="sel-wo" onchange="selWorkout(this.value)"><option value="">—</option><option value="below">↓ Below</option><option value="same">= Same</option><option value="inc">↑ Increased</option><option value="rest">💤 Rest day</option></select></div></div>
     <div class="cat" data-key="supps">
-    <div style="font-size:12px;font-weight:700;color:var(--tx3);margin:14px 0 2px;padding-left:2px">↳ SUPPLEMENTS</div>
+    <div class="grph" style="font-size:12px;font-weight:700;color:var(--tx3);margin:14px 0 2px;padding-left:2px">↳ SUPPLEMENTS</div>
     <div id="supp-rows"></div>
     </div>
     </div>
 
+    <button id="hide-toggle" class="hidebtn" onclick="toggleHideDone()">Hide completed rows</button>
+
     <div id="score-block" style="margin-top:18px;padding-top:14px;border-top:.5px solid var(--sep)">
-      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px">
-        <span style="font-weight:600;font-size:15px">Daily score</span>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px">
+        <span style="font-weight:600;font-size:15px">Daily completion</span><span id="score-day" class="tsm" style="margin-left:2px"></span>
         <span id="score-num" style="font-size:26px;font-weight:700;margin-left:4px;font-variant-numeric:tabular-nums">0</span>
-        <span class="tsm">/ 100</span>
+        <span class="tsm">%</span>
         <span id="score-verdict" class="pill p-neut" style="margin-left:auto">—</span>
       </div>
-      <div class="pb" style="margin-bottom:10px"><div id="score-bar" style="width:0%;background:var(--green)"></div></div>
-      <div id="score-chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-      <div id="diet-detail" class="tsm" style="margin-top:8px;line-height:1.6"></div>
+      <div class="pbt"><div class="pb"><div id="score-bar" style="width:0%;background:var(--green)"></div></div><div id="score-tgt-mark" class="tgtmark" style="left:70%"></div></div>
+      <div id="score-tgt-lbl" class="tsm" style="margin-top:7px;line-height:1.45"></div>
+      <div id="sleep-note" class="tsm" style="margin-top:8px;line-height:1.5;padding:9px 11px;background:var(--fill);border-radius:9px;display:none"></div>
+      <div id="score-done-wrap" style="margin-top:14px">
+        <div class="cmph">✓ Completed</div>
+        <div id="score-chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <div id="score-left-wrap" style="margin-top:14px">
+        <div class="cmph" id="score-left-h">Still to log</div>
+        <div id="score-left" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <div id="score-under-wrap" style="margin-top:14px">
+        <div class="cmph">Logged, but under target</div>
+        <div id="score-under" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+      <div id="diet-detail" class="tsm" style="margin-top:10px;line-height:1.6"></div>
     </div>
 
     <div class="fld" style="margin-top:16px"><label class="main">NOTE <span class="tsm" style="font-weight:400;color:var(--tx3)">· optional, saved for this day</span></label>
@@ -617,7 +642,7 @@ function loadDemo(){
 }
 
 // CHECK-IN
-let selEnergyV=null, ciSleep=null, ciSteps=null, ciDiet={cals:null,fiber:null,carbs:null,protein:null}, woSel=null, ciEatOut=false;
+let selEnergyV=null, ciSleep=null, ciSteps=null, ciDiet={cals:null,fiber:null,carbs:null,protein:null}, woSel=null, ciEatOut=null;
 let ciSuppVals={}, ciSore=null, ciBrk=null;
 function goals(){return {sleep:P.sleepTarget||7,stepLow:P.stepLow||P.stepTarget||8000,stepHigh:P.stepHigh||((P.stepLow||P.stepTarget||8000)+2000),calLow:P.calLow||2000,calHigh:P.calHigh||2500,fiberLow:P.fiberLow||25,fiberHigh:P.fiberHigh||40,carbLow:P.carbLow||150,carbHigh:P.carbHigh||250,proteinLow:P.proteinLow||120,proteinHigh:P.proteinHigh||180,caffLow:P.caffLow==null?25:P.caffLow,caffHigh:P.caffHigh==null?50:P.caffHigh,creatineTarget:P.creatineTarget==null?5:P.creatineTarget,magnesiumTarget:P.magnesiumTarget==null?1:P.magnesiumTarget,ltheanineTarget:P.ltheanineTarget==null?1:P.ltheanineTarget,vitd3Target:P.vitd3Target==null?1:P.vitd3Target,vitk2Target:P.vitk2Target==null?1:P.vitk2Target};}
 const DIET_DEF={cals:2500,fiber:25,carbs:200,protein:150};
@@ -638,13 +663,13 @@ function fillYesterdaySelects(){
 function setSleepSel(v){ciSleep=v===''?null:parseFloat(v);updateScore();}
 function setStepsSel(v){ciSteps=v===''?null:parseInt(v);updateScore();}
 function setDietSel(k,v){ciDiet[k]=v===''?null:parseInt(v);updateScore();}
-function setBrkSel(v){ciBrk=v===''?null:v;}
+function setBrkSel(v){ciBrk=v===''?null:v;updateScore();}
 function setEnergySel(v){selEnergyV=v===''?null:parseInt(v);renderEnergy();updateScore();}
 function setSuppVal(id,v){ciSuppVals[id]=v===''?null:parseFloat(v);renderSupp();updateScore();}
-function setSoreSel(v){ciSore=v===''?null:(v==='rest'?'rest':parseInt(v));renderSupp();}
-const TODAY_DEFAULT=['weight','energy','soreness','workout','supps'];
-const TODAY_LBL={weight:'⚖ Weight',energy:'⚡ Energy',soreness:'💪 Soreness',workout:'🏋 Workout',supps:'💊 Supplements'};
-function todayOrder(){return (P.todayOrder&&P.todayOrder.length)?P.todayOrder:TODAY_DEFAULT;}
+function setSoreSel(v){ciSore=v===''?null:(v==='rest'?'rest':parseInt(v));renderSupp();updateScore();}
+const TODAY_DEFAULT=['weight','energy','steps','diet','eatout','break','soreness','workout','supps'];
+const TODAY_LBL={weight:'⚖ Weight',energy:'⚡ Energy',steps:'👟 Steps',diet:'🍽 Diet',eatout:'🍴 Eat out',break:'☕ Break',soreness:'💪 Soreness',workout:'🏋 Workout',supps:'💊 Supplements'};
+function todayOrder(){const saved=(P.todayOrder&&P.todayOrder.length)?P.todayOrder.slice():[];const o=saved.filter(k=>TODAY_DEFAULT.indexOf(k)>=0);TODAY_DEFAULT.forEach(k=>{if(o.indexOf(k)<0)o.push(k);});return o;}
 function applyTodayOrder(){const c=document.getElementById('today-cats');if(!c)return;todayOrder().forEach(k=>{const el=c.querySelector('.cat[data-key="'+k+'"]');if(el)c.appendChild(el);});}
 function openReorder(){renderReorder();document.getElementById('reorder-modal').classList.remove('hidden');}
 function closeReorder(){document.getElementById('reorder-modal').classList.add('hidden');}
@@ -657,6 +682,7 @@ function renderStepVals(){
   sv('sel-sleep',ciSleep);sv('sel-steps',ciSteps);sv('sel-cals',ciDiet.cals);sv('sel-fiber',ciDiet.fiber);sv('sel-protein',ciDiet.protein);sv('sel-carbs',ciDiet.carbs);
 }
 function updateGoalHints(){const g=goals();
+  document.getElementById('sleep-hint').textContent='· ≥'+g.sleep+'h';
   document.getElementById('steps-hint').textContent='· '+g.stepLow.toLocaleString()+'–'+g.stepHigh.toLocaleString();
   document.getElementById('cals-hint').textContent='· '+g.calLow.toLocaleString()+'–'+g.calHigh.toLocaleString();
   document.getElementById('fiber-hint').textContent='· '+g.fiberLow+'–'+g.fiberHigh;
@@ -723,7 +749,8 @@ function renderTargetCtl(){
   const nt=document.getElementById('wt-tgt-note');if(nt)nt.textContent=locked?'🔒 Locked — one change per week, opens again Sunday':'a day ≥ this counts as a win';
   document.querySelectorAll('#wt-tgt-row .stp2').forEach(b=>{b.style.opacity=locked?'.3':'1';b.style.pointerEvents=locked?'none':'auto';});
 }
-function woMet(v){return v==='same'||v==='inc';}
+// any logged session counts as a workout — below/same/increased all mean you trained
+function woMet(v){return v==='below'||v==='same'||v==='inc';}
 function dayCtx(date){
   const wt=(P.workoutTarget==null?4:P.workoutTarget), ea=(P.eatOutAllow==null?1:P.eatOutAllow);
   const wi=Math.floor(dbtw(wkBase(),date)/7), ws=addDays(wkBase(),wi*7), span=dbtw(ws,date);
@@ -739,13 +766,13 @@ function liveCtxFor(date){
   for(let d=0;d<=span;d++){const dt=addDays(ws,d);const rec=CI.find(c=>c.date===dt);let ate,wo;if(dt===date){ate=ciEatOut===true;wo=woMet(woSel);}else{if(!rec)continue;ate=rec.eatOut===true;wo=woMet(rec.workout);}if(ate)eat++;if(!wo)rest++;if(dt===date)return{eatoutMet:ate?eat<=ea:true,workoutMet:wo?true:rest<=(7-wt)};}
   return{eatoutMet:true,workoutMet:true};
 }
-function svals(rec){if(!rec)return{};const o={energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut,break:rec.brk};const sm=rec.supps||{};suppIds().forEach(id=>{o[id]=sm[id]!=null?sm[id]:rec[id];});return o;}
+function svals(rec){if(!rec)return{};const o={weight:rec.weight,sore:rec.sore,energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut,break:rec.brk};const sm=rec.supps||{};suppIds().forEach(id=>{o[id]=sm[id]!=null?sm[id]:rec[id];});return o;}
 function dailyScore(v,ctx){
   const g=goals(),mw=mainW(),dw=dietSubW(),sw=suppSubW(),met={};
   met.energy=v.energy!=null&&v.energy>=3; // tracked, not scored
   met.sleep=v.sleep!=null&&v.sleep>=g.sleep;
   met.steps=v.steps!=null&&v.steps>=g.stepLow;
-  met.workout=ctx&&ctx.workoutMet!=null?ctx.workoutMet:(v.workout==='same'||v.workout==='inc');
+  met.workout=ctx&&ctx.workoutMet!=null?ctx.workoutMet:woMet(v.workout);
   met.eatout=ctx&&ctx.eatoutMet!=null?ctx.eatoutMet:(v.eatout!==true);
   met.break=(v.break!=='half'&&v.break!=='full'); // target: did not do
   met.cals=inR(v.cals,g.calLow,g.calHigh);
@@ -762,54 +789,159 @@ function dailyScore(v,ctx){
   return {pts:Math.round(pts),met,mw,dw,sw,dietPts:Math.round(dietPts),suppPts:Math.round(suppPts)};
 }
 function chip(label,met,extra){return '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:5px 9px;border-radius:20px;background:'+(met?'var(--gbg)':'var(--fill)')+';color:'+(met?'var(--green-d)':'var(--tx3)')+'">'+label+' '+(met?'✓':'✗')+(extra?' <span style="font-weight:400;opacity:.85">'+extra+'</span>':'')+'</span>';}
+// ---------- COMPLETION MODEL ----------
+const GRP_LBL={sleep:'😴 Sleep',steps:'👟 Steps',diet:'🍽 Diet',eatout:'🍴 Eat out',break:'☕ Break',workout:'🏋 Workout',supps:'💊 Supplements',weight:'⚖ Weight',energy:'⚡ Energy',soreness:'💪 Soreness'};
+function ciDate(){const e=document.getElementById('ci-date');return (e&&e.value)||tod();}
+function weekTargetFor(date){const t=resolveTarget(Math.max(0,Math.floor(dbtw(wkBase(),date)/7)));return t==null?70:t;}
+function itemDefs(){
+  const g=goals(),mw=mainW(),dw=dietSubW(),sw=suppSubW();
+  const L=[
+    {k:'sleep',grp:'sleep',lbl:'Sleep',hint:'≥'+g.sleep+'h',w:mw.sleep,night:true},
+    {k:'steps',grp:'steps',lbl:'Steps',hint:'≥'+g.stepLow.toLocaleString(),w:mw.steps},
+    {k:'cals',grp:'diet',lbl:'Calories',hint:g.calLow.toLocaleString()+'–'+g.calHigh.toLocaleString(),w:mw.diet*dw.cals/100},
+    {k:'fiber',grp:'diet',lbl:'Fiber',hint:g.fiberLow+'–'+g.fiberHigh+'g',w:mw.diet*dw.fiber/100},
+    {k:'protein',grp:'diet',lbl:'Protein',hint:g.proteinLow+'–'+g.proteinHigh+'g',w:mw.diet*dw.protein/100},
+    {k:'carbs',grp:'diet',lbl:'Carbs',hint:g.carbLow+'–'+g.carbHigh+'g',w:mw.diet*dw.carbs/100},
+    {k:'eatout',grp:'eatout',lbl:'Eat out',hint:'stay in',w:mw.eatout},
+    {k:'break',grp:'break',lbl:'Break',hint:'skip it',w:mw.break||0},
+    {k:'workout',grp:'workout',lbl:'Workout',hint:'train, or rest within allowance',w:mw.workout}
+  ];
+  suppIds().forEach(id=>{const sd=suppDef(id);L.push({k:id,grp:'supps',lbl:sd.name,hint:(id==='caffeine'?'≤':'≥')+sd.target+(sd.unit==='pills'?'':' '+sd.unit),w:(mw.supplements||0)*sw[id]/100});});
+  L.push({k:'weight',grp:'weight',lbl:'Weight',w:0,unscored:true});
+  L.push({k:'energy',grp:'energy',lbl:'Energy',w:0,unscored:true});
+  L.push({k:'sore',grp:'soreness',lbl:'Soreness',w:0,unscored:true});
+  return L;
+}
+function isLogged(v,k){
+  if(!v)return false;
+  if(k==='workout')return v.workout!=null&&v.workout!=='';
+  if(k==='break')return v.break!=null&&v.break!=='';
+  if(k==='eatout')return v.eatout===true||v.eatout===false;
+  if(k==='sore')return v.sore!=null&&v.sore!=='';
+  const x=v[k];return x!=null&&x!==''&&!(typeof x==='number'&&isNaN(x));
+}
+function formVals(){
+  const wEl=document.getElementById('ci-wt');const wv=wEl?parseFloat(wEl.value):NaN;
+  return Object.assign({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout:woSel,eatout:ciEatOut,break:ciBrk,sore:ciSore,weight:isNaN(wv)?null:wv},ciSuppVals);
+}
+function groupsOf(defs){const o={};defs.forEach(d=>{(o[d.grp]=o[d.grp]||[]).push(d);});return o;}
+function dchip(label,extra,good){return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:20px;background:'+(good?'var(--gbg)':'var(--fill)')+';color:'+(good?'var(--green-d)':'var(--tx2)')+'">'+label+(extra?' <span style="font-weight:400;opacity:.8">'+extra+'</span>':'')+'</span>';}
 function updateScore(){
-  const g=goals();
-  const date=document.getElementById('ci-date').value||tod();
-  const rec=CI.find(c=>c.date===date);
-  const workout=woSel!=null?woSel:(rec?rec.workout:null);
-  const sc=dailyScore(Object.assign({energy:selEnergyV,sleep:ciSleep,steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,workout,eatout:ciEatOut,break:ciBrk},ciSuppVals),liveCtxFor(date));
-  document.getElementById('score-num').textContent=sc.pts;
-  const bar=document.getElementById('score-bar');bar.style.width=sc.pts+'%';bar.style.background=sc.pts>=100?'var(--green)':sc.pts>=60?'var(--orange)':'var(--red)';
-  const v=document.getElementById('score-verdict');
-  v.className='pill '+(sc.pts>=100?'p-good':sc.pts>=60?'p-info':'p-warn');
-  v.textContent=sc.pts>=100?'Met':sc.pts>=60?'Partial':'Not met';
-  const woLbl={below:'↓ below',same:'= same',inc:'↑ more'}[workout]||'';
-  const W=sc.mw,rw=k=>Math.round(W[k])+'%';
-  document.getElementById('score-chips').innerHTML=[
-    chip('😴 Sleep',sc.met.sleep,rw('sleep')),
-    chip('👟 Steps',sc.met.steps,rw('steps')),
-    chip('🍽 Diet',sc.met.diet,sc.dietPts+'/'+Math.round(W.diet)),
-    chip('🏋 Workout',sc.met.workout,woLbl||rw('workout')),
-    chip('🍴 Eat out',sc.met.eatout,ciEatOut?'ate out':'stayed in'),
-    chip('💊 Supps',sc.met.supplements,sc.suppPts+'/'+Math.round(W.supplements))
-  ].join('');
-  // macro breakdown
+  if(!document.getElementById('score-num'))return;
+  const g=goals(),date=ciDate(),v=formVals();
+  // sleep for THIS day is the night that ends tomorrow morning — it can only be logged then.
+  // until it exists, leave it out of the day's completion and rescale the rest to 100%.
+  const recD=CI.find(c=>c.date===date);
+  const daySleep=recD&&recD.sleep!=null?recD.sleep:null;
+  const sc=dailyScore(Object.assign({},v,{sleep:daySleep}),liveCtxFor(date));
+  const sleepW=sc.mw.sleep||0, sleepOpen=daySleep==null;
+  const raw=sc.pts, base=sleepOpen?Math.max(1,100-sleepW):100;
+  const pts=sleepOpen?Math.round(raw/base*100):raw;
+  const tgt=weekTargetFor(date);
+  document.getElementById('score-num').textContent=pts;
+  const bar=document.getElementById('score-bar');
+  bar.style.width=Math.min(100,pts)+'%';
+  bar.style.background=pts>=tgt?'var(--green)':pts>=tgt*0.7?'var(--orange)':'var(--red)';
+  document.getElementById('score-tgt-mark').style.left=Math.min(100,Math.max(0,tgt))+'%';
+  const vp=document.getElementById('score-verdict');
+  vp.className='pill '+(pts>=tgt?'p-good':pts>=tgt*0.7?'p-info':'p-warn');
+  vp.textContent=pts>=100?'All done':pts>=tgt?'On target':'Below target';
+  const gap=Math.max(0,tgt-pts);
+  document.getElementById('score-tgt-lbl').innerHTML=gap>0
+    ? 'Week target <b>'+tgt+'%</b> — <b style="color:var(--orange)">'+Math.round(gap)+'% still to go</b>'
+    : 'Week target <b>'+tgt+'%</b> — <b style="color:var(--green-d)">'+Math.round(pts-tgt)+'% clear ✓</b>';
+  const sn=document.getElementById('sleep-note');
+  if(sleepOpen&&sleepW>0){
+    const withS=Math.round(Math.min(100,raw+sleepW)), without=Math.round(raw);
+    sn.style.display='block';
+    sn.innerHTML='😴 <b>Sleep isn\'t counted yet</b> — '+(date===tod()?"tonight's sleep gets logged tomorrow morning.":'it was never logged for this day.')
+      +' So this '+Math.round(pts)+'% covers only what is in your control today.<br>Once sleep lands, the day finishes at <b style="color:var(--green-d)">'+withS+'%</b> if you hit '+g.sleep+'h, or <b style="color:var(--orange)">'+without+'%</b> if you don\'t.'
+      +(ciSleep==null?'<br><span style="color:var(--tx3)">Heads up: last night ('+fS(addDays(date,-1))+') is still blank above — that one counts toward '+fS(addDays(date,-1))+'.</span>':'');
+  } else sn.style.display='none';
+
+  const dEl=document.getElementById('score-day');
+  if(dEl)dEl.textContent='· '+(date===tod()?'today':fS(date));
+  const defs=itemDefs(),byGrp=groupsOf(defs);
+  const fmtV=x=>typeof x==='number'?x.toLocaleString():String(x);
+  const done=[],toLog=[],under=[];
+  // group-level progress
+  Object.keys(byGrp).forEach(gk=>{
+    if(gk==='sleep'&&sleepOpen)return;
+    const items=byGrp[gk];
+    if(items[0].unscored){if(isLogged(v,items[0].k))done.push(dchip(GRP_LBL[gk],'logged',true));return;}
+    const metN=items.filter(d=>sc.met[d.k]&&(d.k==='sleep'?daySleep!=null:isLogged(v,d.k))).length;
+    if(metN===items.length)done.push(dchip(GRP_LBL[gk],Math.round(items.reduce((a,d)=>a+d.w,0))+'%',true));
+    else if(metN>0)done.push(dchip(GRP_LBL[gk],metN+'/'+items.length,false));
+  });
+  // anything with no value entered = still to log; entered but off-target = under target
+  defs.slice().sort((a,b)=>b.w-a.w).forEach(d=>{
+    if(d.k==='sleep'){
+      if(sleepOpen)return; // handled by the note above
+      if(!sc.met.sleep)under.push(dchip('Sleep','at '+daySleep+'h → '+(d.hint||'')+' · +'+Math.round(d.w)+'%',false));
+      return;
+    }
+    if(!isLogged(v,d.k)){toLog.push(dchip(d.lbl,d.unscored?'not scored':((d.hint||'')+' · +'+Math.round(d.w)+'%'),false));return;}
+    if(!d.unscored&&!sc.met[d.k])under.push(dchip(d.lbl,'at '+fmtV(v[d.k])+' → '+(d.hint||'')+' · +'+Math.round(d.w)+'%',false));
+  });
+  document.getElementById('score-chips').innerHTML=done.length?done.join(''):'<span class="tsm">Nothing completed yet.</span>';
+  document.getElementById('score-left').innerHTML=toLog.length?toLog.join(''):'<span class="tsm" style="color:var(--green-d);font-weight:600">Everything logged for this day \u2713</span>';
+  document.getElementById('score-under-wrap').style.display=under.length?'block':'none';
+  document.getElementById('score-under').innerHTML=under.join('');
   const seg=(lbl,x,lo,hi,unit)=>{if(x==null)return lbl+' —';const ok=x>=lo&&x<=hi;const c=ok?'var(--green-d)':'var(--orange)';const tag=ok?'✓':(x<lo?'low':'high');return lbl+' <span style="color:'+c+';font-weight:600">'+x.toLocaleString()+unit+' '+tag+'</span>';};
   const anyDiet=ciDiet.cals!=null||ciDiet.fiber!=null||ciDiet.carbs!=null||ciDiet.protein!=null;
   document.getElementById('diet-detail').innerHTML=anyDiet?[seg('Cals',ciDiet.cals,g.calLow,g.calHigh,''),seg('Fiber',ciDiet.fiber,g.fiberLow,g.fiberHigh,'g'),seg('Carbs',ciDiet.carbs,g.carbLow,g.carbHigh,'g'),seg('Protein',ciDiet.protein,g.proteinLow,g.proteinHigh,'g')].join(' · '):'';
+  applyHideDone(v);
+}
+// ---------- HIDE COMPLETED ROWS ----------
+function toggleHideDone(){P.hideDone=!P.hideDone;save();applyHideDone();}
+function applyHideDone(v){
+  const hide=!!P.hideDone;v=v||formVals();
+  document.querySelectorAll('#page-today [data-item]').forEach(el=>{const k=el.getAttribute('data-item');el.style.display=(hide&&isLogged(v,k))?'none':'';});
+  document.querySelectorAll('#supp-rows .sgrp').forEach(gr=>{const r=[].slice.call(gr.querySelectorAll('[data-item]'));gr.style.display=(r.length&&r.every(x=>x.style.display==='none'))?'none':'';});
+  document.querySelectorAll('#today-cats .cat').forEach(c=>{const r=[].slice.call(c.querySelectorAll('[data-item]'));c.style.display=(r.length&&r.every(x=>x.style.display==='none'))?'none':'';});
+  const nl=document.getElementById('night-lbl');
+  if(nl&&nl.parentElement){const sr=document.querySelector('[data-item="sleep"]');nl.parentElement.style.display=(sr&&sr.style.display==='none')?'none':'';}
+  const b=document.getElementById('hide-toggle');if(b)b.textContent=hide?'↧ Show all rows':'↥ Hide completed rows';
+}
+// ---------- CATCH-UP (yesterday's leftovers) ----------
+function missingGroups(date){
+  const rec=CI.find(c=>c.date===date),v=rec?svals(rec):{};
+  const byGrp=groupsOf(itemDefs().filter(d=>d.grp!=='sleep'));
+  const out=[];
+  Object.keys(byGrp).forEach(gk=>{if(byGrp[gk].some(d=>!isLogged(v,d.k)))out.push(GRP_LBL[gk]);});
+  return out;
+}
+function jumpDate(d){const el=document.getElementById('ci-date');if(!el)return;el.value=d;loadForDate();try{el.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){}}
+function renderCatchup(){
+  const el=document.getElementById('catchup-bar');if(!el)return;
+  const date=ciDate(),t=tod();
+  document.getElementById('day-hdr').textContent=date===t?"☀️ Today's check-in":'☀️ '+fS(date)+' — check-in';
+  const nl=document.getElementById('night-lbl');if(nl)nl.textContent='· night of '+fS(addDays(date,-1));
+  if(date!==t){
+    el.innerHTML='<div class="cubar" style="background:var(--bbg)"><span style="flex:1;font-weight:600;color:var(--blue)">📅 Catching up '+fF(date)+'</span><button class="cubtn" style="background:var(--blue);color:#fff" onclick="jumpDate(\''+t+'\')">Start today →</button></div>';
+    return;
+  }
+  const y=addDays(t,-1),m=missingGroups(y);
+  if(!m.length||dbtw(P.startDate,y)<0){el.innerHTML='';return;}
+  el.innerHTML='<div class="cubar" style="background:var(--obg)"><span style="flex:1;min-width:150px"><b>'+fS(y)+' is unfinished</b><br><span style="color:var(--tx2)">'+m.length+' left: '+m.join(' · ')+'</span></span><button class="cubtn" style="background:var(--orange);color:#fff" onclick="jumpDate(\''+y+'\')">Finish it →</button></div>';
 }
 function upsertCI(date,fields){const i=CI.findIndex(c=>c.date===date);if(i>=0)CI[i]={...CI[i],date,...fields};else CI.push({date,...fields});}
 function saveCI(){
-  const date=document.getElementById('ci-date').value||tod();
+  const date=ciDate();
   const yest=addDays(date,-1);
   const wt=parseFloat(document.getElementById('ci-wt').value);
   const note=document.getElementById('ci-note').value.trim();
-  const today={energy:selEnergyV,note,workout:woSel,supps:Object.assign({},ciSuppVals),sore:ciSore};
-  if(!isNaN(wt))today.weight=wt; // weight optional
-  upsertCI(date,today); // today
-  const y={};
-  if(ciSleep!=null)y.sleep=ciSleep;
-  if(ciSteps!=null)y.steps=ciSteps;
-  if(ciDiet.cals!=null)y.cals=ciDiet.cals;
-  if(ciDiet.fiber!=null)y.fiber=ciDiet.fiber;
-  if(ciDiet.carbs!=null)y.carbs=ciDiet.carbs;
-  if(ciDiet.protein!=null)y.protein=ciDiet.protein;
-  y.eatOut=ciEatOut===true;
-  y.brk=ciBrk;
-  if(Object.keys(y).length)upsertCI(yest,y); // yesterday
+  // everything except sleep belongs to the day being edited
+  const day={energy:selEnergyV,note,workout:woSel,supps:Object.assign({},ciSuppVals),sore:ciSore,
+             steps:ciSteps,cals:ciDiet.cals,fiber:ciDiet.fiber,carbs:ciDiet.carbs,protein:ciDiet.protein,
+             brk:ciBrk,eatOut:ciEatOut==null?null:(ciEatOut===true)};
+  if(!isNaN(wt))day.weight=wt; // weight optional
+  upsertCI(date,day);
+  // sleep logged the morning after, so it belongs to the night before
+  if(ciSleep!=null)upsertCI(yest,{sleep:ciSleep});
   save();
   const m=document.getElementById('saved-msg');m.style.display='block';setTimeout(()=>m.style.display='none',2000);
-  renderAll();maybePopup();maybeSundayPrompt();
+  renderAll();renderCatchup();maybePopup();maybeSundayPrompt();
 }
 function loadForDate(){
   const date=document.getElementById('ci-date').value||tod();const yest=addDays(date,-1);
@@ -818,21 +950,21 @@ function loadForDate(){
   selEnergyV=td&&td.energy?td.energy:null;
   renderEnergy();
   ciSleep=yd&&yd.sleep!=null?yd.sleep:null;
-  ciSteps=yd&&yd.steps!=null?yd.steps:null;
-  ciDiet={cals:yd&&yd.cals!=null?yd.cals:null,fiber:yd&&yd.fiber!=null?yd.fiber:null,carbs:yd&&yd.carbs!=null?yd.carbs:null,protein:yd&&yd.protein!=null?yd.protein:null};
-  ciEatOut=yd&&yd.eatOut===true;
+  ciSteps=td&&td.steps!=null?td.steps:null;
+  ciDiet={cals:td&&td.cals!=null?td.cals:null,fiber:td&&td.fiber!=null?td.fiber:null,carbs:td&&td.carbs!=null?td.carbs:null,protein:td&&td.protein!=null?td.protein:null};
+  ciEatOut=td&&td.eatOut!=null?(td.eatOut===true):null;
   renderEatOut();
   ciSuppVals=Object.assign({},(td&&td.supps)||{});
   ciSore=td&&td.sore!=null?td.sore:null;
-  ciBrk=yd&&yd.brk!=null?yd.brk:null;
+  ciBrk=td&&td.brk!=null?td.brk:null;
   woSel=td&&td.workout?td.workout:null;
   renderWorkoutSel();
   renderSupp();renderBreak();
   document.getElementById('ci-note').value=td&&td.note?td.note:'';
-  renderStepVals();updateGoalHints();updateScore();
+  renderStepVals();updateGoalHints();renderCatchup();updateScore();
 }
-function selEatOut(v){ciEatOut=v;renderEatOut();updateScore();}
-function renderEatOut(){const e=document.getElementById('sel-eo');if(e)e.value=ciEatOut===true?'out':'in';}
+function selEatOut(v){ciEatOut=(v===''||v==null)?null:(v===true||v==='out');renderEatOut();updateScore();}
+function renderEatOut(){const e=document.getElementById('sel-eo');if(e)e.value=ciEatOut==null?'':(ciEatOut===true?'out':'in');}
 function selOmega(v){}
 function buildSuppRows(){
   const c=document.getElementById('supp-rows');if(!c)return;
@@ -840,12 +972,13 @@ function buildSuppRows(){
   let html='';
   SUPP_TIMES.forEach(t=>{
     const grp=act.filter(s=>(s.time||'anytime')===t);if(!grp.length)return;
-    html+='<div class="tsm" style="font-weight:700;color:var(--tx3);margin:9px 0 1px;padding-left:2px">'+SUPP_TIME_LBL[t]+'</div>';
+    html+='<div class="sgrp"><div class="tsm" style="font-weight:700;color:var(--tx3);margin:9px 0 1px;padding-left:2px">'+SUPP_TIME_LBL[t]+'</div>';
     grp.forEach(s=>{
-      if(s.id==='omega3'){html+='<div class="drow"><span class="dl sub">Omega-3 <span class="tsm" id="hint-omega3"></span></span><div style="display:flex;gap:6px;flex:1;justify-content:flex-end;min-width:0"><select class="dsel" id="sel-omega3-src" style="flex:1;min-width:0;max-width:120px" onchange="setOmegaSrc(this.value)"><option value="pills">Pills</option><option value="sardines">Sardines</option><option value="salmon">Salmon</option></select><input type="number" inputmode="decimal" id="sel-omega3" class="dsel" style="background-image:none;text-align:right;padding-right:10px;width:88px;flex:none" placeholder="qty" oninput="setSuppVal(\'omega3\',this.value)"></div></div>';}
-      else if(s.id==='caffeine'){html+='<div class="drow"><span class="dl sub">Caffeine <span class="tsm" id="hint-caffeine"></span></span><div style="display:flex;gap:5px;flex:1;justify-content:flex-end;align-items:center;min-width:0"><span id="caff-total" onclick="resetCaff()" title="Tap to reset" style="font-size:13px;font-weight:700;min-width:44px;text-align:right;cursor:pointer">0</span><input type="number" id="caff-add" inputmode="decimal" placeholder="+ add" style="width:62px;border:none;background:var(--fill);border-radius:8px;padding:8px;font-family:var(--font);font-size:13px;text-align:right;color:var(--tx)" onkeydown="if(event.key===\'Enter\'){addCaff();event.preventDefault();}"><button onclick="addCaff()" style="border:none;background:var(--blue);color:#fff;border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">Add</button></div></div>';}
-      else{html+='<div class="drow"><span class="dl sub">'+s.name+' <span class="tsm" id="hint-'+s.id+'"></span></span><input type="number" inputmode="decimal" id="sel-'+s.id+'" class="dsel" style="background-image:none;text-align:right;padding-right:12px;width:116px;flex:none" placeholder="'+s.unit+'" oninput="setSuppVal(\''+s.id+'\',this.value)"></div>';}
+      if(s.id==='omega3'){html+='<div class="drow" data-item="omega3"><span class="dl sub">Omega-3 <span class="tsm" id="hint-omega3"></span></span><div style="display:flex;gap:6px;flex:1;justify-content:flex-end;min-width:0"><select class="dsel" id="sel-omega3-src" style="flex:1;min-width:0;max-width:120px" onchange="setOmegaSrc(this.value)"><option value="pills">Pills</option><option value="sardines">Sardines</option><option value="salmon">Salmon</option></select><input type="number" inputmode="decimal" id="sel-omega3" class="dsel" style="background-image:none;text-align:right;padding-right:10px;width:88px;flex:none" placeholder="qty" oninput="setSuppVal(\'omega3\',this.value)"></div></div>';}
+      else if(s.id==='caffeine'){html+='<div class="drow" data-item="caffeine"><span class="dl sub">Caffeine <span class="tsm" id="hint-caffeine"></span></span><div style="display:flex;gap:5px;flex:1;justify-content:flex-end;align-items:center;min-width:0"><span id="caff-total" onclick="resetCaff()" title="Tap to reset" style="font-size:13px;font-weight:700;min-width:44px;text-align:right;cursor:pointer">0</span><input type="number" id="caff-add" inputmode="decimal" placeholder="+ add" style="width:62px;border:none;background:var(--fill);border-radius:8px;padding:8px;font-family:var(--font);font-size:13px;text-align:right;color:var(--tx)" onkeydown="if(event.key===\'Enter\'){addCaff();event.preventDefault();}"><button onclick="addCaff()" style="border:none;background:var(--blue);color:#fff;border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">Add</button></div></div>';}
+      else{html+='<div class="drow" data-item="'+s.id+'"><span class="dl sub">'+s.name+' <span class="tsm" id="hint-'+s.id+'"></span></span><input type="number" inputmode="decimal" id="sel-'+s.id+'" class="dsel" style="background-image:none;text-align:right;padding-right:12px;width:116px;flex:none" placeholder="'+s.unit+'" oninput="setSuppVal(\''+s.id+'\',this.value)"></div>';}
     });
+    html+='</div>';
   });
   c.innerHTML=html;
   fillOmegaQty();
@@ -1294,7 +1427,7 @@ function renderReport(){
   h+=repRow('😴 Sleep','sleep',g.sleep,'min');
   h+=repRow('👟 Steps','steps',g.stepLow,'min');
   // workout days/wk
-  {const cnt=ww=>weekValsW('workout',ww).filter(x=>x==='same'||x==='inc').length;const four=avgOf([1,2,3,4].map(i=>w-i).filter(x=>x>=0).map(cnt)),lw=w-1>=0?cnt(w-1):null,tw=cnt(w);const wtgt=(P.workoutTarget==null?4:P.workoutTarget);const loggedDays=weekVals('workout').length,rem=Math.max(0,7-loggedDays),left=Math.max(0,wtgt-tw);const todo=left===0?'<span style="color:var(--green-d)">✓ '+tw+'/'+wtgt+'</span>':(left>rem?'<span style="color:var(--red)">need '+left+', '+rem+' left</span>':left+' more');h+='<tr><td class="kpi">🏋 Workout</td><td>'+(four==null?'–':four.toFixed(1))+'</td><td>'+(lw==null?'–':lw)+'</td><td>'+tw+repTrend('protein',tw,four)+'</td><td>'+wtgt+'/wk</td><td class="todo">'+todo+'</td></tr>';}
+  {const cnt=ww=>weekValsW('workout',ww).filter(x=>woMet(x)).length;const four=avgOf([1,2,3,4].map(i=>w-i).filter(x=>x>=0).map(cnt)),lw=w-1>=0?cnt(w-1):null,tw=cnt(w);const wtgt=(P.workoutTarget==null?4:P.workoutTarget);const loggedDays=weekVals('workout').length,rem=Math.max(0,7-loggedDays),left=Math.max(0,wtgt-tw);const todo=left===0?'<span style="color:var(--green-d)">✓ '+tw+'/'+wtgt+'</span>':(left>rem?'<span style="color:var(--red)">need '+left+', '+rem+' left</span>':left+' more');h+='<tr><td class="kpi">🏋 Workout</td><td>'+(four==null?'–':four.toFixed(1))+'</td><td>'+(lw==null?'–':lw)+'</td><td>'+tw+repTrend('protein',tw,four)+'</td><td>'+wtgt+'/wk</td><td class="todo">'+todo+'</td></tr>';}
   // eat-out days/wk (lower better)
   {const cnt=ww=>weekValsW('eatOut',ww).filter(x=>x===true).length;const four=avgOf([1,2,3,4].map(i=>w-i).filter(x=>x>=0).map(cnt)),lw=w-1>=0?cnt(w-1):null,tw=cnt(w);const allow=(P.eatOutAllow==null?1:P.eatOutAllow);const leftA=allow-tw;const todo=leftA<0?'<span style="color:var(--red)">over by '+(-leftA)+'</span>':(leftA===0?'<span style="color:var(--orange)">none left</span>':'<span style="color:var(--green-d)">'+leftA+' left</span>');h+='<tr><td class="kpi">🍴 Ate out</td><td>'+(four==null?'–':four.toFixed(1))+'</td><td>'+(lw==null?'–':lw)+'</td><td>'+tw+repTrend('cals',tw,four)+'</td><td>'+allow+'/wk</td><td class="todo">'+todo+'</td></tr>';}
   // ── DIET subs ──
@@ -1442,7 +1575,7 @@ function renderScoreTable(){
   const catRow=(cat,lbl,cls,rowcls)=>{let r='<tr'+(rowcls?' class="'+rowcls+'"':'')+'><td class="catlbl '+cls+'">'+lbl+'</td>';
     days.forEach(di=>{const rec=recOf(di);const date=addDays(wkBase(),di);let s,vt='';
       if(cat==='eatout'){if(rec.eatOut==null)s={i:'–',c:'var(--tx3)'};else if(rec.eatOut===true)s=dayCtx(date).eatoutMet?{i:'◐',c:'var(--orange)'}:{i:'✗',c:'var(--red)'};else s={i:'✓',c:'var(--green-d)'};}
-      else if(cat==='workout'){if(rec.workout==null||rec.workout==='')s={i:'–',c:'var(--tx3)'};else if(woMet(rec.workout))s={i:rec.workout==='inc'?'↑':'=',c:'var(--green-d)'};else s=dayCtx(date).workoutMet?{i:'◐',c:'var(--orange)'}:{i:'✗',c:'var(--red)'};}
+      else if(cat==='workout'){if(rec.workout==null||rec.workout==='')s={i:'–',c:'var(--tx3)'};else if(woMet(rec.workout))s={i:rec.workout==='inc'?'↑':rec.workout==='below'?'↓':'=',c:'var(--green-d)'};else s=dayCtx(date).workoutMet?{i:'◐',c:'var(--orange)'}:{i:'✗',c:'var(--red)'};}
       else if(cat==='omega3'){const val=recVal(rec,'omega3');s=statusFor('omega3',val,g);const src=(rec.supps&&rec.supps.omega3src)||'pills';const ab={pills:'p',sardines:'cn',salmon:'pc'}[src]||'';vt=val==null?'':(val+ab);}
       else{const val=recVal(rec,cat)==null?null:recVal(rec,cat);s=statusFor(cat,val,g);vt=fmtVal(cat,val);}
       r+='<td style="color:'+s.c+'"><b>'+s.i+'</b>'+(vt!==''?' <span style="font-size:9px">'+vt+'</span>':'')+'</td>';});
