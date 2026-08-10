@@ -102,6 +102,11 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fon
 .cmph{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:7px}
 .hidebtn{display:block;width:100%;margin-top:14px;border:none;background:var(--fill);color:var(--blue);border-radius:10px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
 .hidebtn:active{opacity:.6}
+#fab-save{position:fixed;right:16px;bottom:calc(var(--nh) + env(safe-area-inset-bottom) + 16px);width:60px;height:60px;border-radius:50%;border:none;background:var(--blue);color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;gap:1px;font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.2px;cursor:pointer;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.28);transition:transform .15s,background .2s}
+#fab-save.show{display:flex}
+#fab-save:active{transform:scale(.9)}
+#fab-save.ok{background:var(--green)}
+#fab-save svg{width:21px;height:21px}
 .cubar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 2px;padding:11px 13px;border-radius:11px;font-size:13px;line-height:1.45}
 .cubtn{border:none;border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
 .pb>div{height:100%;border-radius:5px;background:var(--green);transition:width .6s ease}
@@ -310,7 +315,6 @@ canvas{display:block;width:100%}
       <textarea id="ci-note" placeholder="How did the day go? Anything affecting your weight…" style="width:100%;box-sizing:border-box;min-height:64px;resize:vertical;border:none;background:var(--fill);border-radius:11px;padding:11px 13px;font-family:var(--font);font-size:14px;color:var(--tx);line-height:1.45"></textarea>
     </div>
 
-    <button class="btn btp" style="margin-top:18px" onclick="saveCI()">Save</button>
     <div id="saved-msg" class="tc tsm" style="display:none;margin-top:10px;color:var(--green-d);font-weight:600">✓ Saved</div>
   </div>
 </div>
@@ -443,6 +447,10 @@ canvas{display:block;width:100%}
 </div>
 
 </div><!-- /content -->
+<button id="fab-save" class="show" onclick="saveCI()" aria-label="Save check-in">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+  <span id="fab-lbl">SAVE</span>
+</button>
 <nav id="nav">
   <button class="nb active" onclick="goPage('today',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg><span>Today</span>
@@ -733,7 +741,7 @@ function activeKPIS(){return suppIds().length?KPIS:KPIS.filter(k=>k!=='supplemen
 function mainW(){return resolveW(P.kpiW,activeKPIS());}
 function dietSubW(){return resolveW(P.dietW,DIETSUB);}
 function suppSubW(){return resolveW(P.suppW,suppIds());}
-function suppMet(v,id){const s=suppDef(id);if(!s)return false;const val=v[id];if(id==='caffeine')return (val==null?0:val)<=s.target;return val!=null&&val>=s.target;}
+function suppMet(v,id){const s=suppDef(id);if(!s)return false;const val=v[id];if(val==null)return false;if(id==='caffeine')return val<=s.target;return val>=s.target;}
 function curWeekIdx(){return Math.max(0,Math.floor(dbtw(wkBase(),tod())/7));}
 function isSunday(){return lp(tod()).getDay()===0;}
 function editTgtWeek(){return isSunday()?curWeekIdx()+1:curWeekIdx();}
@@ -741,7 +749,7 @@ function canEditTarget(){return isSunday()||P.tgtSetWeek!==curWeekIdx();}
 function resolveTarget(w){const h=P.targetHist||[];let t=null,bw=-1;h.forEach(e=>{if(e.w<=w&&e.w>bw){bw=e.w;t=e.t;}});return t;}
 function setWeekTarget(t){const w=editTgtWeek();const h=P.targetHist||[];const i=h.findIndex(e=>e.w===w);if(i>=0)h[i].t=t;else h.push({w,t});P.targetHist=h;if(!isSunday())P.tgtSetWeek=curWeekIdx();save();}
 function stepTarget(d){if(!canEditTarget())return;let cur=resolveTarget(editTgtWeek());if(cur==null)cur=70;cur=Math.max(0,Math.min(100,cur+d));setWeekTarget(cur);renderTargetCtl();renderScore();}
-function weekAvgScore(w){const arr=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))arr.push(dailyScore(svals(rec),dayCtx(addDays(wkBase(),w*7+d))).pts);}return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;}
+function weekAvgScore(w){const arr=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))arr.push(dayPct(addDays(wkBase(),w*7+d)));}return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;}
 function renderTargetCtl(){
   const ew=editTgtWeek(),t=resolveTarget(ew),locked=!canEditTarget();
   const el=document.getElementById('wt-tgt');if(el)el.textContent=(t==null?70:t)+'%';
@@ -767,14 +775,27 @@ function liveCtxFor(date){
   return{eatoutMet:true,workoutMet:true};
 }
 function svals(rec){if(!rec)return{};const o={weight:rec.weight,sore:rec.sore,energy:rec.energy,sleep:rec.sleep,steps:rec.steps,cals:rec.cals,fiber:rec.fiber,carbs:rec.carbs,protein:rec.protein,workout:rec.workout,eatout:rec.eatOut,break:rec.brk};const sm=rec.supps||{};suppIds().forEach(id=>{o[id]=sm[id]!=null?sm[id]:rec[id];});return o;}
+// canonical completion % for a stored day. tonight's sleep can only be logged
+// tomorrow morning, so for today it is left out and the rest is rescaled to 100%.
+function sleepStillOpen(date,rec){return date>=tod()&&(!rec||rec.sleep==null);}
+function dayPct(date){
+  const rec=CI.find(c=>c.date===date);
+  const sc=dailyScore(svals(rec),dayCtx(date));
+  if(!sleepStillOpen(date,rec))return sc.pts;
+  return Math.round(sc.pts/Math.max(1,100-(sc.mw.sleep||0))*100);
+}
 function dailyScore(v,ctx){
   const g=goals(),mw=mainW(),dw=dietSubW(),sw=suppSubW(),met={};
   met.energy=v.energy!=null&&v.energy>=3; // tracked, not scored
   met.sleep=v.sleep!=null&&v.sleep>=g.sleep;
   met.steps=v.steps!=null&&v.steps>=g.stepLow;
-  met.workout=ctx&&ctx.workoutMet!=null?ctx.workoutMet:woMet(v.workout);
-  met.eatout=ctx&&ctx.eatoutMet!=null?ctx.eatoutMet:(v.eatout!==true);
-  met.break=(v.break!=='half'&&v.break!=='full'); // target: did not do
+  // an unlogged item never scores — the day starts at 0 and is earned upward
+  const woLogged=v.workout!=null&&v.workout!=='';
+  const eoLogged=v.eatout===true||v.eatout===false;
+  const brLogged=v.break!=null&&v.break!=='';
+  met.workout=woLogged&&(ctx&&ctx.workoutMet!=null?ctx.workoutMet:woMet(v.workout));
+  met.eatout=eoLogged&&(ctx&&ctx.eatoutMet!=null?ctx.eatoutMet:(v.eatout!==true));
+  met.break=brLogged&&v.break!=='half'&&v.break!=='full'; // target: did not do
   met.cals=inR(v.cals,g.calLow,g.calHigh);
   met.fiber=inR(v.fiber,g.fiberLow,g.fiberHigh);
   met.protein=inR(v.protein,g.proteinLow,g.proteinHigh);
@@ -834,7 +855,7 @@ function updateScore(){
   const recD=CI.find(c=>c.date===date);
   const daySleep=recD&&recD.sleep!=null?recD.sleep:null;
   const sc=dailyScore(Object.assign({},v,{sleep:daySleep}),liveCtxFor(date));
-  const sleepW=sc.mw.sleep||0, sleepOpen=daySleep==null;
+  const sleepW=sc.mw.sleep||0, sleepOpen=sleepStillOpen(date,recD);
   const raw=sc.pts, base=sleepOpen?Math.max(1,100-sleepW):100;
   const pts=sleepOpen?Math.round(raw/base*100):raw;
   const tgt=weekTargetFor(date);
@@ -877,7 +898,8 @@ function updateScore(){
   defs.slice().sort((a,b)=>b.w-a.w).forEach(d=>{
     if(d.k==='sleep'){
       if(sleepOpen)return; // handled by the note above
-      if(!sc.met.sleep)under.push(dchip('Sleep','at '+daySleep+'h → '+(d.hint||'')+' · +'+Math.round(d.w)+'%',false));
+      if(daySleep==null)toLog.push(dchip('Sleep',(d.hint||'')+' · log it on the next day · +'+Math.round(d.w)+'%',false));
+      else if(!sc.met.sleep)under.push(dchip('Sleep','at '+daySleep+'h → '+(d.hint||'')+' · +'+Math.round(d.w)+'%',false));
       return;
     }
     if(!isLogged(v,d.k)){toLog.push(dchip(d.lbl,d.unscored?'not scored':((d.hint||'')+' · +'+Math.round(d.w)+'%'),false));return;}
@@ -890,13 +912,27 @@ function updateScore(){
   const seg=(lbl,x,lo,hi,unit)=>{if(x==null)return lbl+' —';const ok=x>=lo&&x<=hi;const c=ok?'var(--green-d)':'var(--orange)';const tag=ok?'✓':(x<lo?'low':'high');return lbl+' <span style="color:'+c+';font-weight:600">'+x.toLocaleString()+unit+' '+tag+'</span>';};
   const anyDiet=ciDiet.cals!=null||ciDiet.fiber!=null||ciDiet.carbs!=null||ciDiet.protein!=null;
   document.getElementById('diet-detail').innerHTML=anyDiet?[seg('Cals',ciDiet.cals,g.calLow,g.calHigh,''),seg('Fiber',ciDiet.fiber,g.fiberLow,g.fiberHigh,'g'),seg('Carbs',ciDiet.carbs,g.carbLow,g.carbHigh,'g'),seg('Protein',ciDiet.protein,g.proteinLow,g.proteinHigh,'g')].join(' · '):'';
-  applyHideDone(v);
+  applyHideDone();
 }
 // ---------- HIDE COMPLETED ROWS ----------
 function toggleHideDone(){P.hideDone=!P.hideDone;save();applyHideDone();}
-function applyHideDone(v){
-  const hide=!!P.hideDone;v=v||formVals();
-  document.querySelectorAll('#page-today [data-item]').forEach(el=>{const k=el.getAttribute('data-item');el.style.display=(hide&&isLogged(v,k))?'none':'';});
+// rows hide off SAVED data only — typing a value is not a commitment, hitting Save is
+function savedVals(){
+  const date=ciDate();
+  const v=svals(CI.find(c=>c.date===date));
+  const prev=CI.find(c=>c.date===addDays(date,-1));
+  v.sleep=prev&&prev.sleep!=null?prev.sleep:null; // the sleep row edits the night before
+  return v;
+}
+// caffeine is a running total through the day, so it stays put until you are at or over
+// the limit — before that there is always more that could go in
+function rowDone(v,k){
+  if(k==='caffeine'){const c=suppDef('caffeine');return c&&v.caffeine!=null&&v.caffeine>=c.target;}
+  return isLogged(v,k);
+}
+function applyHideDone(){
+  const hide=!!P.hideDone,v=savedVals();
+  document.querySelectorAll('#page-today [data-item]').forEach(el=>{const k=el.getAttribute('data-item');el.style.display=(hide&&rowDone(v,k))?'none':'';});
   document.querySelectorAll('#supp-rows .sgrp').forEach(gr=>{const r=[].slice.call(gr.querySelectorAll('[data-item]'));gr.style.display=(r.length&&r.every(x=>x.style.display==='none'))?'none':'';});
   document.querySelectorAll('#today-cats .cat').forEach(c=>{const r=[].slice.call(c.querySelectorAll('[data-item]'));c.style.display=(r.length&&r.every(x=>x.style.display==='none'))?'none':'';});
   const nl=document.getElementById('night-lbl');
@@ -941,7 +977,10 @@ function saveCI(){
   if(ciSleep!=null)upsertCI(yest,{sleep:ciSleep});
   save();
   const m=document.getElementById('saved-msg');m.style.display='block';setTimeout(()=>m.style.display='none',2000);
-  renderAll();renderCatchup();maybePopup();maybeSundayPrompt();
+  const fb=document.getElementById('fab-save'),fl=document.getElementById('fab-lbl');
+  if(fb){fb.classList.add('ok');fl.textContent='SAVED';fb.querySelector('svg').innerHTML='<polyline points="4 12.5 9.5 18 20 6.5"/>';
+    clearTimeout(fb._t);fb._t=setTimeout(()=>{fb.classList.remove('ok');fl.textContent='SAVE';fb.querySelector('svg').innerHTML='<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>';},1800);}
+  renderAll();renderCatchup();applyHideDone();maybePopup();maybeSundayPrompt();
 }
 function loadForDate(){
   const date=document.getElementById('ci-date').value||tod();const yest=addDays(date,-1);
@@ -1338,7 +1377,7 @@ function weekValsW(cat,w){const o=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c
 function avgOf(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:null;}
 function last4Avg(cat){const w=curWeekIdx();let all=[];for(let i=1;i<=4;i++){const ww=w-i;if(ww<0)break;all=all.concat(weekValsW(cat,ww));}return avgOf(all);}
 function lastWkAvg(cat){const w=curWeekIdx();return w-1>=0?avgOf(weekValsW(cat,w-1)):null;}
-function weekScoresW(w){const a=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))a.push(dailyScore(svals(rec),dayCtx(addDays(wkBase(),w*7+d))).pts);}return a;}
+function weekScoresW(w){const a=[];for(let d=0;d<7;d++){const rec=CI.find(c=>c.date===addDays(wkBase(),w*7+d));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))a.push(dayPct(addDays(wkBase(),w*7+d)));}return a;}
 const REPFMT={score:v=>Math.round(v)+'%',steps:v=>Math.round(v).toLocaleString(),sleep:v=>v.toFixed(1)+'h',cals:v=>Math.round(v).toLocaleString(),protein:v=>Math.round(v)+'g',days:v=>v.toFixed(1)};
 const REPUP={score:true,steps:true,sleep:true,protein:true,cals:false};
 function repTrend(cat,t,four){if(t==null||four==null)return'';if(Math.abs(t-four)<1e-9)return'';const up=t>four,good=REPUP[cat]?up:!up;return ' <span style="color:'+(good?'var(--green-d)':'var(--red)')+';font-size:10px">'+(up?'▲':'▼')+'</span>';}
@@ -1556,7 +1595,7 @@ function renderScoreTable(){
   const dietDef=[['cals','Calories'],['fiber','Fiber'],['protein','Protein'],['carbs','Carbs']];
   const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
   const vals=(ws,cat)=>{const o=[];for(let d=0;d<7;d++){const di=ws+d;if(di<0)continue;const rec=CI.find(c=>c.date===addDays(wkBase(),di));if(!rec)continue;
-    if(cat==='__score'){if(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null)o.push(dailyScore(svals(rec),dayCtx(addDays(wkBase(),di))).pts);}
+    if(cat==='__score'){if(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null)o.push(dayPct(addDays(wkBase(),di)));}
     else if(cat==='workout'){if(rec.workout)o.push(rec.workout==='inc'||rec.workout==='same'?1:0);}
     else if(cat==='eatout'){if(rec.eatOut!=null)o.push(rec.eatOut===true?1:0);}
     else if(cat==='sore'){if(typeof rec.sore==='number')o.push(rec.sore);}
@@ -1584,7 +1623,7 @@ function renderScoreTable(){
   const tgt=st.tgt;
   // Score (top)
   body+='<tr class="r-score"><td class="catlbl">Score</td>';
-  days.forEach(di=>{const rec=recOf(di);const sc=dailyScore(svals(rec),dayCtx(addDays(wkBase(),di)));const any=rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null;const col=tgt!=null?(any?(sc.pts>=tgt?'var(--green-d)':'var(--red)'):'var(--tx3)'):(sc.pts>=100?'var(--green-d)':sc.pts>=60?'var(--orange)':'var(--tx)');body+='<td style="font-weight:700;color:'+col+'">'+(any?sc.pts+'%':'–')+'</td>';});
+  days.forEach(di=>{const rec=recOf(di);const sc={pts:dayPct(addDays(wkBase(),di))};const any=rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null;const col=tgt!=null?(any?(sc.pts>=tgt?'var(--green-d)':'var(--red)'):'var(--tx3)'):(sc.pts>=100?'var(--green-d)':sc.pts>=60?'var(--orange)':'var(--tx)');body+='<td style="font-weight:700;color:'+col+'">'+(any?sc.pts+'%':'–')+'</td>';});
   // score avg cell with target colour + trend
   {const tv=vals(wStart,'__score'),pv=vals(prevStart,'__score');const ta=mean(tv),pa=mean(pv);const col=(tgt!=null&&ta!=null)?(ta>=tgt?'var(--green-d)':'var(--red)'):'var(--tx)';body+='<td class="avgcell" style="color:'+col+'">'+(ta==null?'–':Math.round(ta)+'%')+arrow('__score',ta,pa)+'</td></tr>';}
   // tracked state just below score (today's feel)
@@ -1648,10 +1687,11 @@ function drawScoreChart(){
     const date=addDays(wkBase(),w);
     const rec=CI.find(c=>c.date===date);
     const sc=dailyScore(rec?svals(rec):{},dayCtx(date));
+    const pct=dayPct(date);
     const any=rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null);
     if(any)logged++;
-    if(sc.pts>=100)fullDays++;
-    const dayMet=tgt!=null&&any&&sc.pts>=tgt;if(dayMet)metDays++;
+    if(pct>=100)fullDays++;
+    const dayMet=tgt!=null&&any&&pct>=tgt;if(dayMet)metDays++;
     lay.forEach(([k,y,h,frac])=>{const on=sc.met[k];ctx.fillStyle=on?segColor(k):KMISS;roundRect(ctx,xC(i)-bw/2,y+0.8,bw,h-1.6,1.5);ctx.fill();ctx.strokeStyle=on?'rgba(255,255,255,.35)':'rgba(120,120,128,.4)';ctx.lineWidth=.6;ctx.stroke();
       if(h>=11){const pctTxt=Math.round(frac*100)+'%';ctx.fillStyle=on?'#fff':'#8e8e93';ctx.font='700 8px '+getFont();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(pctTxt,xC(i),y+h/2);ctx.textBaseline='alphabetic';}});
     ctx.textAlign='center';
@@ -1662,7 +1702,7 @@ function drawScoreChart(){
   ctx.textAlign='center';ctx.fillStyle='#8e8e93';ctx.font='9px '+getFont();
   for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const dt=new Date(addDays(wkBase(),w)+' 00:00');ctx.fillText(dt.getDate(),xC(i),H-8);}
   // weekly average vs target
-  const wv=[];for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const rec=CI.find(c=>c.date===addDays(wkBase(),w));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))wv.push(dailyScore(svals(rec),dayCtx(addDays(wkBase(),w))).pts);}
+  const wv=[];for(let i=0;i<win;i++){const w=pageStart+i;if(w>=totalDays)break;const rec=CI.find(c=>c.date===addDays(wkBase(),w));if(rec&&(rec.energy!=null||rec.sleep!=null||rec.steps!=null||rec.cals!=null||rec.workout!=null))wv.push(dayPct(addDays(wkBase(),w)));}
   const wavg=wv.length?Math.round(wv.reduce((a,b)=>a+b,0)/wv.length):null;
   let msg='';
   if(tgt!=null&&wavg!=null){const ok=wavg>=tgt;msg='Week average <b style="color:'+(ok?'var(--green-d)':'var(--red)')+'">'+wavg+'%</b> vs target <b>'+tgt+'%</b> — '+(ok?'week met ✓':'below target')+'. Met on '+metDays+'/'+logged+' logged days.';}
@@ -1770,7 +1810,7 @@ function maybePopup(){
 
 // NAV / LIFECYCLE
 function renderAll(){renderToday();const ap=document.querySelector('.page.active');if(ap&&ap.id==='page-progress')renderProgress();}
-function goPage(n,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress'){wlPage=Math.floor(Math.max(0,dbtw(wkBase(),tod()))/7/8);scPage=scPageCount()-1;renderProgress();}if(n==='report')renderReport();}
+function goPage(n,btn){document.getElementById('fab-save').classList.toggle('show',n==='today');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');btn.classList.add('active');if(n==='today')renderToday();if(n==='progress'){wlPage=Math.floor(Math.max(0,dbtw(wkBase(),tod()))/7/8);scPage=scPageCount()-1;renderProgress();}if(n==='report')renderReport();}
 function resetAll(){if(confirm('Reset all data? This cannot be undone.')){['wc1_p','wc1_c','wc1_ts','wc1_pop'].forEach(k=>localStorage.removeItem(k));location.reload();}}
 function launchApp(){document.getElementById('setup').style.display='none';document.getElementById('app').style.display='flex';fillYesterdaySelects();buildSuppRows();applyTodayOrder();loadTodayCI();renderAll();setTimeout(maybePopup,400);}
 
